@@ -18,9 +18,9 @@ import (
 	"math"
 
 	proto "github.com/golang/protobuf/proto"
-)
 
-import _ "github.com/gogo/protobuf/gogoproto"
+	_ "github.com/gogo/protobuf/gogoproto"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal

@@ -106,12 +106,15 @@ import (
 	"math"
 
 	proto "github.com/golang/protobuf/proto"
-)
 
-import metapb "model/pkg/metapb"
-import errorpb "model/pkg/errorpb"
-import timestamp "model/pkg/timestamp"
-import _ "github.com/gogo/protobuf/gogoproto"
+	metapb "model/pkg/metapb"
+
+	errorpb "model/pkg/errorpb"
+
+	timestamp "model/pkg/timestamp"
+
+	_ "github.com/gogo/protobuf/gogoproto"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal

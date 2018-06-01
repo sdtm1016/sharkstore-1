@@ -70,6 +70,7 @@ func (service *Server) initHttpHandler() (){
 	s.Handle("/manage/node/upgrade", NewHandler(service.validRequest, service.handleNodeUpgrade))
 	s.Handle("/manage/node/setLogLevel", NewHandler(service.validRequest, service.handleNodeSetLogLevel))
 	s.Handle("/manage/node/getRangeTopo", NewHandler(service.validRequest, service.handleNodeGetRangeTopo))
+	s.Handle("/manage/node/updateIsolationLabel", NewHandler(service.validRequest, service.handleNodeUpdateIsolationLabel))
 
 	s.Handle("/manage/scheduler/getall", NewHandler(service.validRequest, service.handleSchedulerGetAll))
 	s.Handle("/manage/scheduler/add", NewHandler(service.validRequest, service.handleAddScheduler))

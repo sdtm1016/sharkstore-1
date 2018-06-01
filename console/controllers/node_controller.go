@@ -18,6 +18,7 @@ const (
 	NODE_NODELOGLEVELUPDATE = "/node/nodeLogLevelUpdate"
 	NODE_DELETENODE = "/node/deleteNode"
 	NODE_GET_RANGE_TOPOLOGY = "/node/getRangeTopoByNode"
+	NODE_UPDATE_ISOLATION_LABEL = "/node/updateIsolationLabel"
 )
 
 type NodeViewInfo struct {
@@ -176,4 +177,35 @@ func (ctrl *NodeRangeTopo) Execute(c *gin.Context) (interface{}, error) {
 		return nil, err
 	}
 	return data, nil
+}
+
+type UpdateIsolationLabel struct {
+}
+
+func NewUpdateIsolationLabel() *UpdateIsolationLabel {
+	return &UpdateIsolationLabel{}
+}
+
+func (ctrl *UpdateIsolationLabel) Execute(c *gin.Context) (interface{}, error) {
+	cIdStr := c.Query("clusterId")
+	nIdStr := c.Query("nodeId")
+	isolationLabel := c.Query("isolationLabel")
+	if len(cIdStr) == 0 || len(nIdStr) == 0 || len(isolationLabel) == 0 {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	clusterId, err := strconv.Atoi(cIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	nodeId, err := strconv.Atoi(nIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	log.Debug("updating isolation label=[%s] of node. clusterId:[%v], nodeId:[%v]", isolationLabel, clusterId, nodeId)
+	if err := service.NewService().UpdateNodeIsolationLabel(clusterId, nodeId, isolationLabel); err != nil {
+		return nil, err
+	}
+	return nil, nil
 }

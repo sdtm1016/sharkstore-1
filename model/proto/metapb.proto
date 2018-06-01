@@ -54,6 +54,8 @@ message Node {
 
     repeated NodeLabel labels  = 7;
     // more attributes......
+    // node 隔离标识
+    string isolation_label = 8;
 }
 
 enum RangeState {
@@ -230,5 +232,6 @@ message Table {
     // table expand area
     // now when status is TableDelete, expand is the delete flag time
     bytes expand                = 12;
+    string isolation_label       = 13;
 }
 

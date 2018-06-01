@@ -144,6 +144,8 @@ function createDataBaseTable(data) {
 	var dbName = $("#dbName").val();
 	//表名
 	var name = $("#name").val();
+	// 隔离标识
+    var isolationLabel = $("#isolationLabel").val();
 	//集群id
 	var clusterId = $('#clusterId').val();
 	//验证表名
@@ -170,6 +172,7 @@ function createDataBaseTable(data) {
     	        data:{
     	        	"dbName":dbName,
     	        	"name":name,
+                    "isolationLabel": isolationLabel,
     	        	"columns":JSON.stringify(data),
     	        	"regxs":JSON.stringify(regxsList),
     	        	"rangeKeys":rangeKeys,

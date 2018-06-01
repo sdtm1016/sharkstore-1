@@ -292,6 +292,11 @@ app.controller('myClusterNodeInfo', function($rootScope, $scope, $http, $timeout
                       align: 'center',
                       valign: 'middle'
                   }, {
+                      title: 'isolation_label',
+                      field: 'isolation_label',
+                      align: 'center',
+                      valign: 'middle'
+                  }, {
                       title: '状态',
                       field: 'state',
                       align: 'center',
@@ -326,7 +331,8 @@ app.controller('myClusterNodeInfo', function($rootScope, $scope, $http, $timeout
 "<button id=\"updateNodeStatus\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改状态\" onclick=\"updateNodeStatus('"+row.id+"');\">状态修改</button>&nbsp;&nbsp;",
 "<button id=\"deleteNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"删除\" onclick=\"deleteNode('"+row.id+"');\">删除</button>&nbsp;&nbsp;",
 "<button id=\"updateNodeLogLevel\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改日志级别\" onclick=\"updateNodeLogLevel('"+row.id+"');\">设置日志级别</button>&nbsp;&nbsp;",
-"<button id=\"getRangeTopoOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"查看range\" onclick=\"getRangeTopoOfNode('"+row.id+"');\">查看range</button>&nbsp;&nbsp;"
+"<button id=\"getRangeTopoOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"查看range\" onclick=\"getRangeTopoOfNode('"+row.id+"');\">查看range</button>&nbsp;&nbsp;",
+"<button id=\"updateIsolationLabel\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改隔离标识\" onclick=\"updateIsolationLabel('"+row.id+"');\">修改隔离标识/button>&nbsp;&nbsp;"
 						     ].join('');
                       }
                   }
@@ -615,6 +621,35 @@ function getRangeTopoOfNode(nodeId) {
             var clusterId = $('#clusterId').val();
             window.location.href = "/node/getRangeTopo?clusterId=" + clusterId + "&nodeId=" + nodeId;
         });
+}
+
+function updateIsolationLabel(nodeId) {
+    swal({
+            title: "修改Node隔离标志",
+            text: "输入新的IsolationLabel",
+            type: "input",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "确认",
+            closeOnConfirm: false
+        },
+        function (inputValue) {
+            if (inputValue === false) return;
+            if (inputValue === "") {
+                swal.showInputError("不能为空字符");
+                return
+            }
+
+            var clusterId = $('#clusterId').val();
+            var isolationLabel = inputValue;
+            if (isolationLabel == "" || isolationLabel == null) {
+                swal("请输入IsolationLabel");
+                return
+            }
+            window.location.href = "/node/updateIsolationLabel?clusterId=" + clusterId + "&nodeId=" + nodeId + "&isolationLabel=" + isolationLabel;
+            window.location.reload();
+        }
+    );
 }
 
 //获取历史任务列表

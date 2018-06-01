@@ -641,6 +641,9 @@ func (r *Router)StartRouter() *gin.Engine {
 	router.GET(controllers.NODE_GET_RANGE_TOPOLOGY, func(c *gin.Context) {
 		handleAction(c, controllers.NewNodeRangeTopo())
 	})
+	router.GET(controllers.NODE_UPDATE_ISOLATION_LABEL, func(c *gin.Context) {
+		handleAction(c, controllers.NewUpdateIsolationLabel())
+	})
 	router.POST(controllers.RANGE_PEERDEL, func(c *gin.Context) {
 		handleAction(c, controllers.NewPeerDelete())
 	})

@@ -213,7 +213,7 @@ func (s *Service) GetAllDb(cId int) (*[]models.DbInfo, error) {
 	return &(getAllDbResp.Data), nil
 }
 
-func (s *Service) CreateTable(cId int, dbName, tableName, policy, rangeKeys string, columnJsonArray, regxsJsonArray interface{}) error {
+func (s *Service) CreateTable(cId int, dbName, tableName, policy, rangeKeys, isolationLabel string, columnJsonArray, regxsJsonArray interface{}) error {
 	info, err := s.selectClusterById(cId)
 	if err != nil {
 		return err
@@ -232,6 +232,7 @@ func (s *Service) CreateTable(cId int, dbName, tableName, policy, rangeKeys stri
 	reqParams["rangeKeys"] = rangeKeys
 	reqParams["tableName"] = tableName
 	reqParams["policy"] = policy
+	reqParams["isolationLabel"] = isolationLabel
 	var propJson = struct {
 		Columns interface{} `json:"columns"`
 		Regxs   interface{} `json:"regxs"`
@@ -855,6 +856,39 @@ func (s *Service) GetRangeTopoByNodeId(clusterId, nodeId int) (interface{}, erro
 		return nil, fmt.Errorf(getRangeTopoOfNodeResp.Msg)
 	}
 	return getRangeTopoOfNodeResp.Data, nil
+}
+
+func (s *Service) UpdateNodeIsolationLabel(clusterId, nodeId int, isolationLabel string) error {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return err
+	}
+	if info == nil {
+		return common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["nodeId"] = nodeId
+	reqParams["isolationLabel"] = isolationLabel
+
+	var updateNodeIsolationLabelResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/node/updateIsolationLabel", reqParams, &updateNodeIsolationLabelResp); err != nil {
+		return err
+	}
+	if updateNodeIsolationLabelResp.Code != 0 {
+		log.Error("update isolation label of node failed. err:[%v]", updateNodeIsolationLabelResp)
+		return fmt.Errorf(updateNodeIsolationLabelResp.Msg)
+	}
+
+	return nil
 }
 
 func (s *Service) SetClusterToggle(clusterId int, autoTransfer, autoFailover string) error {
@@ -1739,7 +1773,7 @@ func (s *Service) ApplyLockNamespace(cId int, namespace, applyer string, cTime i
 	var columns []*models.Column
 	lockColumn := &models.Column{Name: LOCK_COLUMN, DataType:1, PrimaryKey: 1, Index:true}
 	columns = append(columns, lockColumn)
-	err = s.CreateTable(cId, LOCK_DBNAME, namespace, "", "", columns, nil)
+	err = s.CreateTable(cId, LOCK_DBNAME, namespace, "", "", "", columns, nil)
 	if err != nil {
 		log.Warn("apply lock namespace %v cluster %v failed, err: %v", namespace, cId, err)
 		return err

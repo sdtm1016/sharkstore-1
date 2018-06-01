@@ -64,14 +64,17 @@ import (
 	"math"
 
 	proto "github.com/golang/protobuf/proto"
+
+	metapb "model/pkg/metapb"
+
+	taskpb "model/pkg/taskpb"
+
+	_ "github.com/gogo/protobuf/gogoproto"
+
+	context "golang.org/x/net/context"
+
+	grpc "google.golang.org/grpc"
 )
-
-import metapb "model/pkg/metapb"
-import taskpb "model/pkg/taskpb"
-import _ "github.com/gogo/protobuf/gogoproto"
-
-import context "golang.org/x/net/context"
-import grpc "google.golang.org/grpc"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal

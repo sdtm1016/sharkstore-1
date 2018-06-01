@@ -312,6 +312,8 @@ func encodeSplitKeys(keys [][]byte, columns []*metapb.Column) ([][]byte, error) 
 // step 2. create range in remote
 // step 3. add range in cache and disk
 func (c *Cluster) CreateTable(dbName, tableName string, columns, regxs []*metapb.Column, pkDupCheck bool, sliceKeys [][]byte) (*Table, error) {
+	// todo override
+	var isolationLabel string
 	for _, col := range columns {
 		if isSqlReservedWord(col.Name) {
 			log.Warn("col[%s] is sql reserved word", col.Name)
@@ -335,7 +337,7 @@ func (c *Cluster) CreateTable(dbName, tableName string, columns, regxs []*metapb
 	// create table
 	tableId, err := c.idGener.GenID()
 	if err != nil {
-		log.Error("cannot generte table[%s:%s] ID, err[%v]", dbName, tableName, err)
+		log.Error("cannot generate table[%s:%s] ID, err[%v]", dbName, tableName, err)
 		return nil, ErrGenID
 	}
 	var start, end []byte
@@ -352,6 +354,7 @@ func (c *Cluster) CreateTable(dbName, tableName string, columns, regxs []*metapb
 		Epoch:      &metapb.TableEpoch{ConfVer: uint64(1), Version: uint64(1)},
 		CreateTime: time.Now().Unix(),
 		PkDupCheck: pkDupCheck,
+		IsolationLabel: isolationLabel,
 	}
 
 	var sharingKeys [][]byte
@@ -1174,6 +1177,16 @@ func (c *Cluster) selectNodeForAddPeer(rng *Range) *Node {
 	log.Debug("select node for add Peer node size:%d",len(c.GetAllNode()))
 	nodes := make([]*Node, 0)
 	for _, node := range c.GetAllNode() {
+
+		var tableIsolationLabel string
+		table, found := c.FindTableById(rng.Range.TableId)
+		if found {
+			tableIsolationLabel = table.Table.IsolationLabel
+		}
+
+		if tableIsolationLabel != "" && node.IsolationLabel != "" && tableIsolationLabel != node.IsolationLabel {
+			continue
+		}
 		flag := true
 		for _, selector := range newSelectors {
 			if !selector.CanSelect(node) {
@@ -1186,6 +1199,24 @@ func (c *Cluster) selectNodeForAddPeer(rng *Range) *Node {
 			nodes = append(nodes, node)
 		}
 	}
+
+	// none of the nodes selected (e.g. wrong isolation label)
+	if len(nodes) == 0 {
+		for _, node := range c.GetAllNode() {
+			flag := true
+			for _, selector := range newSelectors {
+				if !selector.CanSelect(node) {
+					log.Debug("addPeer: node %v cannot select, because of %v", node.GetId(), selector.Name())
+					flag = false
+					break
+				}
+			}
+			if flag {
+				nodes = append(nodes, node)
+			}
+		}
+	}
+
 	log.Debug("selected node size:%d",len(nodes))
 	//TODO：选择一个最好的节点，目前只通过range数来判断
 	var bestNode *Node

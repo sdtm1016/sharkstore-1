@@ -138,6 +138,12 @@ func (ctrl *CreateTableAction)Execute(c *gin.Context) (interface{}, error) {
 		return nil, common.PARSE_PARAM_ERROR
 	}
 	log.Debug("dbName:[%v], name:[%v]", dbName, tableName)
+	isolationLabel := c.PostForm("isolationLabel")
+	if isolationLabel == "" {
+		log.Warn("isolation label not set when creating table=%s.", isolationLabel, tableName)
+	} else {
+		log.Debug("setting isolation label=%s when creating table=%s.", isolationLabel, tableName)
+	}
 
 	policy := c.PostForm("policy")
 	if policy == "" {
@@ -180,7 +186,7 @@ func (ctrl *CreateTableAction)Execute(c *gin.Context) (interface{}, error) {
 	}
 	//log.Debug("regxsJsonArray:%v", regxsJsonArray)
 
-	return nil, service.NewService().CreateTable(cId, dbName, tableName, policy, rangeKeys, &columnJsonArray, &regxsJsonArray)
+	return nil, service.NewService().CreateTable(cId, dbName, tableName, policy, rangeKeys, isolationLabel, &columnJsonArray, &regxsJsonArray)
 }
 
 /**

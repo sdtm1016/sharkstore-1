@@ -825,6 +825,41 @@ func (service *Server) handleNodeGetRangeTopo(w http.ResponseWriter, r *http.Req
 	log.Info("get peers of node[nodeId=%d] succeed", nodeId)
 }
 
+func (service *Server) handleNodeUpdateIsolationLabel(w http.ResponseWriter, r *http.Request) {
+	reply := &httpReply{}
+	defer sendReply(w, reply)
+
+	cluster := service.cluster
+	nodeId, err := strconv.ParseUint(r.FormValue(HTTP_NODE_ID), 10, 64)
+	if err != nil {
+		log.Error("http get node id error: %s", http_error_invalid_parameter)
+		reply.Code = HTTP_ERROR_INVALID_PARAM
+		reply.Message = http_error_invalid_parameter
+		return
+	}
+
+	isolationLabel := r.FormValue("isolationLabel")
+	if isolationLabel == "" {
+		log.Error("cannot update node isolation label to empty: %s", http_error_invalid_parameter)
+		reply.Code = HTTP_ERROR_INVALID_PARAM
+		reply.Message = http_error_invalid_parameter
+		return
+	}
+
+	node := cluster.FindNodeById(nodeId)
+	if node == nil {
+		log.Error("node[nodeId=%d] not found", nodeId)
+		reply.Code = HTTP_ERROR_NODE_FIND
+		reply.Message = http_error_node_find
+		return
+	}
+
+	node.Node.IsolationLabel = isolationLabel
+
+	log.Info("updated node isolation label=[%s]: nodeId[=%v]", isolationLabel, nodeId)
+	return
+}
+
 func (service *Server) handleRangeGetPeerInfo(w http.ResponseWriter, r *http.Request) {
 	reply := &httpReply{}
 	defer sendReply(w, reply)
