@@ -24,6 +24,7 @@ type TableInfo struct {
 	Epoch       Epoch    `json:"epoch"`
 	CreateTime   int64     `json:"create_time"`
 	Status      int       `json:"status"`
+	IsolationLabel string `json:"isolation_label"`
 }
 
 

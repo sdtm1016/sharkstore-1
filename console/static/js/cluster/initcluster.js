@@ -9,6 +9,7 @@ function clearModal(){
 function initCluster(){
     var clusterId = $('#clusterId').val();
     var masterUrl = $('#masterUrl').val();
+    var isolationLabel = $('#tableIsolationLabel').val();
     if (!hasText(clusterId)){
         alert("请输入要初始的集群Id");
         return
@@ -25,7 +26,8 @@ function initCluster(){
                 dataType:"json",
                 data:{
                     "masterUrl":masterUrl,
-                    "clusterId":clusterId
+                    "clusterId":clusterId,
+                    "isolationLabel":isolationLabel
                 },
                 success: function(data){
                     $("#resultMsg").text(data.msg);

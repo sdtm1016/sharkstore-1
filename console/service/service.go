@@ -507,13 +507,14 @@ func (s *Service) GetMasterLeader(cId int, token string) (interface{}, error) {
 	return masterLeaderResp.Data, nil
 }
 
-func (s *Service) InitCluster(cId int, masterUrl string, token string) error {
+func (s *Service) InitCluster(cId int, masterUrl string, isolationLabel string, token string) error {
 	ts := time.Now().Unix()
 	sign := common.CalcMsReqSign(cId, token, ts)
 
 	reqParams := make(map[string]interface{})
 	reqParams["d"] = ts
 	reqParams["s"] = sign
+	reqParams["isolationLabel"] = isolationLabel
 
 	var initClusterResp = struct {
 		Code int         `json:"code"`

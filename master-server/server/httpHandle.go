@@ -107,6 +107,7 @@ const (
 	HTTP_FAST = "fast"
 	HTTP_STARTKEY = "startKey"
 	HTTP_ENDKEY = "endKey"
+	HTTP_ISOLATION_LABEL = "isolationLabel"
 )
 
 const (
@@ -250,6 +251,7 @@ func (service *Server) handleTableCreate(w http.ResponseWriter, r *http.Request)
 	tName := r.FormValue(HTTP_TABLE_NAME)
 	properties := r.FormValue(HTTP_PROPERTIES)
 	pkDupCheck := r.FormValue(HTTP_PKDUPCHECK)
+	isolationLabel := r.FormValue(HTTP_ISOLATION_LABEL)
 	if dbName == "" || tName == "" || properties == "" {
 		log.Error("http create table: %s", http_error_parameter_not_enough)
 		reply.Code = HTTP_ERROR_PARAMETER_NOT_ENOUGH
@@ -324,7 +326,7 @@ func (service *Server) handleTableCreate(w http.ResponseWriter, r *http.Request)
 			return
 		}
 	}
-	_, err = service.cluster.CreateTable(dbName, tName, columns, regxs, pkDupCheck != "false", sliceKeys)
+	_, err = service.cluster.CreateTable(dbName, tName, isolationLabel, columns, regxs, pkDupCheck != "false", sliceKeys)
 	if err != nil {
 		if err == ErrDupTable {
 			log.Warn("http create table repeat %s",tName)
@@ -344,6 +346,7 @@ func (service *Server) handleSqlTableCreate(w http.ResponseWriter, r *http.Reque
 	defer sendReply(w, reply)
 	dbName := r.FormValue(HTTP_DB_NAME)
 	command := r.FormValue(HTTP_SQL)
+	isolationLabel := r.FormValue(HTTP_ISOLATION_LABEL)
 	log.Debug("sql create table: %v", command)
 
 	if len(dbName) == 0 || len(command) == 0 {
@@ -371,7 +374,7 @@ func (service *Server) handleSqlTableCreate(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	_, err := service.cluster.CreateTable(dbName, table.GetName(), table.GetColumns(), nil, false, nil)
+	_, err := service.cluster.CreateTable(dbName, table.GetName(), isolationLabel, table.GetColumns(), nil, false, nil)
 	if err != nil {
 		log.Error("http create table: %v", err)
 		reply.Code = HTTP_ERROR
@@ -838,7 +841,7 @@ func (service *Server) handleNodeUpdateIsolationLabel(w http.ResponseWriter, r *
 		return
 	}
 
-	isolationLabel := r.FormValue("isolationLabel")
+	isolationLabel := r.FormValue(HTTP_ISOLATION_LABEL)
 	if isolationLabel == "" {
 		log.Error("cannot update node isolation label to empty: %s", http_error_invalid_parameter)
 		reply.Code = HTTP_ERROR_INVALID_PARAM
@@ -855,6 +858,7 @@ func (service *Server) handleNodeUpdateIsolationLabel(w http.ResponseWriter, r *
 	}
 
 	node.Node.IsolationLabel = isolationLabel
+	cluster.UpdateNode(node)
 
 	log.Info("updated node isolation label=[%s]: nodeId[=%v]", isolationLabel, nodeId)
 	return
@@ -1524,85 +1528,86 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 	}
 	// cluster_meta
 	parseColumn(cluster_meta)
-	_, err = cluster.CreateTable(fbase, "cluster_meta", cluster_meta, nil, false, nil)
+	isolationLabel := r.FormValue(HTTP_ISOLATION_LABEL)
+	_, err = cluster.CreateTable(fbase, "cluster_meta", isolationLabel, cluster_meta, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "cluster_meta", err)
 	}
 	// cluster_net
 	parseColumn(cluster_net)
-	_, err = cluster.CreateTable(fbase, "cluster_net", cluster_net, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "cluster_net", isolationLabel, cluster_net, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "cluster_net", err)
 	}
 	// cluster_slowlog
 	parseColumn(cluster_slowlog)
-	_, err = cluster.CreateTable(fbase, "cluster_slowlog", cluster_slowlog, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "cluster_slowlog", isolationLabel, cluster_slowlog, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "cluster_slowlog", err)
 	}
 	// mac_meta
 	parseColumn(mac_meta)
-	_, err = cluster.CreateTable(fbase, "mac_meta", mac_meta, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "mac_meta", isolationLabel, mac_meta, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "mac_meta", err)
 	}
 	// mac_disk
 	parseColumn(mac_disk)
-	_, err = cluster.CreateTable(fbase, "mac_disk", mac_disk, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "mac_disk", isolationLabel, mac_disk, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "mac_disk", err)
 	}
 	// mac_mem
 	parseColumn(mac_mem)
-	_, err = cluster.CreateTable(fbase, "mac_mem", mac_mem, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "mac_mem", isolationLabel, mac_mem, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "mac_mem", err)
 	}
 	// mac_net
 	parseColumn(mac_net)
-	_, err = cluster.CreateTable(fbase, "mac_net", mac_net, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "mac_net", isolationLabel, mac_net, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "mac_net", err)
 	}
 	// process_meta
 	parseColumn(process_meta)
-	_, err = cluster.CreateTable(fbase, "process_meta", process_meta, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "process_meta", isolationLabel, process_meta, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "process_meta", err)
 	}
 	// process_disk
 	parseColumn(process_disk)
-	_, err = cluster.CreateTable(fbase, "process_disk", process_disk, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "process_disk", isolationLabel, process_disk, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "process_disk", err)
 	}
 	// process_ds
 	parseColumn(process_ds)
-	_, err = cluster.CreateTable(fbase, "process_ds", process_ds, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "process_ds", isolationLabel, process_ds, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "process_ds", err)
 	}
 	// process_net
 	parseColumn(process_net)
-	_, err = cluster.CreateTable(fbase, "process_net", process_net, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "process_net", isolationLabel, process_net, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "process_net", err)
 	}
 	// db_meta
 	parseColumn(db_meta)
-	_, err = cluster.CreateTable(fbase, "db_meta", db_meta, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "db_meta", isolationLabel, db_meta, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "db_meta", err)
 	}
 	// table_meta
 	parseColumn(table_meta)
-	_, err = cluster.CreateTable(fbase, "table_meta", table_meta, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "table_meta", isolationLabel, table_meta, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "table_meta", err)
 	}
 	// fbase_cluster
 	parseColumn(fbase_cluster)
-	_, err = cluster.CreateTable(fbase, "fbase_cluster", fbase_cluster, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_cluster", isolationLabel, fbase_cluster, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_cluster", err)
 		reply.Code = HTTP_ERROR
@@ -1612,7 +1617,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 
 	// fbase_role
 	parseColumn(fbase_role)
-	_, err = cluster.CreateTable(fbase, "fbase_role", fbase_role, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_role", isolationLabel, fbase_role, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_role", err)
 		reply.Code = HTTP_ERROR
@@ -1621,7 +1626,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 	}
 	// fbase_user
 	parseColumn(fbase_user)
-	_, err = cluster.CreateTable(fbase, "fbase_user", fbase_user, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_user", isolationLabel, fbase_user, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_user", err)
 		reply.Code = HTTP_ERROR
@@ -1629,7 +1634,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 		return
 	}
 	parseColumn(fbase_privilege)
-	_, err = cluster.CreateTable(fbase, "fbase_privilege", fbase_privilege, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_privilege", isolationLabel, fbase_privilege, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_privilege", err)
 		reply.Code = HTTP_ERROR
@@ -1639,7 +1644,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 
 	//lock namespace
 	parseColumn(fbase_lock_nsp)
-	_, err = cluster.CreateTable(fbase, "fbase_lock_nsp", fbase_lock_nsp, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_lock_nsp", isolationLabel, fbase_lock_nsp, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_lock_nsp", err)
 		reply.Code = HTTP_ERROR

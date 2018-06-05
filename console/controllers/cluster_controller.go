@@ -144,9 +144,10 @@ func (ctrl *ClusterInitAction)Execute(c *gin.Context) (interface{}, error) {
 		return nil, common.PARSE_PARAM_ERROR
 	}
 	log.Debug("init cluster. cid:[%v]", cId)
+	isolationLabel := c.PostForm("isolationLabel")
 
 	cToken := common.BuildNewClusterToken(cId, "", "")
-	err = service.NewService().InitCluster(cId, masterUrl, cToken)
+	err = service.NewService().InitCluster(cId, masterUrl, isolationLabel, cToken)
 	if err != nil {
 		return nil, err
 	}

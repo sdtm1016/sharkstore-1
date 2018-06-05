@@ -311,9 +311,7 @@ func encodeSplitKeys(keys [][]byte, columns []*metapb.Column) ([][]byte, error) 
 // step 1. create table
 // step 2. create range in remote
 // step 3. add range in cache and disk
-func (c *Cluster) CreateTable(dbName, tableName string, columns, regxs []*metapb.Column, pkDupCheck bool, sliceKeys [][]byte) (*Table, error) {
-	// todo override
-	var isolationLabel string
+func (c *Cluster) CreateTable(dbName, tableName, isolationLabel string, columns, regxs []*metapb.Column, pkDupCheck bool, sliceKeys [][]byte) (*Table, error) {
 	for _, col := range columns {
 		if isSqlReservedWord(col.Name) {
 			log.Warn("col[%s] is sql reserved word", col.Name)

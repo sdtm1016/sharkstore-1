@@ -29,6 +29,7 @@
             <th class="regionCode" style="text-align: center; vertical-align: middle;width: 7%">数据库</th>
             <th class="regionCode" style="text-align: center; vertical-align: middle;width: 10%">表名</th>
             <th class="status" style="text-align: center; vertical-align: middle;width: 10%">状态</th>
+            <th class="isolationLabel" style="text-align: center; vertical-align: middle;width: 10%">隔离标识</th>
             <th class="regionCode" style="text-align: center; vertical-align: middle;width: 10%">创建时间</th>
            <!-- <th class="isAutoextend"  style="text-align: center; vertical-align: middle;width: 5%">自动扩容</th>-->
            <!-- <th class="isAutoextend"  style="text-align: center; vertical-align: middle;width: 5%">自动failover</th>-->
@@ -43,6 +44,7 @@
             <td style="vertical-align:middle; text-align:center;">{{table.db_name}}</td>
             <td style="vertical-align:middle; text-align:center;">{{table.name}}</td>
             <td style="vertical-align:middle; text-align:center;">{{table.status}}</td>
+            <td style="vertical-align:middle; text-align:center;">{{table.isolation_label}}</td>
             <td style="vertical-align:middle; text-align:center;">{{table.create_time * 1000 | date:'yyyy-MM-dd HH:mm:ss' }} </td>
             <!--<td style="vertical-align:middle; text-align:center;">
                 <div class="switchbtn" ng-class="{'switchbtn-on':!table.autoShardingUnable}" ng-click="toggleAutoMigrate(table, 'autoShardingUnable')">
