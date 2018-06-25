@@ -1,10 +1,15 @@
-#include "rpc_client.h"
+_Pragma("once");
 
 namespace sharkstore {
 namespace dataserver {
 namespace net {
 
-// TODO:
+class Client {
+public:
+    Client();
+
+private:
+};
 
 }  // namespace net
 }  // namespace dataserver

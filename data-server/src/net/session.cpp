@@ -14,8 +14,11 @@ namespace net {
 std::atomic<uint64_t> Session::total_count_ = {0};
 
 Session::Session(const SessionOptions& opt, const MsgHandler& msg_handler,
-                 asio::ip::tcp::socket socket)
-    : opt_(opt), msg_handler_(msg_handler), socket_(std::move(socket)) {
+                 asio::ip::tcp::socket socket) :
+      opt_(opt),
+      msg_handler_(msg_handler),
+      socket_(std::move(socket)),
+      read_timeout_timer_(socket_.get_io_context()) {
     ++total_count_;
 }
 
@@ -58,6 +61,11 @@ void Session::Start() {
     }
 }
 
+void Session::Close() {
+    auto self(shared_from_this());
+    asio::post(socket_.get_io_context(), [this, self] { self->doClose(); });
+}
+
 void Session::doClose() {
     if (closed_) {
         return;
@@ -65,14 +73,37 @@ void Session::doClose() {
 
     closed_ = true;
     asio::error_code ec;
+    read_timeout_timer_.cancel(ec);
     socket_.close(ec);
     (void)ec;
 
     FLOG_INFO("%s closed. ", id_.c_str());
 }
 
+void Session::Write(std::string&& data) {
+    // TODO:
+}
+
+void Session::Write(const RPCHead& header, std::vector<uint8_t>&& body) {
+    // TODO:
+}
+
+void Session::resetReadTimer() {
+    if (opt_.read_timeout_ms > 0) {
+        read_timeout_timer_.expires_after(std::chrono::milliseconds(opt_.read_timeout_ms));
+        auto self(shared_from_this());
+        read_timeout_timer_.async_wait([this, self](std::error_code ec) {
+            if (ec != asio::error::operation_aborted) {
+                FLOG_ERROR("%s read timeout. closed.", id_.c_str());
+                doClose();
+            }
+        });
+    }
+}
+
 void Session::readPreface() {
     auto self(shared_from_this());
+    resetReadTimer();
     asio::async_read(socket_, asio::buffer(preface_.data(), preface_.size()),
                      [this, self](std::error_code ec, std::size_t) {
                          if (!ec) {
