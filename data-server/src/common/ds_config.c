@@ -56,7 +56,7 @@ static int load_rocksdb_config(IniContext *ini_context) {
             load_bytes_value_ne(ini_context, section, "block_cache_size", 1024 * 1024 * 1024);
 
     ds_config.rocksdb_config.row_cache_size =
-            load_bytes_value_ne(ini_context, section, "row_cache_size", 5120 * 1024 * 1024);
+            load_bytes_value_ne(ini_context, section, "row_cache_size", 5120UL * 1024 * 1024);
 
     ds_config.rocksdb_config.block_size =
             load_bytes_value_ne(ini_context, section, "block_size", 16 * 1024);

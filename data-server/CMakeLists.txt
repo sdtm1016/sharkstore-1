@@ -229,6 +229,8 @@ endforeach()
 add_executable(data-server ${SOURCES})
 target_link_libraries(data-server ${depend_LIBRARYS})
 
+install(TARGETS data-server RUNTIME DESTINATION bin)
+
 add_custom_target(
     gen-version ALL
     ${CMAKE_COMMAND} -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR} -DBUILD_TYPE=${CMAKE_BUILD_TYPE}
