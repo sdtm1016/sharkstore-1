@@ -1,5 +1,6 @@
 _Pragma("once");
 
+#include <functional>
 #include "base/status.h"
 
 #include "../raft_types.h"

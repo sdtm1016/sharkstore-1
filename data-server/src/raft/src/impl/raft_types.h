@@ -1,6 +1,7 @@
 _Pragma("once");
 
 #include <memory>
+#include <functional>
 #include "raft/types.h"
 
 #include "raft.pb.h"
