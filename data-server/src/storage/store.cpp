@@ -49,7 +49,7 @@ Store::Store(const metapb::Range& meta, rocksdb::DB* db)
 Store::~Store() {}
 
 Status Store::Get(const std::string& key, std::string* value) {
-    rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), key, value);
+    rocksdb::Status s = db_->Get(rocksdb::ReadOptions(ds_config.rocksdb_config.read_checksum, true), key, value);
     if (s.ok()) {
         addMetricRead(1, key.size() + value->size());
         return Status::OK();
@@ -91,7 +91,7 @@ Status Store::Insert(const kvrpcpb::InsertRequest& req, uint64_t* affected) {
     for (int i = 0; i < req.rows_size(); ++i) {
         const kvrpcpb::KeyValue& kv = req.rows(i);
         if (check_dup) {
-            s = db_->Get(rocksdb::ReadOptions(), kv.key(), &value);
+            s = db_->Get(rocksdb::ReadOptions(ds_config.rocksdb_config.read_checksum, true), kv.key(), &value);
             if (s.ok()) {
                 return Status(Status::kDuplicate);
             } else if (!s.IsNotFound()) {
@@ -389,7 +389,7 @@ uint64_t Store::StatisSize(std::string& split_key, uint64_t split_size,
 }
 
 Iterator* Store::NewIterator(const kvrpcpb::Scope& scope) {
-    auto it = db_->NewIterator(rocksdb::ReadOptions());
+    auto it = db_->NewIterator(rocksdb::ReadOptions(ds_config.rocksdb_config.read_checksum, true));
     std::string start = scope.start();
     std::string limit = scope.limit();
     if (start.empty() || start < start_key_) {
@@ -406,7 +406,7 @@ Iterator* Store::NewIterator(const kvrpcpb::Scope& scope) {
 }
 
 Iterator* Store::NewIterator(std::string start, std::string limit) {
-    auto it = db_->NewIterator(rocksdb::ReadOptions());
+    auto it = db_->NewIterator(rocksdb::ReadOptions(ds_config.rocksdb_config.read_checksum, true));
     if (start.empty() || start < start_key_) {
         start = start_key_;
     }
@@ -443,7 +443,7 @@ Status Store::BatchDelete(const std::vector<std::string>& keys) {
 
 bool Store::KeyExists(const std::string& key) {
     rocksdb::PinnableSlice value;
-    auto ret = db_->Get(rocksdb::ReadOptions(), db_->DefaultColumnFamily(), key,
+    auto ret = db_->Get(rocksdb::ReadOptions(ds_config.rocksdb_config.read_checksum,true), db_->DefaultColumnFamily(), key,
                         &value);
     addMetricRead(1, key.size() + value.size());
     return ret.ok();

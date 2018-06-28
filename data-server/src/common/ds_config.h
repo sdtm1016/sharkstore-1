@@ -26,6 +26,7 @@ typedef struct ds_config_s {
         int target_file_size_multiplier;
         int max_background_flushes;
         int max_background_compactions;
+        bool read_checksum;
         int level0_file_num_compaction_trigger;
         int level0_slowdown_writes_trigger;
         int level0_stop_writes_trigger;
