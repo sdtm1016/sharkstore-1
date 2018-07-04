@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
 namespace {
 
 using namespace std;
-using namespace fbase::dataserver;
+using namespace sharkstore::dataserver;
 
 std::string toHex(const std::string& str) {
     std::string result;

@@ -11,15 +11,15 @@ int main(int argc, char* argv[]) {
 
 namespace {
 
-using namespace fbase::dataserver;
-using namespace fbase::dataserver::storage;
+using namespace sharkstore::dataserver;
+using namespace sharkstore::dataserver::storage;
 
 class StoreTest : public ::testing::Test {
 protected:
     StoreTest() : db_(nullptr), store_(nullptr) {}
 
     void SetUp() override {
-        char path[] = "/tmp/fbase_ds_store_test_XXXXXX";
+        char path[] = "/tmp/sharkstore_ds_store_test_XXXXXX";
         char* tmp = mkdtemp(path);
         ASSERT_TRUE(tmp != NULL);
         tmp_dir_ = tmp;
@@ -53,8 +53,8 @@ protected:
 
 TEST_F(StoreTest, KeyValue) {
     // test put and get
-    std::string key = fbase::randomString(32);
-    std::string value = fbase::randomString(64);
+    std::string key = sharkstore::randomString(32);
+    std::string value = sharkstore::randomString(64);
     auto s = store_->Put(key, value);
     ASSERT_TRUE(s.ok());
 
@@ -68,7 +68,7 @@ TEST_F(StoreTest, KeyValue) {
     ASSERT_TRUE(s.ok());
     s = store_->Get(key, &actual_value);
     ASSERT_FALSE(s.ok());
-    ASSERT_EQ(s.code(), fbase::Status::kNotFound);
+    ASSERT_EQ(s.code(), sharkstore::Status::kNotFound);
 }
 
 } /* namespace  */

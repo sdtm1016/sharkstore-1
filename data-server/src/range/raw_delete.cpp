@@ -2,7 +2,7 @@
 
 #include "server/range_server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace range {
 
@@ -10,7 +10,7 @@ bool Range::RawDeleteSubmit(common::ProtoMessage *msg,
                             kvrpcpb::DsKvRawDeleteRequest &req) {
     auto &key = req.req().key();
 
-    if (is_leader && KeyInRange(key)) {
+    if (is_leader_ && KeyInRange(key)) {
         auto ret = SubmitCmd(msg, req, [&req](raft_cmdpb::Command &cmd) {
             cmd.set_cmd_type(raft_cmdpb::CmdType::RawDelete);
             cmd.set_allocated_kv_raw_delete_req(req.release_req());
@@ -22,8 +22,7 @@ bool Range::RawDeleteSubmit(common::ProtoMessage *msg,
     return false;
 }
 
-bool Range::RawDeleteTry(common::ProtoMessage *msg,
-                         kvrpcpb::DsKvRawDeleteRequest &req) {
+bool Range::RawDeleteTry(common::ProtoMessage *msg, kvrpcpb::DsKvRawDeleteRequest &req) {
     std::shared_ptr<Range> rng = context_->range_server->find(split_range_id_);
     if (rng == nullptr) {
         return false;
@@ -32,13 +31,11 @@ bool Range::RawDeleteTry(common::ProtoMessage *msg,
     return rng->RawDeleteSubmit(msg, req);
 }
 
-void Range::RawDelete(common::ProtoMessage *msg,
-                      kvrpcpb::DsKvRawDeleteRequest &req) {
+void Range::RawDelete(common::ProtoMessage *msg, kvrpcpb::DsKvRawDeleteRequest &req) {
     errorpb::Error *err = nullptr;
 
     auto btime = get_micro_second();
-    context_->run_status->PushTime(monitor::PrintTag::Qwait,
-                                   btime - msg->begin_time);
+    context_->run_status->PushTime(monitor::PrintTag::Qwait, btime - msg->begin_time);
 
     FLOG_DEBUG("range[%" PRIu64 "] RawDelete begin", meta_.id());
 
@@ -56,8 +53,7 @@ void Range::RawDelete(common::ProtoMessage *msg,
         auto &key = req.req().key();
 
         if (key.empty()) {
-            FLOG_WARN("range[%" PRIu64 "] RawDelete error: key empty",
-                      meta_.id());
+            FLOG_WARN("range[%" PRIu64 "] RawDelete error: key empty", meta_.id());
             err = KeyNotInRange(key);
             break;
         }
@@ -132,4 +128,4 @@ Status Range::ApplyRawDelete(const raft_cmdpb::Command &cmd) {
 
 }  // namespace range
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

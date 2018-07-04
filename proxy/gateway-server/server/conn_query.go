@@ -27,11 +27,12 @@ import (
 	"util/hack"
 	golog "util/log"
 	"proxy/metric"
+	"util"
 )
 
 /*处理query语句*/
 func (c *ClientConn) handleQuery(sql string) (err error) {
-	var slowLogThreshold int
+	var slowLogThreshold util.Duration
 	var method string = "other"
 	start := time.Now()
 	defer func() {
@@ -59,7 +60,7 @@ func (c *ClientConn) handleQuery(sql string) (err error) {
 		} else {
 			metric.GsMetric.ProxyApiMetric(method, true, delay)
 		}
-		if delay > time.Duration(slowLogThreshold) * time.Millisecond {
+		if delay > slowLogThreshold.Duration {
 			metric.GsMetric.SlowLogMetric(sql, delay)
 		}
 	}()
@@ -90,17 +91,17 @@ func (c *ClientConn) handleQuery(sql string) (err error) {
 	switch v := stmt.(type) {
 	case *sqlparser.Select:
 		method = "select"
-		slowLogThreshold = c.server.cfg.SelectSlowLog
+		slowLogThreshold = c.server.cfg.Performance.SelectSlowLog
 		err = c.handleSelect(v, nil)
 	case *sqlparser.Insert:
 		method = "insert"
-		slowLogThreshold = c.server.cfg.InsertSlowLog
+		slowLogThreshold = c.server.cfg.Performance.InsertSlowLog
 		err = c.handleInsert(v, nil)
 	case *sqlparser.Update:
 		err = c.handleExec(stmt, nil, "Update")
 	case *sqlparser.Delete:
 		method = "delete"
-		slowLogThreshold = c.server.cfg.SelectSlowLog
+		slowLogThreshold = c.server.cfg.Performance.DeleteSlowLog
 		err = c.handleDelete(v, nil)
 	case *sqlparser.Replace:
 		err = c.handleExec(stmt, nil, "Replace")

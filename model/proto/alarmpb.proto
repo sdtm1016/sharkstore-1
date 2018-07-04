@@ -1,0 +1,141 @@
+syntax = "proto3";
+package alarmpb;
+
+import "gogoproto/gogo.proto";
+import "taskpb.proto";
+import "metapb.proto";
+
+
+option (gogoproto.marshaler_all) = true;
+option (gogoproto.sizer_all) = true;
+option (gogoproto.unmarshaler_all) = true;
+
+service Alarm {
+    rpc TaskAlarm(TaskAlarmRequest) returns (TaskAlarmResponse) {}
+    rpc NodeRangeAlarm(NodeRangeAlarmRequest) returns (NodeRangeAlarmResponse) {}
+    rpc AliveAlarm(AliveRequest) returns (AliveResponse) {}
+    rpc SimpleAlarm(SimpleRequest) returns (SimpleResponse) {}
+}
+
+message RequestHeader {
+    int64 cluster_id = 1;
+
+}
+
+message ResponseHeader {
+    int32 code          = 1;
+    string error        = 2;
+}
+
+//////////////////////////////////////
+
+message SimpleAlarmRequest {
+    RequestHeader head          = 1;
+    string Describe             = 2;
+}
+
+message SimpleAlarmResponse {
+    ResponseHeader head         = 1;
+}
+
+//////////////////////////////////////
+
+enum TaskAlarmType {
+    TIMEOUT            = 0;
+    LONG_TIME_RUNNING  = 1;
+}
+
+message TaskAlarmRequest {
+    RequestHeader head          = 1;
+    TaskAlarmType type          = 2;
+    taskpb.Task task            = 3;
+    TaskTimeout task_timeout_alarm                      = 4;
+    TaskLongTimeRunning task_long_time_running_alarm    = 5;
+    string Describe             = 6;
+    repeated string sample_json  = 10;
+}
+
+message TaskTimeout {
+    string start             = 2;
+    int64 takes             = 3;
+}
+
+message TaskLongTimeRunning {
+    string start             = 2;
+    int64 takes             = 3;
+}
+
+message TaskAlarmResponse {
+    ResponseHeader head         = 1;
+}
+
+//////////////////////////////////////
+
+enum NodeRangeAlarmType {
+    RANGE_NO_HEARTBEAT          = 0;
+    NODE_NO_HEARTBEAT           = 1;
+    NODE_DISK_SIZE              = 2;
+    NODE_LEADER_COUNT           = 3;
+}
+
+message NodeRangeAlarmRequest {
+    RequestHeader head          = 1;
+    NodeRangeAlarmType type     = 2;
+    RangeNoHeartbeatAlarm range_no_hb_alarm       = 3;
+    NodeNoHeartbeatAlarm node_no_hb_alarm         = 4;
+    NodeDiskSizeAlarm node_disk_size_alarm        = 5;
+    NodeLeaderCountAlarm node_leader_count_alarm    = 6;
+    string Describe             = 7;
+    repeated string sample_json  = 10;
+}
+
+message RangeNoHeartbeatAlarm {
+    metapb.Range range          = 1;
+    string last_heartbeat_time   = 2;
+}
+
+message NodeNoHeartbeatAlarm {
+    metapb.Node node            = 1;
+    string last_heartbeat_time   = 2;
+}
+
+message NodeDiskSizeAlarm {
+    metapb.Node node            = 1;
+    int64 disk_size             = 2;
+}
+
+message NodeLeaderCountAlarm {
+    metapb.Node node            = 1;
+    int64 leader_count          = 2;
+}
+
+message NodeRangeAlarmResponse {
+    ResponseHeader head          = 1;
+
+}
+
+//////////////////////////////////////
+
+message AliveRequest {
+    RequestHeader head          = 1;
+    repeated string sample_json  = 10;
+
+}
+
+message AliveResponse {
+    ResponseHeader head         = 1;
+
+}
+
+//////////////////////////////////////
+
+message SimpleRequest {
+    RequestHeader head          = 1;
+    string title                = 2;
+    string content              = 3;
+    repeated string sample_json  = 10;
+}
+
+message SimpleResponse {
+    ResponseHeader head          = 1;
+}

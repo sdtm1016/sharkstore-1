@@ -7,7 +7,7 @@
 #include "server/range_server.h"
 #include "server/server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace range {
 
@@ -31,7 +31,7 @@ void Range::ResetStatisSize() {
     metapb::Range *meta = nullptr;
 
     do {
-        fbase::shared_lock<fbase::shared_mutex> lock(meta_lock_);
+        sharkstore::shared_lock<sharkstore::shared_mutex> lock(meta_lock_);
         meta = new metapb::Range(meta_);
     } while (false);
 
@@ -79,7 +79,7 @@ void Range::AskSplit(std::string &key, metapb::Range *meta) {
 void Range::ReportSplit(const metapb::Range &new_range) {
     mspb::ReportSplitRequest report;
     do {
-        fbase::shared_lock<fbase::shared_mutex> lock(meta_lock_);
+        sharkstore::shared_lock<sharkstore::shared_mutex> lock(meta_lock_);
         report.set_allocated_left(new metapb::Range(meta_));
     } while (false);
 
@@ -100,7 +100,7 @@ void Range::AdminSplit(mspb::AskSplitResponse &resp) {
         meta_.id(), resp.new_range_id(), EncodeToHexString(split_key).c_str());
 
     raft_cmdpb::Command cmd;
-    uint64_t seq_id = std::atomic_fetch_add(&submit_seq_, 1ul);
+    uint64_t seq_id = submit_seq_.fetch_add(1);
     // set cmd_id
     cmd.mutable_cmd_id()->set_node_id(node_id_);
     cmd.mutable_cmd_id()->set_seq(seq_id);
@@ -194,7 +194,7 @@ Status Range::ApplySplit(const raft_cmdpb::Command &cmd) {
     auto ret = context_->range_server->ApplySplit(meta_.id(), req);
     if (ret.ok()) {
         do {
-            std::unique_lock<fbase::shared_mutex> lock(meta_lock_);
+            std::unique_lock<sharkstore::shared_mutex> lock(meta_lock_);
             meta_.set_end_key(req.split_key());
             store_->SetEndKey(req.split_key());
 
@@ -240,4 +240,4 @@ Status Range::ApplySplit(const raft_cmdpb::Command &cmd) {
 
 }  // namespace range
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

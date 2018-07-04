@@ -3,4 +3,4 @@ set(base_SOURCES
     util.cpp
     )
 
-add_library(fbase-base STATIC ${base_SOURCES})
+add_library(sharkstore-base STATIC ${base_SOURCES})

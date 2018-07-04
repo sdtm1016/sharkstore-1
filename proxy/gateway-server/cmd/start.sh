@@ -12,7 +12,7 @@ if [ -f $PIDFILE ]; then
 fi
 
 #sh build.sh
-nohup "$BASEPATH"/gateway-server -config gw.conf \
+nohup "$BASEPATH"/gateway-server -config config.toml \
   > /dev/null &
 
 # ------ wirte pid to file

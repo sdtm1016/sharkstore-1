@@ -2,7 +2,7 @@ _Pragma("once");
 
 #include "transport.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace transport {
@@ -23,4 +23,4 @@ private:
 } /* namespace transport */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

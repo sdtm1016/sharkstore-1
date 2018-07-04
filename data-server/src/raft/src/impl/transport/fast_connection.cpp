@@ -9,7 +9,7 @@
 #include "base/util.h"
 #include "common/ds_proto.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace transport {
@@ -82,4 +82,4 @@ Status FastConnection::Send(MessagePtr& msg) {
 } /* namespace transport */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

@@ -21,7 +21,7 @@
 
 #include "context_server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace server {
 
@@ -68,6 +68,7 @@ private:
     void LockUpdate(common::ProtoMessage *msg);
     void Unlock(common::ProtoMessage *msg);
     void UnlockForce(common::ProtoMessage *msg);
+    void LockScan(common::ProtoMessage *msg);
 
     void KVSet(common::ProtoMessage *msg);
     void KVGet(common::ProtoMessage *msg);
@@ -93,8 +94,6 @@ public:
                       const raft_cmdpb::SplitRequest &req);
     void LeaderQueuePush(uint64_t leader, time_t expire);
 
-    void AddReadStats(uint64_t size, uint64_t count);
-    void AddWriteStats(uint64_t size, uint64_t count);
     void ResetStats();
 
 private:  // admin
@@ -142,6 +141,6 @@ private:
 
 }  // namespace server
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore
 
 #endif  //__RANGE_MANAGER_H__

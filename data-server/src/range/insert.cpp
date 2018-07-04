@@ -1,6 +1,6 @@
 #include "range.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace range {
 
@@ -107,4 +107,4 @@ Status Range::ApplyInsert(const raft_cmdpb::Command &cmd) {
 
 }  // namespace range
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

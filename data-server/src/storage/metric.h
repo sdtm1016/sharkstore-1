@@ -4,7 +4,7 @@ _Pragma("once");
 #include <chrono>
 #include <string>
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -48,4 +48,4 @@ extern Metric g_metric;
 
 }  // namespace storage
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

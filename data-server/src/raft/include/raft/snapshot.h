@@ -2,13 +2,13 @@ _Pragma("once");
 
 #include "base/status.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 
 class Snapshot {
 public:
-    Snapshot() {}
-    virtual ~Snapshot() {}
+    Snapshot() = default;
+    virtual ~Snapshot() = default;
 
     Snapshot(const Snapshot&) = delete;
     Snapshot& operator=(const Snapshot&) = delete;
@@ -26,4 +26,4 @@ public:
 };
 
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

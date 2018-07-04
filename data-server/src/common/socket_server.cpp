@@ -5,7 +5,7 @@
 
 #include "ds_config.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace common {
 
@@ -29,4 +29,4 @@ void SocketServer::set_send_done(send_done_callback_t send_func) {
 
 }  // namespace common
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

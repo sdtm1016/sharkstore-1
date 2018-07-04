@@ -6,7 +6,7 @@
 #include "field_value.h"
 #include "store.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -375,4 +375,4 @@ Status RowDecoder::DecodeAndFilter(const std::string& key, const std::string& bu
 
 } /* namespace storage */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

@@ -2,15 +2,14 @@
 
 #include "server/range_server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace range {
 
-bool Range::DeleteSubmit(common::ProtoMessage *msg,
-                         kvrpcpb::DsDeleteRequest &req) {
+bool Range::DeleteSubmit(common::ProtoMessage *msg, kvrpcpb::DsDeleteRequest &req) {
     auto &key = req.req().key();
 
-    if (is_leader && (key.empty() || KeyInRange(key))) {
+    if (is_leader_ && (key.empty() || KeyInRange(key))) {
         auto ret = SubmitCmd(msg, req, [&req](raft_cmdpb::Command &cmd) {
             cmd.set_cmd_type(raft_cmdpb::CmdType::Delete);
             cmd.set_allocated_delete_req(req.release_req());
@@ -22,8 +21,7 @@ bool Range::DeleteSubmit(common::ProtoMessage *msg,
     return false;
 }
 
-bool Range::DeleteTry(common::ProtoMessage *msg,
-                      kvrpcpb::DsDeleteRequest &req) {
+bool Range::DeleteTry(common::ProtoMessage *msg, kvrpcpb::DsDeleteRequest &req) {
     std::shared_ptr<Range> rng = context_->range_server->find(split_range_id_);
     if (rng == nullptr) {
         return false;
@@ -38,8 +36,7 @@ void Range::Delete(common::ProtoMessage *msg, kvrpcpb::DsDeleteRequest &req) {
     errorpb::Error *err = nullptr;
 
     auto btime = get_micro_second();
-    context_->run_status->PushTime(monitor::PrintTag::Qwait,
-                                   btime - msg->begin_time);
+    context_->run_status->PushTime(monitor::PrintTag::Qwait, btime - msg->begin_time);
 
     FLOG_DEBUG("range[%" PRIu64 "] Delete begin", meta_.id());
 
@@ -110,14 +107,14 @@ Status Range::ApplyDelete(const raft_cmdpb::Command &cmd) {
             auto epoch = cmd.verify_epoch();
 
             if (!EpochIsEqual(epoch, err)) {
-                FLOG_WARN("Range %" PRIu64 "  ApplyDelete error: %s",
-                          meta_.id(), err->message().c_str());
+                FLOG_WARN("Range %" PRIu64 "  ApplyDelete error: %s", meta_.id(),
+                          err->message().c_str());
                 break;
             }
         } else {
             if (!KeyInRange(key, err)) {
-                FLOG_WARN("range[%" PRIu64 "] ApplyDelete error: %s",
-                          meta_.id(), err->message().c_str());
+                FLOG_WARN("range[%" PRIu64 "] ApplyDelete error: %s", meta_.id(),
+                          err->message().c_str());
                 break;
             }
         }
@@ -136,8 +133,7 @@ Status Range::ApplyDelete(const raft_cmdpb::Command &cmd) {
 
     if (cmd.cmd_id().node_id() == node_id_) {
         auto resp = new kvrpcpb::DsKvDeleteResponse;
-        SendResponse(resp, cmd, static_cast<int>(ret.code()), affected_keys,
-                     err);
+        SendResponse(resp, cmd, static_cast<int>(ret.code()), affected_keys, err);
     } else if (err != nullptr) {
         delete err;
     }
@@ -147,4 +143,4 @@ Status Range::ApplyDelete(const raft_cmdpb::Command &cmd) {
 
 }  // namespace range
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

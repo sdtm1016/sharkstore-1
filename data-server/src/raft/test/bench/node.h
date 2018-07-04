@@ -10,7 +10,7 @@ _Pragma("once");
 #include "raft/server.h"
 #include "range.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace bench {
 
@@ -34,4 +34,4 @@ private:
 
 } /* namespace bench */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

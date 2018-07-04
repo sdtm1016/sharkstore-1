@@ -79,6 +79,7 @@ func init() {
 	msgType[uint16(funcpb.FunctionID_kFuncLockUpdate)] = &MsgTypeGroup{0x02, 0x12}
 	msgType[uint16(funcpb.FunctionID_kFuncUnlock)] = &MsgTypeGroup{0x02, 0x12}
 	msgType[uint16(funcpb.FunctionID_kFuncUnlockForce)] = &MsgTypeGroup{0x02, 0x12}
+	msgType[uint16(funcpb.FunctionID_kFuncLockScan)] = &MsgTypeGroup{0x02, 0x12}
 
 	msgType[uint16(funcpb.FunctionID_kFuncKvSet)] = &MsgTypeGroup{0x02, 0x12}
 	msgType[uint16(funcpb.FunctionID_kFuncCreateRange)] = &MsgTypeGroup{0x01, 0x11}
@@ -135,6 +136,7 @@ type RpcClient interface {
 	LockUpdate(ctx context.Context, in *kvrpcpb.DsLockUpdateRequest) (*kvrpcpb.DsLockUpdateResponse, error)
 	Unlock(ctx context.Context, in *kvrpcpb.DsUnlockRequest) (*kvrpcpb.DsUnlockResponse, error)
 	UnlockForce(ctx context.Context, in *kvrpcpb.DsUnlockForceRequest) (*kvrpcpb.DsUnlockForceResponse, error)
+	LockScan(ctx context.Context, in *kvrpcpb.DsLockScanRequest) (*kvrpcpb.DsLockScanResponse, error)
 
 	// kv
 	KvSet(ctx context.Context, in *kvrpcpb.DsKvSetRequest) (*kvrpcpb.DsKvSetResponse, error)
@@ -545,6 +547,15 @@ func (c *DSRpcClient) UnlockForce(ctx context.Context, in *kvrpcpb.DsUnlockForce
 		return nil, err
 	} else {
 		return out, nil
+	}
+}
+func (c *DSRpcClient) LockScan(ctx context.Context, in *kvrpcpb.DsLockScanRequest) (*kvrpcpb.DsLockScanResponse, error) {
+	out := new(kvrpcpb.DsLockScanResponse)
+		_, err := c.execute(uint16(funcpb.FunctionID_kFuncLockScan), ctx, in, out)
+	if err != nil {
+		return nil, err
+	} else {
+		return out, nil	
 	}
 }
 

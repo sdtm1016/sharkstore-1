@@ -14,7 +14,7 @@
 
 #include "context_server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace server {
 
@@ -72,6 +72,6 @@ private:
 
 } /* namespace server */
 } /* namespace dataserver  */
-} /* namespace fbase */
+} /* namespace sharkstore */
 
 #endif  //__WORKER_H__

@@ -147,27 +147,27 @@ inline bool RangeState_Parse(
   return ::google::protobuf::internal::ParseNamedEnum<RangeState>(
     RangeState_descriptor(), name, value);
 }
-enum ReplicaRole {
-  Role_Invalid = 0,
-  Role_Sync_Replica = 1,
-  Role_Async_Replica = 2,
-  ReplicaRole_INT_MIN_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32min,
-  ReplicaRole_INT_MAX_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32max
+enum PeerType {
+  PeerType_Invalid = 0,
+  PeerType_Normal = 1,
+  PeerType_Learner = 2,
+  PeerType_INT_MIN_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32min,
+  PeerType_INT_MAX_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32max
 };
-bool ReplicaRole_IsValid(int value);
-const ReplicaRole ReplicaRole_MIN = Role_Invalid;
-const ReplicaRole ReplicaRole_MAX = Role_Async_Replica;
-const int ReplicaRole_ARRAYSIZE = ReplicaRole_MAX + 1;
+bool PeerType_IsValid(int value);
+const PeerType PeerType_MIN = PeerType_Invalid;
+const PeerType PeerType_MAX = PeerType_Learner;
+const int PeerType_ARRAYSIZE = PeerType_MAX + 1;
 
-const ::google::protobuf::EnumDescriptor* ReplicaRole_descriptor();
-inline const ::std::string& ReplicaRole_Name(ReplicaRole value) {
+const ::google::protobuf::EnumDescriptor* PeerType_descriptor();
+inline const ::std::string& PeerType_Name(PeerType value) {
   return ::google::protobuf::internal::NameOfEnum(
-    ReplicaRole_descriptor(), value);
+    PeerType_descriptor(), value);
 }
-inline bool ReplicaRole_Parse(
-    const ::std::string& name, ReplicaRole* value) {
-  return ::google::protobuf::internal::ParseNamedEnum<ReplicaRole>(
-    ReplicaRole_descriptor(), name, value);
+inline bool PeerType_Parse(
+    const ::std::string& name, PeerType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<PeerType>(
+    PeerType_descriptor(), name, value);
 }
 enum DataType {
   Invalid = 0,
@@ -720,11 +720,11 @@ class Peer : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
   ::google::protobuf::uint64 node_id() const;
   void set_node_id(::google::protobuf::uint64 value);
 
-  // .metapb.ReplicaRole role = 3;
-  void clear_role();
-  static const int kRoleFieldNumber = 3;
-  ::metapb::ReplicaRole role() const;
-  void set_role(::metapb::ReplicaRole value);
+  // .metapb.PeerType type = 3;
+  void clear_type();
+  static const int kTypeFieldNumber = 3;
+  ::metapb::PeerType type() const;
+  void set_type(::metapb::PeerType value);
 
   // @@protoc_insertion_point(class_scope:metapb.Peer)
  private:
@@ -732,7 +732,7 @@ class Peer : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::uint64 id_;
   ::google::protobuf::uint64 node_id_;
-  int role_;
+  int type_;
   mutable int _cached_size_;
   friend struct protobuf_metapb_2eproto::TableStruct;
 };
@@ -2611,18 +2611,18 @@ inline void Peer::set_node_id(::google::protobuf::uint64 value) {
   // @@protoc_insertion_point(field_set:metapb.Peer.node_id)
 }
 
-// .metapb.ReplicaRole role = 3;
-inline void Peer::clear_role() {
-  role_ = 0;
+// .metapb.PeerType type = 3;
+inline void Peer::clear_type() {
+  type_ = 0;
 }
-inline ::metapb::ReplicaRole Peer::role() const {
-  // @@protoc_insertion_point(field_get:metapb.Peer.role)
-  return static_cast< ::metapb::ReplicaRole >(role_);
+inline ::metapb::PeerType Peer::type() const {
+  // @@protoc_insertion_point(field_get:metapb.Peer.type)
+  return static_cast< ::metapb::PeerType >(type_);
 }
-inline void Peer::set_role(::metapb::ReplicaRole value) {
+inline void Peer::set_type(::metapb::PeerType value) {
   
-  role_ = value;
-  // @@protoc_insertion_point(field_set:metapb.Peer.role)
+  type_ = value;
+  // @@protoc_insertion_point(field_set:metapb.Peer.type)
 }
 
 // -------------------------------------------------------------------
@@ -4233,10 +4233,10 @@ template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::metapb::RangeState>() {
   return ::metapb::RangeState_descriptor();
 }
-template <> struct is_proto_enum< ::metapb::ReplicaRole> : ::google::protobuf::internal::true_type {};
+template <> struct is_proto_enum< ::metapb::PeerType> : ::google::protobuf::internal::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::metapb::ReplicaRole>() {
-  return ::metapb::ReplicaRole_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::metapb::PeerType>() {
+  return ::metapb::PeerType_descriptor();
 }
 template <> struct is_proto_enum< ::metapb::DataType> : ::google::protobuf::internal::true_type {};
 template <>

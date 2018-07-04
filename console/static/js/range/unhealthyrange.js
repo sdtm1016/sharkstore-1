@@ -14,7 +14,7 @@ app.controller('myranges', function($rootScope, $scope, $http, $timeout) {
 	 });
 
 	  $scope.viewPeerInfo = function(rangeId) {
-	        window.location.href="/page/range/peerinfo?rangeId="+ rangeId +"&tableName="+tableName+"&dbName="+dbName+"&clusterId="+clusterId;
+	        window.location.href="/page/range/peerinfo?rangeId="+ rangeId +"&tableName="+tableName+"&dbName="+dbName+"&clusterId="+clusterId + "&flag="+true;
        };
 	  $scope.rebuildRange = function(rangeId) {
           $.ajax({
@@ -42,5 +42,40 @@ app.controller('myranges', function($rootScope, $scope, $http, $timeout) {
               }
           });
 	  };
+    //集群批量恢复不健康range
+    $scope.batchRecover = function() {
+        swal({
+                title: "确定一键恢复异常range",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "执行",
+                closeOnConfirm: false
+            },
+            function () {
+                $.ajax({
+                    url: "/range/batchRecoverRange",
+                    type: "post",
+                    contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                    dataType: "json",
+                    data: {
+                        "clusterId": clusterId,
+                        "dbName": dbName,
+                        "tableName": tableName
+                    },
+                    success: function (data) {
+                        if (data.code === 0) {
+                            swal("批量恢复中！", "批量恢复中!", "success");
+                            window.location.reload();
+                        } else {
+                            swal("批量恢复失败！", data.message, "error");
+                        }
+                    },
+                    error: function (res) {
+                        swal("批量恢复失败！", "请联系管理员!", "error");
+                    }
+                });
+            });
+    }
 
  });

@@ -46,5 +46,26 @@ app.controller('myFbaseClusterInfo', function($rootScope, $scope, $http, $timeou
                 window.location.href = window.location.href = "/range/getRangeTopo?clusterId=" + space.id + "&rangeId=" + rangeId;
             }
         );
-    }
+    };
+
+    $scope.viewRangeOpsTopN = function (space) {
+        swal({
+                title: "输入查看的条数，不填默认top10",
+                text: "请输入查看的条数",
+                type: "input",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "查看",
+                closeOnConfirm: false
+            },
+            function (inputValue) {
+                if (inputValue === false) return;
+                if (inputValue === "") {
+                    inputValue = 10;
+                }
+                var topN = inputValue;
+                window.location.href = "/page/cluster/viewRangeOpsTopN?clusterId=" + space.id + "&topN=" + topN;
+            }
+        );
+    };
 });

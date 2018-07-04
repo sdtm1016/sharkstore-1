@@ -1,6 +1,6 @@
 #include "address.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace bench {
 
@@ -36,4 +36,4 @@ void NodeAddress::GetAllNodes(std::vector<uint64_t>* nodes) const {
 
 } /* namespace bench */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

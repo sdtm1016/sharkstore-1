@@ -10,15 +10,15 @@ import (
 
 	"path/filepath"
 	"net/http"
+	"database/sql"
 	"fmt"
 
 	"console/controllers"
 	"console/common"
 	"console/config"
-	"util/log"
 	"console/auth"
 	"console/right"
-	"database/sql"
+	"util/log"
 )
 
 type Router struct {
@@ -39,8 +39,7 @@ func NewRouter(c *config.Config, db *sql.DB) *Router {
 }
 
 func (r *Router) GetUserCluster(userName string) (*right.User, error) {
-	//return right.GetUserCluster(r.db, userName)
-	return right.GetUserClusterFake(r.db, userName)
+	return right.GetUserCluster(r.db, userName)
 }
 
 func (r *Router)StartRouter() *gin.Engine {
@@ -61,11 +60,10 @@ func (r *Router)StartRouter() *gin.Engine {
 	router.Static("/static" , r.staticRootDir)
 
 	router.GET("/", func(c *gin.Context) {
-		userName := "admin"
-		//userName, ok := sessions.Default(c).Get("user_name").(string)
-		//if !ok {
-		//	c.Redirect(http.StatusMovedPermanently, r.config.SsoLogoutUrl+ "?ReturnUrl=" + r.config.AppUrl)
-		//}
+		userName, ok := sessions.Default(c).Get("user_name").(string)
+		if !ok {
+			c.Redirect(http.StatusMovedPermanently, "/logout")
+		}
 		admin := "none"
 		user, err := r.GetUserCluster(userName)
 		if err == nil {
@@ -83,16 +81,11 @@ func (r *Router)StartRouter() *gin.Engine {
 		})
 	})
 
-	//兼容以前
-	router.GET("/index", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "/")
-	})
-
 	router.GET("/logout", func(c *gin.Context) {
 		session := sessions.Default(c)
 		session.Clear()
 		session.Save()
-		//c.Redirect(http.StatusMovedPermanently, r.config.SsoLogoutUrl+ "?ReturnUrl=" + r.config.AppUrl)
+		c.Redirect(http.StatusMovedPermanently, r.config.SsoLogoutUrl+ "?ReturnUrl=" + r.config.AppUrl)
 	})
 
 	// -----------------page controller router -------------
@@ -225,11 +218,10 @@ func (r *Router)StartRouter() *gin.Engine {
 		dbId := c.Query("dbId")
 		dbName := c.Query("dbName")
 
-		userName := "admin"
-		//userName, ok := sessions.Default(c).Get("user_name").(string)
-		//if !ok {
-		//	c.Redirect(http.StatusMovedPermanently, r.config.SsoLogoutUrl+ "?ReturnUrl=" + r.config.AppUrl)
-		//}
+		userName, ok := sessions.Default(c).Get("user_name").(string)
+		if !ok {
+			c.Redirect(http.StatusMovedPermanently, "/logout")
+		}
 		admin := "none"
 		user, err := r.GetUserCluster(userName)
 		if err == nil {
@@ -360,86 +352,131 @@ func (r *Router)StartRouter() *gin.Engine {
 			return
 		}
 
-		c.HTML(http.StatusOK, "db_consoleview.html", gin.H{
-			"basePath" : r.staticRootDir,
-			"clusterId" : cid,
-			"dbName" : dbName,
-			"dbId" : dbId,
+			c.HTML(http.StatusOK, "db_consoleview.html", gin.H{
+				"basePath":  r.staticRootDir,
+				"clusterId": cid,
+				"dbName":    dbName,
+				"dbId":      dbId,
+			})
 		})
-	})
 
-	group.GET("/range/viewRangeInfo", func(c *gin.Context) {
-		cid := c.Query("clusterId")
-		if cid == "" {
-			html404(c)
-			return
-		}
-		tableName := c.Query("name")
-		if tableName == "" {
-			html404(c)
-			return
-		}
-		dbName := c.Query("db_name")
-		if dbName == "" {
-			html404(c)
-			return
-		}
+		group.GET("/range/viewRangeInfo", func(c *gin.Context) {
+			cid := c.Query("clusterId")
+			if cid == "" {
+				html404(c)
+				return
+			}
+			tableName := c.Query("name")
+			if tableName == "" {
+				html404(c)
+				return
+			}
+			dbName := c.Query("db_name")
+			if dbName == "" {
+				html404(c)
+				return
+			}
 
-		c.HTML(http.StatusOK, "range_viewrangevis.html", gin.H{
+			c.HTML(http.StatusOK, "range_viewrangevis.html", gin.H{
+				"basePath":  r.staticRootDir,
+				"clusterId": cid,
+				"rangeId":   "",
+				"tableName": tableName,
+				"dbName":    dbName,
+				"source":    "table",
+			})
+		})
+
+		group.GET("/range/getRangeTopo", func(c *gin.Context) {
+			cid := c.Query("clusterId")
+			if cid == "" {
+				html404(c)
+				return
+			}
+			rangeId := c.Query("rangeId")
+			if rangeId == "" {
+				html404(c)
+				return
+			}
+
+			c.HTML(http.StatusOK, "range_viewrangevis.html", gin.H{
+				"basePath":  r.staticRootDir,
+				"clusterId": cid,
+				"rangeId":   rangeId,
+				"tableName": "",
+				"dbName":    "",
+				"source":    "range",
+			})
+		})
+
+		group.GET("/node/getRangeTopo", func(c *gin.Context) {
+			cid := c.Query("clusterId")
+			if cid == "" {
+				html404(c)
+				return
+			}
+			nodeId := c.Query("nodeId")
+			if nodeId == "" {
+				html404(c)
+				return
+			}
+
+			c.HTML(http.StatusOK, "range_viewrangevis.html", gin.H{
+				"basePath":  r.staticRootDir,
+				"clusterId": cid,
+				"rangeId":   nodeId,
+				"tableName": "",
+				"dbName":    "",
+				"source":    "node",
+			})
+		})
+
+		group.GET("/page/cluster/viewRangeOpsTopN", func(c *gin.Context) {
+			cid := c.Query("clusterId")
+			if cid == "" {
+				html404(c)
+				return
+			}
+			topN := c.Query("topN")
+			if topN == "" {
+				html404(c)
+				return
+			}
+
+			c.HTML(http.StatusOK, "range_viewopstopn.html", gin.H{
+				"basePath":  r.staticRootDir,
+				"clusterId": cid,
+				"topN":      topN,
+			})
+		})
+
+		group.GET("/page/range/unhealthy", func(c *gin.Context) {
+			cid := c.Query("clusterId")
+			if cid == "" {
+				html404(c)
+				return
+			}
+			dbName := c.Query("dbName")
+			if dbName == "" {
+				html404(c)
+				return
+			}
+			tableName := c.Query("tableName")
+			if tableName == "" {
+				html404(c)
+				return
+			}
+			rId := c.Query("rangeId")
+		c.HTML(http.StatusOK, "range_unhealthy.html", gin.H{
 			"basePath" : r.staticRootDir,
 			"clusterId" : cid,
-			"rangeId" : "",
 			"tableName" : tableName,
 			"dbName" : dbName,
-			"source": "table",
+			"rangeId": rId,
 		})
 	})
 
-	group.GET("/range/getRangeTopo", func(c *gin.Context) {
-		cid := c.Query("clusterId")
-		if cid == "" {
-			html404(c)
-			return
-		}
-		rangeId := c.Query("rangeId")
-		if rangeId == "" {
-			html404(c)
-			return
-		}
-
-		c.HTML(http.StatusOK, "range_viewrangevis.html", gin.H{
-			"basePath":  r.staticRootDir,
-			"clusterId": cid,
-			"rangeId":   rangeId,
-			"tableName": "",
-			"dbName":    "",
-			"source":    "range",
-		})
-	})
-
-	group.GET("/node/getRangeTopo", func(c *gin.Context) {
-		cid := c.Query("clusterId")
-		if cid == "" {
-			html404(c)
-			return
-		}
-		nodeId := c.Query("nodeId")
-		if nodeId == "" {
-			html404(c)
-			return
-		}
-
-		c.HTML(http.StatusOK, "range_viewrangevis.html", gin.H{
-			"basePath":  r.staticRootDir,
-			"clusterId": cid,
-			"rangeId":   nodeId,
-			"tableName": "",
-			"dbName":    "",
-			"source":    "node",
-		})
-	})
-
-	group.GET("/page/range/unhealthy", func(c *gin.Context) {
+	group.GET("/page/range/unstable", func(c *gin.Context) {
 		cid := c.Query("clusterId")
 		if cid == "" {
 			html404(c)
@@ -455,18 +492,11 @@ func (r *Router)StartRouter() *gin.Engine {
 			html404(c)
 			return
 		}
-		rId := c.Query("rangeId")
-		if rId == "" {
-			html404(c)
-			return
-		}
-
-		c.HTML(http.StatusOK, "range_unhealthy.html", gin.H{
+		c.HTML(http.StatusOK, "range_unstable.html", gin.H{
 			"basePath" : r.staticRootDir,
 			"clusterId" : cid,
 			"tableName" : tableName,
 			"dbName" : dbName,
-			"rangeId": rId,
 		})
 	})
 
@@ -491,13 +521,14 @@ func (r *Router)StartRouter() *gin.Engine {
 			html404(c)
 			return
 		}
-
+		flag := c.Query("flag")
 		c.HTML(http.StatusOK, "range_peerinfo.html", gin.H{
 			"basePath" : r.staticRootDir,
 			"clusterId" : cid,
 			"tableName" : tableName,
 			"dbName" : dbName,
 			"rangeId" : rangeId,
+			"flag" : flag,
 		})
 	})
 
@@ -565,6 +596,18 @@ func (r *Router)StartRouter() *gin.Engine {
 		}else {
 			c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s/dashboard-solo/db/%s?var-cluster_id=%s&panelId=%s&from=%s&to=%s&var-type=%s",r.config.MonitorDomain,dashboardName, cid, panelId, startTime, endTime, typeQ))
 		}
+	})
+
+	router.GET("/page/metric/viewServerList", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "metric_server.html", gin.H{
+			"basePath" : r.staticRootDir,
+		})
+	})
+
+	router.GET("/page/metric/clusterManage", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "metric_manage.html", gin.H{
+			"basePath" : r.staticRootDir,
+		})
 	})
 
 	// ----------------api router ---------------------
@@ -647,8 +690,14 @@ func (r *Router)StartRouter() *gin.Engine {
 	router.POST(controllers.RANGE_PEERDEL, func(c *gin.Context) {
 		handleAction(c, controllers.NewPeerDelete())
 	})
+	router.POST(controllers.RANGE_PEERADD, func(c *gin.Context) {
+		handleAction(c, controllers.NewPeerAdd())
+	})
 	router.GET(controllers.RANGE_GET_UNHEALTHY_RANGES, func(c *gin.Context) {
 		handleAction(c, controllers.NewGetUnhealthyRanges())
+	})
+	router.GET(controllers.RANGE_GET_UNSTABLE_RANGES, func(c *gin.Context) {
+		handleAction(c, controllers.NewGetUnstableRanges())
 	})
 	router.GET(controllers.RANGE_GET_RANGE_INFO_BY_ID, func(c *gin.Context) {
 		handleAction(c, controllers.NewRangeInfoView())
@@ -677,6 +726,15 @@ func (r *Router)StartRouter() *gin.Engine {
 	router.POST(controllers.RANGE_BATCH_RECOVER_RANGE, func(c *gin.Context) {
 		handleAction(c, controllers.NewRangeBatchRecover())
 	})
+	router.POST(controllers.RANGE_TRANSFER, func(c *gin.Context) {
+		handleAction(c, controllers.NewRangeTransfer())
+	})
+	router.POST(controllers.RANGE_CHANGE_LEADER, func(c *gin.Context) {
+		handleAction(c, controllers.NewRangeLeaderChange())
+	})
+	router.GET(controllers.RANGE_OPS_TOPN, func(c *gin.Context) {
+		handleAction(c, controllers.NewRangeOpsTopN())
+	})
 	router.POST(controllers.TASK_GET_PRESENT, func(c *gin.Context) {
 		handleAction(c, controllers.NewTaskPresent())
 	})
@@ -685,6 +743,9 @@ func (r *Router)StartRouter() *gin.Engine {
 	})
 	router.GET(controllers.REQURI_SCHEDULER_GETALL, func(c *gin.Context) {
 		handleAction(c, controllers.NewSchedulerAllAction())
+	})
+	router.GET(controllers.REQURI_SCHEDULER_GETDETAIL, func(c *gin.Context) {
+		handleAction(c, controllers.NewSchedulerDetailAction())
 	})
 	router.POST(controllers.REQURI_SCHEDULER_ADJUST, func(c *gin.Context) {
 		handleAction(c, controllers.NewSchedulerAdjustAction())
@@ -711,46 +772,63 @@ func (r *Router)StartRouter() *gin.Engine {
 		handleAction(c, controllers.NewStoreDataQuery())
 	})
 
-	// user
-	router.GET(controllers.REQURI_USER_ADMIN, func(c *gin.Context) {
-		handleAction(c, controllers.NewUserAdminAction())
-	})
-	router.POST(controllers.REQURI_USER_GETUSERLIST,func(c *gin.Context) {
-		handleAction(c, controllers.NewStoreDataQuery())
-	})
-	router.GET(controllers.REQURI_USER_GETPRIVILEGELIST,func(c *gin.Context) {
-		handleAction(c, controllers.NewPrivilegeInfoAction())
-	})
-	router.POST(controllers.REQURI_USER_UPDATEPRIVILEG,func(c *gin.Context) {
-		handleAction(c, controllers.NewPrivilegeUpdateAction())
-	})
-	router.POST(controllers.REQURI_USER_DELRIVILEGS,func(c *gin.Context) {
-		handleAction(c, controllers.NewPrivilegeDelAction())
-	})
-	router.GET(controllers.REQURI_USER_GETROLELIST,func(c *gin.Context) {
-		handleAction(c, controllers.NewRoleInfoAction())
-	})
-	router.POST(controllers.REQURI_USER_ADDROLE,func(c *gin.Context) {
-		handleAction(c, controllers.NewRoleAddAction())
-	})
-	router.POST(controllers.REQURI_USER_DELROLE,func(c *gin.Context) {
-		handleAction(c, controllers.NewRoleDelAction())
-	})
+		// user
+		router.GET(controllers.REQURI_USER_ADMIN, func(c *gin.Context) {
+			handleAction(c, controllers.NewUserAdminAction())
+		})
+		router.POST(controllers.REQURI_USER_GETUSERLIST, func(c *gin.Context) {
+			handleAction(c, controllers.NewStoreDataQuery())
+		})
+		router.GET(controllers.REQURI_USER_GETPRIVILEGELIST, func(c *gin.Context) {
+			handleAction(c, controllers.NewPrivilegeInfoAction())
+		})
+		router.POST(controllers.REQURI_USER_UPDATEPRIVILEG, func(c *gin.Context) {
+			handleAction(c, controllers.NewPrivilegeUpdateAction())
+		})
+		router.POST(controllers.REQURI_USER_DELRIVILEGS, func(c *gin.Context) {
+			handleAction(c, controllers.NewPrivilegeDelAction())
+		})
+		router.GET(controllers.REQURI_USER_GETROLELIST, func(c *gin.Context) {
+			handleAction(c, controllers.NewRoleInfoAction())
+		})
+		router.POST(controllers.REQURI_USER_ADDROLE, func(c *gin.Context) {
+			handleAction(c, controllers.NewRoleAddAction())
+		})
+		router.POST(controllers.REQURI_USER_DELROLE, func(c *gin.Context) {
+			handleAction(c, controllers.NewRoleDelAction())
+		})
 	}
 	//lock
-	router.GET(controllers.REQURI_LOCK_NAMESPACE_GETALL,func(c *gin.Context) {
+	router.GET(controllers.REQURI_LOCK_NAMESPACE_GETALL, func(c *gin.Context) {
 		handleAction(c, controllers.NewLockGetAllNspAction())
 	})
-	router.POST(controllers.REQURI_LOCK_NAMESPACE_APPLY,func(c *gin.Context) {
+	router.POST(controllers.REQURI_LOCK_NAMESPACE_APPLY, func(c *gin.Context) {
 		handleAction(c, controllers.NewLockNspApplyAction())
 	})
-	router.POST(controllers.REQURI_LOCK_NAMESPACE_UPDATE,func(c *gin.Context) {
+	router.POST(controllers.REQURI_LOCK_NAMESPACE_UPDATE, func(c *gin.Context) {
 		handleAction(c, controllers.NewLockNspUpdateAction())
 	})
-	router.GET(controllers.REQURI_LOCK_CLUSTER_INFO,func(c *gin.Context) {
+	router.GET(controllers.REQURI_LOCK_CLUSTER_INFO, func(c *gin.Context) {
 		handleAction(c, controllers.NewLockClusterGetAction())
 	})
-	router.Run(":"+fmt.Sprint(r.config.ReqListenPort))
+
+	//metric
+	router.GET(controllers.REQURL_METRIC_SERVER_GETALL, func(c *gin.Context) {
+		handleAction(c, controllers.NewGetMetricServerAction())
+	})
+	router.POST(controllers.REQURL_METRIC_SERVER_ADD, func(c *gin.Context) {
+		handleAction(c, controllers.NewAddMetricServerAction())
+	})
+	router.POST(controllers.REQURL_METRIC_SERVER_DEL, func(c *gin.Context) {
+		handleAction(c, controllers.NewDelMetricServerAction())
+	})
+	router.POST(controllers.REQURL_METRIC_CONFIG_GET, func(c *gin.Context) {
+		handleAction(c, controllers.NewGetMetricConfigAction())
+	})
+	router.POST(controllers.REQURL_METRIC_CONFIG_SET, func(c *gin.Context) {
+		handleAction(c, controllers.NewSetMetricConfigAction())
+	})
+	router.Run(":" + fmt.Sprint(r.config.ReqListenPort))
 
 	return router
 }
@@ -771,17 +849,17 @@ func handleAction(c *gin.Context, act controllers.Action) {
 	if data, err := act.Execute(c); err != nil {
 		if fErr, ok := err.(*common.FbaseError); ok == true {
 			c.JSON(http.StatusOK, &controllers.Response{
-				Code:	fErr.Code,
-				Msg:	fErr.Error(),
-				Data:   "",
+				Code: fErr.Code,
+				Msg:  fErr.Error(),
+				Data: "",
 			})
-		}else if mErr, ok := err.(*mysql.MySQLError); ok == true{
+		} else if mErr, ok := err.(*mysql.MySQLError); ok == true {
 			c.JSON(http.StatusOK, &controllers.Response{
-				Code:	common.INTERNAL_ERROR.Code,
-				Msg:	mErr.Message,
-				Data:   "",
+				Code: common.INTERNAL_ERROR.Code,
+				Msg:  mErr.Message,
+				Data: "",
 			})
-		}else {
+		} else {
 			log.Warn("Cannot transfer to fbaseError instance from err:%#v", err)
 			c.JSON(http.StatusOK, &controllers.Response{
 				Code: common.INTERNAL_ERROR.Code,
@@ -791,10 +869,9 @@ func handleAction(c *gin.Context, act controllers.Action) {
 		}
 	} else {
 		c.JSON(http.StatusOK, &controllers.Response{
-			Code:	common.OK.Code,
-			Msg:	common.OK.Msg,
-			Data:   data,
+			Code: common.OK.Code,
+			Msg:  common.OK.Msg,
+			Data: data,
 		})
 	}
 }
-

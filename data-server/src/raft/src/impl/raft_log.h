@@ -6,7 +6,7 @@ _Pragma("once");
 #include "raft_log_unstable.h"
 #include "raft_types.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
@@ -26,15 +26,15 @@ public:
     void set_committed(uint64_t commit) { committed_ = commit; }
     uint64_t applied() const { return applied_; }
 
-    uint64_t firstIndex();
-    uint64_t lastIndex();
+    uint64_t firstIndex() const;
+    uint64_t lastIndex() const;
 
-    Status term(uint64_t index, uint64_t* term);
-    uint64_t lastTerm();
-    void lastIndexAndTerm(uint64_t* index, uint64_t* term);
-    bool matchTerm(uint64_t index, uint64_t term);
+    Status term(uint64_t index, uint64_t* term) const;
+    uint64_t lastTerm() const;
+    void lastIndexAndTerm(uint64_t* index, uint64_t* term) const;
+    bool matchTerm(uint64_t index, uint64_t term) const;
 
-    uint64_t findConfilct(const std::vector<EntryPtr>& ents);
+    uint64_t findConfilct(const std::vector<EntryPtr>& ents) const;
 
     bool maybeAppend(uint64_t index, uint64_t log_term, uint64_t commit,
                      const std::vector<EntryPtr>& ents, uint64_t* lastnewi);
@@ -48,8 +48,7 @@ public:
     void nextEntries(uint64_t max_size, std::vector<EntryPtr>* ents);
 
     // 返回从index开始的日志
-    Status entries(uint64_t index, uint64_t max_size,
-                   std::vector<EntryPtr>* ents);
+    Status entries(uint64_t index, uint64_t max_size, std::vector<EntryPtr>* ents) const;
 
     // 检查 index 和 term是否匹配，若匹配则尝试更新commit
     bool maybeCommit(uint64_t max_index, uint64_t term);
@@ -70,16 +69,16 @@ public:
     void restore(uint64_t index);
 
     Status slice(uint64_t lo, uint64_t hi, uint64_t max_size,
-                 std::vector<EntryPtr>* ents);
+                 std::vector<EntryPtr>* ents) const;
 
-    uint64_t zeroTermOnErrCompacted(uint64_t term, const Status& s);
-
-    void allEntries(std::vector<EntryPtr>* ents);
+    void allEntries(std::vector<EntryPtr>* ents) const;
 
 private:
+    static uint64_t zeroTermOnErrCompacted(uint64_t term, const Status& s);
+
     Status open();
 
-    Status mustCheckOutOfBounds(uint64_t lo, uint64_t hi);
+    Status mustCheckOutOfBounds(uint64_t lo, uint64_t hi) const;
 
 private:
     const uint64_t id_;
@@ -91,4 +90,4 @@ private:
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

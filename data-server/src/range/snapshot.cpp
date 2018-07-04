@@ -1,6 +1,6 @@
 #include "snapshot.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace range {
 
@@ -43,4 +43,4 @@ void Snapshot::Close() {
 
 } /* namespace range */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

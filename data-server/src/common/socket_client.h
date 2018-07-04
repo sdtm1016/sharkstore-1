@@ -14,7 +14,7 @@
 #include "socket_session.h"
 #include "socket_base.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace common {
 
@@ -99,7 +99,7 @@ private:
     int max_conn_per_session_ = 2;
 };
 
-}//namespace fbase;
-}//namespace fbase;
-}//namespace fbase;
+}//namespace sharkstore;
+}//namespace sharkstore;
+}//namespace sharkstore;
 #endif//__SOCKET_CLINET_H__

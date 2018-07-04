@@ -5,7 +5,7 @@ _Pragma("once");
 #include "raft/server.h"
 #include "telnet_command.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace playground {
 
@@ -52,4 +52,4 @@ private:
 
 } /* namespace playground  */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

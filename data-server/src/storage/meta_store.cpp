@@ -7,7 +7,7 @@
 #include "base/util.h"
 #include "common/ds_encoding.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -84,7 +84,7 @@ Status MetaStore::AddRange(uint64_t range_id, std::string &meta) {
     if (ret.ok()) {
         return Status::OK();
     }
-    return Status(Status::kIOError, ret.ToString(), "");
+    return Status(Status::kIOError, ret.ToString(), "put meta");
 }
 
 Status MetaStore::DelRange(uint64_t range_id) {
@@ -158,4 +158,4 @@ Status MetaStore::DeleteApplyIndex(uint64_t range_id) {
 
 }  // namespace storage
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

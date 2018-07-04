@@ -1,16 +1,33 @@
 package metric
 
 import (
-	"util/log"
-	"sync"
 	"golang.org/x/net/context"
+	"github.com/olivere/elastic"
+
+	"fmt"
 	"errors"
 	"time"
-	"github.com/olivere/elastic"
-	"fmt"
+	"sync"
+	"reflect"
+
+	"util/log"
 )
 
 var errInfo = "elasticsearch client is not available"
+
+/**
+	standard:
+	range_stats: range_stats-yyyy-MM
+ */
+func GetIndexRule(metric string) string {
+	switch metric {
+	case "range_stats":
+		return "2006-01"
+	default:
+		return ""
+	}
+}
+
 
 type EsStore struct {
 	//es client http:port
@@ -23,7 +40,6 @@ type EsStore struct {
 	ctx     context.Context
 	cancel  context.CancelFunc
 	lock sync.RWMutex
-	keepTimer *time.Timer
 }
 
 func NewEsStore(nodes []string, worker_num int) Store {
@@ -40,7 +56,6 @@ func NewEsStore(nodes []string, worker_num int) Store {
 		message: make(chan *Message, 100000),
 		ctx: ctx,
 		cancel: cancel,
-		keepTimer: time.NewTimer(10*time.Minute),
 	}
 	return p
 }
@@ -57,18 +72,10 @@ func (s *EsStore) work() {
 			if !ok {
 				continue
 			}
-			s.keepTimer.Reset(10*time.Minute)
 			err := s.push(msg)
 			if err != nil {
-				log.Warn("push message failed, err[%v]", err)
+				log.Warn("push message to es store failed, err[%v]", err)
 			}
-		case <-s.keepTimer.C:
-			s.lock.Lock()
-			if s.esClient != nil {
-				s.esClient.Stop()
-				s.esClient = nil
-			}
-			s.lock.Unlock()
 		}
 	}
 }
@@ -163,59 +170,98 @@ func (s *EsStore) ping() error{
 }
 
 func (s *EsStore) push(msg *Message)  error {
-	num := len(msg.Items)
-	if num == 0 {
-		return errors.New("empty items")
-	}
-
 	if err := s.open(); err != nil {
 		return fmt.Errorf("EsStore push error: %v", err)
 	}
 
-	log.Debug("start to push metric[%s] to elasticsearch.", msg.Subsystem)
+	index := msg.Subsystem
+	if format := GetIndexRule(msg.Subsystem); len(format) != 0 {
+		index = fmt.Sprintf("%s-%s", index, time.Now().Format(format))
+	}
+
+	items := msg.Items
+	switch reflect.TypeOf(items).Kind() {
+	case reflect.Slice:
+		values := items.([]interface{})
+		num := len(values)
+		if num == 0 {
+			return errors.New("empty items")
+		}
+		for _, value := range values{
+			num := len(value.(map[string]interface{}))
+			if num == 0 {
+				return errors.New("empty items")
+			}
+		}
+		err := s.bulkInsert(index, msg.Subsystem, values...)
+		if err != nil{
+			log.Warn("bulk push metric[%s] to elasticsearch failed, err[%v]", msg.Subsystem , err)
+			return err
+		}
+	case reflect.Map:
+		value := items.(map[string]interface{})
+		num := len(value)
+		if num == 0 {
+			return errors.New("empty items")
+		}
+		err := s.insert(index, msg.Subsystem, msg.MsgId, value)
+		if err != nil{
+			log.Warn("push metric[%s] to elasticsearch failed, err[%v]", msg.Subsystem , err)
+		}
+	default:
+		return errors.New("not support")
+	}
+	return nil
+}
+
+func (s *EsStore) insert(index string, indexType string, id string, items interface{} ) error{
+	if s.esClient == nil {
+		return errors.New(errInfo)
+	}
+	log.Debug("start to push metric[%s] to elasticsearch.", index)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
+	defer cancel()
+
+	indexService := s.esClient.Index().Index(index).Type(indexType).BodyJson(items)
+	if len(id) != 0 {
+		indexService = indexService.Id(id)
+	}
 	var err error
-	if len(msg.MsgId) == 0 {
-		err = s.insert(msg.Subsystem, msg.Subsystem, msg.Items)
-		if err != nil{
-			log.Warn("push metric[%s] to elasticsearch failed, err[%v]", msg.Subsystem , err)
-		}
-	} else {
-		err = s.insertWithId(msg.Subsystem, msg.Subsystem, msg.MsgId, msg.Items)
-		if err != nil{
-			log.Warn("push metric[%s] to elasticsearch failed, err[%v]", msg.Subsystem , err)
-		}
-
-	}
+	_, err = indexService.Do(ctx)
 	return err
 }
 
-func (s *EsStore) insert(index string, indexType string, items interface{} ) error{
+func (s *EsStore) bulkInsert(index string, indexType string, items ...interface{} ) error{
 	if s.esClient == nil {
 		return errors.New(errInfo)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
+	log.Debug("start to bulk push metric[%s] to elasticsearch.", index)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 50)
 	defer cancel()
-	_, err := s.esClient.Index().
-		Index(index).
-		Type(indexType).
-		BodyJson(items).
-		Do(ctx)
-	return err
-}
 
-func (s *EsStore) insertWithId(index string, indexType string, id string, items interface{} ) error{
-	if s.esClient == nil {
-		return errors.New(errInfo)
+	bulkRequest := s.esClient.Bulk()
+	for _, item := range items {
+		r := elastic.NewBulkIndexRequest().Index(index).Type(indexType).Doc(item)
+		bulkRequest = bulkRequest.Add(r)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
-	defer cancel()
-	_, err := s.esClient.Index().
-		Index(index).
-		Type(indexType).
-		Id(id).
-		BodyJson(items).
-		Do(ctx)
-	return err
+	resp, err := bulkRequest.Do(ctx)
+	if err != nil {
+		return err
+	}
+	if resp == nil {
+		return errors.New("excepted to be != nil; got nil")
+	}
+	if resp.Took == 0 {
+		return errors.New(fmt.Sprintf("excepted to be > 0; got %d ", resp.Took))
+	}
+
+	if resp.Errors {
+		return errors.New(fmt.Sprintf("excepted errors to be false; got %v ", resp.Errors))
+	}
+	if len(resp.Items) != len(items) {
+		return errors.New(fmt.Sprintf("excepted %d result; got %v ", len(items), resp.Items))
+	}
+	return nil
 }
 
 func (s *EsStore)Put(message *Message) error  {

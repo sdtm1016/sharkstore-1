@@ -1,7 +1,7 @@
 #include "raft/server.h"
 #include "impl/server_impl.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 
 std::unique_ptr<RaftServer> CreateRaftServer(const RaftServerOptions& ops) {
@@ -9,4 +9,4 @@ std::unique_ptr<RaftServer> CreateRaftServer(const RaftServerOptions& ops) {
 }
 
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

@@ -1,9 +1,12 @@
 _Pragma("once");
 
 #include <stdint.h>
+#include <string>
 #include <map>
 
-namespace fbase {
+#include "raft/types.h"
+
+namespace sharkstore {
 namespace raft {
 
 struct ServerStatus {
@@ -12,11 +15,12 @@ struct ServerStatus {
 };
 
 struct ReplicaStatus {
-    uint64_t peer_id = 0;
+    Peer peer;
     uint64_t match = 0;
     uint64_t commit = 0;
     uint64_t next = 0;
-    int inactive = 0;
+    int inactive_seconds = 0;
+    bool snapshotting = false;
     std::string state;
 
     std::string ToString() const;
@@ -30,6 +34,7 @@ struct RaftStatus {
     uint64_t commit = 0;
     uint64_t applied = 0;
     std::string state;
+    // key: node_id
     std::map<uint64_t, ReplicaStatus> replicas;
 
     RaftStatus() = default;
@@ -42,4 +47,4 @@ struct RaftStatus {
 };
 
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

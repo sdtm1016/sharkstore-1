@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(fbase-ds C CXX)
+project(sharkstore-ds C CXX)
 
 set(CMAKE_CXX_COMPILER "g++")
 set(CMAKE_CXX_STANDARD 11)
@@ -21,18 +21,25 @@ set(CXX_FLAGS
 
 string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CXX_FLAGS}")
 
-set(CMAKE_C_FLAGS "-std=c99 -Wall -Wformat -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DOS_LINUX -DIOEVENT_USE_EPOLL")
+set(CMAKE_C_FLAGS "-std=c99 -Wall -Wformat -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE")
+if (APPLE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DDARWIN  -DIOEVENT_USE_KQUEUE")
+elseif(UNIX)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DOS_LINUX -DIOEVENT_USE_EPOLL")
+else()
+    message(FATAL_ERROR "Unsupported OS Type: " ${CMAKE_SYSTEM_NAME})
+endif()
 
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -DNDEBUG")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -DNDEBUG" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2 -DNDEBUG")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O2 -DNDEBUG" )
     set(CMAKE_C_FLAGS_RELEASE "")
     set(CMAKE_CXX_FLAGS_RELEASE "")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -ggdb -DDEBUG_FLAG")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g -ggdb -DDEBUG_FLAG")
 endif()
-MESSAGE(STATUS BUILD_TYPE=${CMAKE_BUILD_TYPE})
+MESSAGE(STATUS CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
 
 # use gcov
 OPTION (ENABLE_COVERAGE "Use gcov" OFF)
@@ -58,14 +65,75 @@ if(ENABLE_SANITIZE )
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address" )
 endif()
 
+message(STATUS "CMAKE_C_FLAGS: " ${CMAKE_C_FLAGS})
+message(STATUS "CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
 
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/raft/include)
 
+# find protobuf
 find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
+
+# find grpc 
+find_library(GRPC_LIB grpc)
+if(NOT GRPC_LIB)
+    message(FATAL_ERROR "Grpc library not found")
+else()
+    message(STATUS "Found Grpc library: " ${GRPC_LIB})
+endif() 
+
+find_library(GRPC_CPP_LIB grpc++)
+if(NOT GRPC_CPP_LIB)
+    message(FATAL_ERROR "Grpc++ library not found")
+else()
+    message(STATUS "Found Grpc C++ library: " ${GRPC_CPP_LIB})
+endif() 
+
+# find grpc header
+find_path(GRPC_HEADER_PATH grpc/grpc.h)
+if(NOT GRPC_HEADER_PATH )
+    message(FATAL_ERROR "Grpc headers not found")
+else()
+    message(STATUS "Found Grpc headers path: " ${GRPC_HEADER_PATH})
+    include_directories(${GRPC_HEADER_PATH})
+endif() 
+
+
+# find rocksdb
+find_library(ROCKSDB_LIB rocksdb)
+if(NOT ROCKSDB_LIB)
+    message(FATAL_ERROR "Rocksdb library not found")
+else()
+    message(STATUS "Found Rocksdb library: " ${ROCKSDB_LIB})
+endif() 
+
+find_path(ROCKSDB_HEADER_PATH rocksdb/db.h)
+if(NOT ROCKSDB_HEADER_PATH)
+    message(FATAL_ERROR "Rocksdb headers not found")
+else()
+    message(STATUS "Found Rocksdb headers path: " ${ROCKSDB_HEADER_PATH})
+    include_directories(${ROCKSDB_HEADER_PATH})
+endif() 
+
+
+# find fastcommon
+find_library(FASTCOMMON_LIB fastcommon) 
+if(NOT FASTCOMMON_LIB)
+    message(FATAL_ERROR "Fastcommon library not found")
+else()
+    message(STATUS "Found Fastcommon library: " ${FASTCOMMON_LIB})
+endif() 
+
+find_path(FASTCOMMON_HEADER_PATH fastcommon/fast_task_queue.h)
+if(NOT FASTCOMMON_HEADER_PATH )
+    message(FATAL_ERROR "Fastcommon headers not found")
+else()
+    message(STATUS "Found Fastcommon headers path: " ${FASTCOMMON_HEADER_PATH})
+    include_directories(${FASTCOMMON_HEADER_PATH})
+endif() 
 
 set(SOURCES
     src/server/main.cpp
@@ -77,6 +145,7 @@ set(SOURCES
     src/server/raft_logger.cpp
     src/server/run_status.cpp
     src/server/range_server.cpp
+    src/server/version.cpp
     src/range/range.cpp
     src/range/lock.cpp
     src/range/raw_get.cpp
@@ -102,11 +171,19 @@ set(SOURCES
     src/master/rpc_types.cpp
     src/master/worker.cpp
     src/monitor/isystemstatus.cpp
-    src/monitor/linuxstatus.cpp
     src/monitor/datacacl.cpp
     src/monitor/encodedata.cpp
     src/monitor/rangedata.cpp
 )
+
+if (APPLE)
+    list(APPEND SOURCES src/monitor/mac_status.cpp)
+elseif(UNIX)
+    list(APPEND SOURCES src/monitor/linuxstatus.cpp)
+else()
+    message(FATAL_ERROR "Unsupported OS Type: " ${CMAKE_SYSTEM_NAME})
+endif()
+
 
 add_subdirectory(src/base)
 add_subdirectory(src/lk_queue)
@@ -116,24 +193,24 @@ add_subdirectory(src/proto)
 add_subdirectory(src/raft)
 add_subdirectory(src/tool)
 
-OPTION (BUILD_NET "build fbase net" OFF)
+OPTION (BUILD_NET "build sharkstore net" OFF)
 MESSAGE(STATUS BUILD_NET=${BUILD_NET})
 if (BUILD_NET)
     add_subdirectory(src/net)
 endif()
 
 set (depend_LIBRARYS
-    fbase-base
-    fbase-proto 
-    fbase-raft
-    fbase-common
-    fbase-frame
-    fbase-lkqueue
+    sharkstore-base
+    sharkstore-proto 
+    sharkstore-raft
+    sharkstore-common
+    sharkstore-frame
+    sharkstore-lkqueue
     ${PROTOBUF_LIBRARY}
-    grpc
-    grpc++
-    fastcommon
-    rocksdb
+    ${GRPC_LIB}
+    ${GRPC_CPP_LIB}
+    ${ROCKSDB_LIB}
+    ${FASTCOMMON_LIB}
     pthread
     dl
     z
@@ -152,12 +229,22 @@ endforeach()
 add_executable(data-server ${SOURCES})
 target_link_libraries(data-server ${depend_LIBRARYS})
 
-OPTION (BUILD_TEST "build fbase tests" OFF)
+add_custom_target(
+    gen-version ALL
+    ${CMAKE_COMMAND} -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR} -DBUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DBUILD_FLAGS=${CMAKE_CXX_FLAGS} -P ${PROJECT_SOURCE_DIR}/cmake/version.cmake
+)
+add_dependencies(data-server gen-version)
+
+install(TARGETS data-server RUNTIME DESTINATION bin)
+
+
+OPTION (BUILD_TEST "build sharkstore tests" OFF)
 MESSAGE(STATUS BUILD_TEST=${BUILD_TEST})
 if (BUILD_TEST)
     enable_testing()
     find_package(GTest REQUIRED)
     include_directories(${GTEST_INCLUDE_DIRS})
-    add_library(fbase-ds-shared SHARED ${SOURCES})
+    add_library(sharkstore-ds-shared SHARED ${SOURCES})
     add_subdirectory(test)
 endif()

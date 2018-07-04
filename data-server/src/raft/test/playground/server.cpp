@@ -7,10 +7,9 @@
 #include "statemachine.h"
 #include "telnet_service.h"
 
-#include "raft/src/impl/raft_snapshot.h"
 #include "raft/src/impl/raft_fsm.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace playground {
 
@@ -29,9 +28,9 @@ void Server::run() {
     // start raft server
     RaftServerOptions sops;
     sops.node_id = gNodeID;
-    sops.listen_port = addrs_mgr_->GetRaftPort(gNodeID);
-    sops.resolver = std::static_pointer_cast<NodeResolver>(addrs_mgr_);
-    sops.max_snapshot_concurrency = kSnapshotConcurrency;
+    sops.transport_options.listen_port = addrs_mgr_->GetRaftPort(gNodeID);
+    sops.transport_options.resolver = std::static_pointer_cast<NodeResolver>(addrs_mgr_);
+    sops.snapshot_options.max_send_concurrency = kSnapshotConcurrency;
     rs_ = CreateRaftServer(sops);
     auto status = rs_->Start();
     if (!status.ok()) {
@@ -174,28 +173,21 @@ std::string Server::handleInfo(const std::vector<std::string>& args) {
             return std::string("Sum: ") + std::to_string(sm_->sum());
         } else if (args[0] == "replica") {
             std::string ret = "peers: ";
-            std::vector<raft::Peer> peers;
-            raft_->GetPeers(&peers);
-            for (const auto& p : peers) {
-                ret += std::to_string(p.node_id) + " ";
+            raft::RaftStatus s;
+            raft_->GetStatus(&s);
+            for (const auto& pr: s.replicas) {
+                ret += pr.second.peer.ToString() + " ";
             }
 
-            std::vector<raft::DownPeer> downs;
-            raft_->GetDownPeers(&downs);
-            if (!downs.empty()) {
-                ret += "\r\ndowns: ";
-                for (const auto& d : downs) {
-                    ret += std::to_string(d.node_id) + ":" +
-                           std::to_string(d.down_seconds) + " ";
-                }
-            }
-
-            std::vector<uint64_t> pendings;
-            raft_->GetPeedingPeers(&pendings);
-            if (!pendings.empty()) {
-                ret += "\r\n: pendings: ";
-                for (const auto& p : pendings) {
-                    ret += std::to_string(p) + " ";
+            bool print_down_title = false;
+            for (const auto& pr : s.replicas) {
+                if (pr.second.inactive_seconds > 10) {
+                    if (!print_down_title) {
+                        print_down_title = true;
+                        ret += "\r\ndowns: ";
+                    }
+                    ret += pr.second.peer.ToString() + ": " +
+                            std::to_string(pr.second.inactive_seconds) + "\n";
                 }
             }
             return ret;
@@ -288,4 +280,4 @@ std::string Server::handleTest(const std::vector<std::string>& args) {
 
 } /* namespace playground  */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

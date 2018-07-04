@@ -2,6 +2,7 @@ syntax = "proto3";
 package statspb;
 
 import "gogoproto/gogo.proto";
+import "mspb.proto";
 
 option (gogoproto.marshaler_all) = true;
 option (gogoproto.sizer_all) = true;
@@ -262,4 +263,11 @@ message SqlTp {
     int64 calls                        = 1;
     repeated int64 tp                  = 2;
     int64 delay_max                    = 3;
+}
+
+message RangeInfo {
+    uint64 range_id                    = 1;
+    uint64 leader_id                   = 2;
+    string node_adder                  = 3;
+    mspb.RangeStats stats              = 4;
 }

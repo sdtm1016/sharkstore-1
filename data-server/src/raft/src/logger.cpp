@@ -1,6 +1,6 @@
 #include "impl/logger.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 
 void SetLogger(Logger* logger) {
@@ -9,4 +9,4 @@ void SetLogger(Logger* logger) {
 }
 
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

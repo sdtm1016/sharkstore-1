@@ -11,16 +11,16 @@ int main(int argc, char* argv[]) {
 
 namespace {
 
-using namespace fbase::raft::impl;
-using namespace fbase::raft::impl::storage;
-using namespace fbase::raft::impl::testutil;
-using fbase::Status;
-using fbase::randomInt;
+using namespace sharkstore::raft::impl;
+using namespace sharkstore::raft::impl::storage;
+using namespace sharkstore::raft::impl::testutil;
+using sharkstore::Status;
+using sharkstore::randomInt;
 
 class MetaTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        char path[] = "/tmp/fbase_raft_meta_test_XXXXXX";
+        char path[] = "/tmp/sharkstore_raft_meta_test_XXXXXX";
         char* tmp = mkdtemp(path);
         ASSERT_TRUE(tmp != NULL);
         tmp_dir_ = tmp;

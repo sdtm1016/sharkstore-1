@@ -11,16 +11,16 @@ int main(int argc, char* argv[]) {
 
 namespace {
 
-using namespace fbase::raft::impl;
-using namespace fbase::raft::impl::testutil;
-using namespace fbase::raft::impl::storage;
-using fbase::Status;
-using fbase::randomInt;
+using namespace sharkstore::raft::impl;
+using namespace sharkstore::raft::impl::testutil;
+using namespace sharkstore::raft::impl::storage;
+using sharkstore::Status;
+using sharkstore::randomInt;
 
 class LogFileTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        char path[] = "/tmp/fbase_raft_log_test_XXXXXX";
+        char path[] = "/tmp/sharkstore_raft_log_test_XXXXXX";
         char* tmp = mkdtemp(path);
         ASSERT_TRUE(tmp != NULL);
         tmp_dir_ = tmp;
@@ -83,7 +83,7 @@ TEST(LogFormat, FileName) {
 TEST_F(LogFileTest, AppendAndGet) {
     std::vector<EntryPtr> entries;
     for (uint64_t i = 1; i <= 10; ++i) {
-        auto e = RandEntry(i);
+        auto e = RandomEntry(i);
         entries.push_back(e);
         auto s = log_file_->Append(e);
         ASSERT_TRUE(s.ok()) << s.ToString();
@@ -115,7 +115,7 @@ TEST_F(LogFileTest, AppendAndGet) {
 TEST_F(LogFileTest, AppendConflict) {
     std::vector<EntryPtr> entries;
     for (uint64_t i = 1; i <= 10; ++i) {
-        auto e = RandEntry(i);
+        auto e = RandomEntry(i);
         entries.push_back(e);
         auto s = log_file_->Append(e);
         ASSERT_TRUE(s.ok()) << s.ToString();
@@ -123,7 +123,7 @@ TEST_F(LogFileTest, AppendConflict) {
     auto s = log_file_->Flush();
     ASSERT_TRUE(s.ok()) << s.ToString();
 
-    auto e = RandEntry(5);
+    auto e = RandomEntry(5);
     s = log_file_->Append(e);
     ASSERT_TRUE(s.ok()) << s.ToString();
     entries[4] = e;
@@ -145,7 +145,7 @@ TEST_F(LogFileTest, AppendConflict) {
 TEST_F(LogFileTest, Recover) {
     std::vector<EntryPtr> entries;
     for (uint64_t i = 1; i <= 10; ++i) {
-        auto e = RandEntry(i);
+        auto e = RandomEntry(i);
         entries.push_back(e);
         auto s = log_file_->Append(e);
         ASSERT_TRUE(s.ok()) << s.ToString();

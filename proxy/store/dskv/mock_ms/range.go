@@ -11,16 +11,15 @@ import (
 type Range struct {
 	lock sync.RWMutex
 	*metapb.Range
-	Leader        *metapb.Peer
-	DownPeers     []*mspb.PeerStats
-	PendingPeers  []*metapb.Peer
+	Leader      *metapb.Peer
+	PeersStatus []*mspb.PeerStatus
 
-	State         metapb.RangeState
+	State metapb.RangeState
 }
 
 func NewRange(r *metapb.Range) *Range {
 	region := &Range{
-		Range:         r,
+		Range: r,
 	}
 	return region
 }
@@ -56,12 +55,4 @@ func (r *Range) GetPeerById(peerId uint64) *metapb.Peer {
 		}
 	}
 	return nil
-}
-
-func (r *Range) GetDownPeers() []*mspb.PeerStats {
-	return r.DownPeers
-}
-
-func (r *Range) GetPendingPeers() []*metapb.Peer {
-	return r.PendingPeers
 }

@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
 
 namespace {
 
-using namespace fbase::monitor;
+using namespace sharkstore::monitor;
 
 TEST(Monitor, Basic) {
     ISystemStatus s;

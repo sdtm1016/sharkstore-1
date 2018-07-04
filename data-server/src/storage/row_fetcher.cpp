@@ -5,7 +5,7 @@
 #include "common/ds_encoding.h"
 #include "frame/sf_logger.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -114,4 +114,4 @@ Status RowFetcher::nextScope(RowResult* result, bool* over) {
 
 } /* namespace storage */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

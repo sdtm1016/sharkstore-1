@@ -10,7 +10,7 @@
 #include "../logger.h"
 #include "log_index.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace storage {
@@ -24,8 +24,7 @@ LogFile::LogFile(const std::string& path, uint64_t seq, uint64_t index)
 
 LogFile::~LogFile() { Close(); }
 
-std::string LogFile::makeFilePath(const std::string& path, uint64_t seq,
-                                  uint64_t index) {
+std::string LogFile::makeFilePath(const std::string& path, uint64_t seq, uint64_t index) {
     return JoinFilePath({path, makeLogFileName(seq, index)});
 }
 
@@ -59,8 +58,7 @@ Status LogFile::Open(bool allow_corrupt, bool last_one) {
             auto s = loadIndexes();
             if (!s.ok()) {
                 return Status(Status::kCorruption,
-                              std::string("open log index ") + file_path_,
-                              s.ToString());
+                              std::string("open log index ") + file_path_, s.ToString());
             }
         } else {
             auto s = recover(allow_corrupt);
@@ -107,14 +105,13 @@ Status LogFile::Destroy() {
     }
     int ret = std::remove(file_path_.c_str());
     if (ret != 0) {
-        return Status(Status::kIOError, "remove meta file",
-                      std::to_string(ret));
+        return Status(Status::kIOError, "remove meta file", std::to_string(ret));
     } else {
         return Status::OK();
     }
 }
 
-Status LogFile::Get(uint64_t index, EntryPtr* e) {
+Status LogFile::Get(uint64_t index, EntryPtr* e) const {
     // TODO: check index
     uint32_t offset = log_index_.Offset(index);
     assert(offset < file_size_);
@@ -123,15 +120,13 @@ Status LogFile::Get(uint64_t index, EntryPtr* e) {
     auto s = readRecord(offset, &rec, &payload);
     if (!s.ok()) return s;
     if (rec.type != RecordType::kLogEntry) {
-        return Status(Status::kCorruption, "read log entry",
-                      "invalid record type");
+        return Status(Status::kCorruption, "read log entry", "invalid record type");
     }
 
     EntryPtr entry(new impl::pb::Entry);
     // TODO: check crc
     if (!entry->ParseFromArray(payload.data(), payload.size())) {
-        return Status(Status::kCorruption, "read log entry",
-                      "deserizial failed");
+        return Status(Status::kCorruption, "read log entry", "deserizial failed");
     }
     if (entry->index() != index) {
         return Status(Status::kCorruption, "inconsisent entry index",
@@ -141,22 +136,21 @@ Status LogFile::Get(uint64_t index, EntryPtr* e) {
     return Status::OK();
 }
 
-Status LogFile::Term(uint64_t index, uint64_t* term) {
+Status LogFile::Term(uint64_t index, uint64_t* term) const {
     // TODO: check index
     *term = log_index_.Term(index);
     return Status::OK();
 }
 
 Status LogFile::Append(const EntryPtr& e) {
-    if (log_index_.Empty() ? (e->index() != index_)
-                           : (e->index() < log_index_.First() ||
-                              e->index() > log_index_.Last() + 1)) {
+    if (log_index_.Empty()
+            ? (e->index() != index_)
+            : (e->index() < log_index_.First() || e->index() > log_index_.Last() + 1)) {
         return Status(Status::kInvalidArgument,
-                      std::string("append log index(") +
-                          std::to_string(e->index()) + ") out of bound",
-                      std::to_string(index_) + "-[" +
-                          std::to_string(log_index_.First()) + "," +
-                          std::to_string(log_index_.Last()) + "]");
+                      std::string("append log index(") + std::to_string(e->index()) +
+                          ") out of bound",
+                      std::to_string(index_) + "-[" + std::to_string(log_index_.First()) +
+                          "," + std::to_string(log_index_.Last()) + "]");
     }
     // 冲突覆盖写，先截断
     if (e->index() <= log_index_.Last()) {
@@ -222,9 +216,9 @@ Status LogFile::loadIndexes() {
     }
     // 检查索引数据跟文件的起始index是否一致
     if (log_index_.First() != index_) {
-        return Status(Status::kCorruption, "inconsistent log first index",
-                      std::to_string(log_index_.First()) + " != " +
-                          std::to_string(index_));
+        return Status(
+            Status::kCorruption, "inconsistent log first index",
+            std::to_string(log_index_.First()) + " != " + std::to_string(index_));
     }
 
     return Status::OK();
@@ -250,9 +244,8 @@ Status LogFile::traverse(uint32_t& offset) {
                               "parse entry at offset " + std::to_string(offset),
                               "pb return false");
             }
-            bool valid = log_index_.Empty()
-                             ? (index_ == e.index())
-                             : (log_index_.Last() + 1 == e.index());
+            bool valid = log_index_.Empty() ? (index_ == e.index())
+                                            : (log_index_.Last() + 1 == e.index());
             if (!valid) {
                 return Status(Status::kCorruption,
                               std::string("invalid log entry index ") +
@@ -275,10 +268,10 @@ Status LogFile::traverse(uint32_t& offset) {
                               s.ToString());
             }
         } else {
-            return Status(Status::kCorruption,
-                          std::string("invalid record type at offset") +
-                              std::to_string(offset),
-                          std::to_string(rec.type));
+            return Status(
+                Status::kCorruption,
+                std::string("invalid record type at offset") + std::to_string(offset),
+                std::to_string(rec.type));
         }
         offset += (sizeof(Record) + payload.size());
     }
@@ -295,8 +288,7 @@ Status LogFile::backup() {
         dest.close();
     } catch (std::exception& e) {
         return Status(Status::kIOError,
-                      std::string("backup log file ") + file_path_ + " failed",
-                      e.what());
+                      std::string("backup log file ") + file_path_ + " failed", e.what());
     }
     return Status::OK();
 }
@@ -314,19 +306,17 @@ Status LogFile::recover(bool allow_corrupt) {
             }
             int ret = ::ftruncate(fd_, offset);
             if (-1 == ret) {
-                return Status(Status::kIOError, "truncate log file",
-                              strErrno(errno));
+                return Status(Status::kIOError, "truncate log file", strErrno(errno));
             }
             file_size_ = offset;
-            LOG_WARN(
-                "[raft log] truncate(offset: %d) and backup corrupt log: %s",
-                offset, file_path_.c_str(), offset);
+            LOG_WARN("[raft log] truncate(offset: %d) and backup corrupt log: %s", offset,
+                     file_path_.c_str(), offset);
         }
     }
     return Status::OK();
 }
 
-Status LogFile::readFooter(uint32_t* index_offset) {
+Status LogFile::readFooter(uint32_t* index_offset) const {
     if (file_size_ < static_cast<int64_t>(sizeof(Footer))) {
         return Status(Status::kCorruption, "insufficient log file size",
                       std::to_string(file_size_));
@@ -335,8 +325,7 @@ Status LogFile::readFooter(uint32_t* index_offset) {
     // 读取footer
     Footer footer;
     memset(&footer, 0, sizeof(footer));
-    int ret =
-        ::pread(fd_, &footer, sizeof(footer), file_size_ - sizeof(footer));
+    int ret = ::pread(fd_, &footer, sizeof(footer), file_size_ - sizeof(footer));
     if (ret == -1) {
         return Status(Status::kIOError, "read log footer", strErrno(errno));
     } else if (ret < static_cast<int64_t>(sizeof(footer))) {
@@ -373,8 +362,7 @@ Status LogFile::writeFooter(uint32_t index_offset) {
     return Status::OK();
 }
 
-Status LogFile::readRecord(off_t offset, Record* rec,
-                           std::vector<char>* payload) {
+Status LogFile::readRecord(off_t offset, Record* rec, std::vector<char>* payload) const {
     // 读记录头
     memset(rec, 0, sizeof(Record));
     int ret = ::pread(fd_, rec, sizeof(Record), offset);
@@ -389,8 +377,7 @@ Status LogFile::readRecord(off_t offset, Record* rec,
     rec->Decode();
 
     // 检查payload的大小有没超过文件末尾
-    if (offset + sizeof(Record) + rec->size >
-        static_cast<uint64_t>(file_size_)) {
+    if (offset + sizeof(Record) + rec->size > static_cast<uint64_t>(file_size_)) {
         return Status(Status::kCorruption, "log size too large",
                       std::to_string(rec->size));
     }
@@ -399,19 +386,16 @@ Status LogFile::readRecord(off_t offset, Record* rec,
     payload->resize(rec->size);
     ret = ::pread(fd_, payload->data(), rec->size, offset + sizeof(Record));
     if (ret == -1) {
-        return Status(Status::kIOError, "read log record payload",
-                      strErrno(errno));
+        return Status(Status::kIOError, "read log record payload", strErrno(errno));
     } else if (static_cast<uint32_t>(ret) < rec->size) {
-        return Status(Status::kCorruption,
-                      "insufficient log record payload size",
+        return Status(Status::kCorruption, "insufficient log record payload size",
                       std::to_string(ret));
     }
 
     return Status::OK();
 }
 
-Status LogFile::writeRecord(RecordType type,
-                            const ::google::protobuf::Message& msg) {
+Status LogFile::writeRecord(RecordType type, const ::google::protobuf::Message& msg) {
     uint32_t size = static_cast<uint32_t>(msg.ByteSizeLong());
     std::vector<char> buf;
     buf.resize(size + sizeof(Record));
@@ -421,8 +405,7 @@ Status LogFile::writeRecord(RecordType type,
     rec->size = size;
     rec->Encode();
     if (!msg.SerializeToArray(rec->payload, size)) {
-        return Status(Status::kCorruption, "serialize log record",
-                      "pb return false");
+        return Status(Status::kCorruption, "serialize log record", "pb return false");
     }
 
     int ret = ::fwrite(buf.data(), buf.size(), 1, writer_);
@@ -473,4 +456,4 @@ void LogFile::TEST_Truncate_RandomLen() {
 } /* namespace storage */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

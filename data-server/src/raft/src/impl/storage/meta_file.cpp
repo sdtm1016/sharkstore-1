@@ -9,16 +9,12 @@
 #include "base/byte_order.h"
 #include "base/util.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace storage {
 
-static const size_t kHardStateSize = 8 * 3;
-static const size_t kTruncateMetaSize = 8 * 2;
-
-MetaFile::MetaFile(const std::string& path)
-    : path_(JoinFilePath({path, "META"})) {}
+MetaFile::MetaFile(const std::string& path) : path_(JoinFilePath({path, "META"})) {}
 
 MetaFile::~MetaFile() { Close(); }
 
@@ -52,8 +48,7 @@ Status MetaFile::Destroy() {
     }
     int ret = std::remove(path_.c_str());
     if (ret != 0) {
-        return Status(Status::kIOError, "remove meta file",
-                      std::to_string(ret));
+        return Status(Status::kIOError, "remove meta file", std::to_string(ret));
     } else {
         return Status::OK();
     }
@@ -66,8 +61,7 @@ Status MetaFile::Load(pb::HardState* hs, pb::TruncateMeta* tm) {
         return Status(Status::kIOError, "load meta", strErrno(errno));
     } else if (ret == 0) {
         return Status::OK();
-    } else if (ret == kHardStateSize ||
-               ret == kHardStateSize + kTruncateMetaSize) {
+    } else if (ret == kHardStateSize || ret == kHardStateSize + kTruncateMetaSize) {
         uint64_t term = 0;
         uint64_t commit = 0;
         uint64_t vote = 0;
@@ -87,8 +81,7 @@ Status MetaFile::Load(pb::HardState* hs, pb::TruncateMeta* tm) {
         }
         return Status::OK();
     } else {
-        return Status(Status::kCorruption, "invalid meta size",
-                      std::to_string(ret));
+        return Status(Status::kCorruption, "invalid meta size", std::to_string(ret));
     }
     return Status::OK();
 }
@@ -126,4 +119,4 @@ Status MetaFile::SaveTruncMeta(const pb::TruncateMeta& tm) {
 } /* namespace storage */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

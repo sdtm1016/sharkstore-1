@@ -1,6 +1,6 @@
 #include "log_index.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace storage {
@@ -90,4 +90,4 @@ void LogIndex::Clear() { items_.clear(); }
 } /* namespace storage */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

@@ -315,20 +315,26 @@ func metricNode(cli *http.Client) error {
 	return send(cli, request)
 }
 
-func metricRange(cli *http.Client) error {
-	stats := &mspb.RangeStats{
-		BytesWritten: 10,
-		BytesRead:4,
-		KeysWritten:4,
-		KeysRead:3,
-		ApproximateSize:100,
+func metricRanges(cli *http.Client) error {
+	rngInfos := make([]*statspb.RangeInfo, 0)
+	rngInfo := &statspb.RangeInfo{
+		RangeId:   12,
+		LeaderId:  13,
+		NodeAdder: "192.168.108.113:11100",
+		Stats: &mspb.RangeStats{
+			BytesWritten: 10,
+			BytesRead:4,
+			KeysWritten:4,
+			KeysRead:3,
+			ApproximateSize:100,
+		},
 	}
-	data, err := json.Marshal(stats)
+	rngInfos = append(rngInfos, rngInfo)
+	data, err := json.Marshal(rngInfos)
 	if err != nil {
 		return err
 	}
-	url := fmt.Sprintf("http://localhost:8080/metric/range?clusterId=%d&namespace=%s&subsystem=%s",
-		clusterId, "1", "192.168.108.113:6680")
+	url := fmt.Sprintf("http://localhost:8080/metric/range?clusterId=%d", clusterId)
 	request, err := http.NewRequest("POST", url, strings.NewReader(string(data)))
 	if err != nil {
 		return err
@@ -416,7 +422,7 @@ func metricStart(t *testing.T, store Store)  {
 		time.Sleep(time.Second)
 		return
 	}
-	err = metricRange(cli)
+	err = metricRanges(cli)
 	if err != nil {
 		t.Errorf("test failed, err %v", err)
 		time.Sleep(time.Second)

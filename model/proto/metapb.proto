@@ -70,18 +70,18 @@ enum RangeState {
     R_Offline      = 8;
 }
 
-enum ReplicaRole {
-    Role_Invalid        = 0;
-    // 同步副本
-    Role_Sync_Replica   = 1;
-    // 异步副本，不参与raft选举
-    Role_Async_Replica  = 2;
+enum PeerType {
+    PeerType_Invalid        = 0;
+    // 正常副本
+    PeerType_Normal         = 1;
+    // learner副本，不参与raft选举, 复制不计作大多数
+    PeerType_Learner        = 2;
 }
 
 message Peer {
     uint64 id            = 1;
     uint64 node_id       = 2;
-    ReplicaRole role     = 3;
+    PeerType type        = 3;
     // more attributes......
 }
 

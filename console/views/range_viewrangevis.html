@@ -27,7 +27,7 @@
 	<div class="panel-body panel-body-tab topology" ng-controller="rangeTopoCtrl">
       <ul id="topology" class="repeatParent">
         <li ng-repeat="rangeLeaderRoot in rangeTreeArr" on-finish-render>
-          <div class="shardid">分片ID:{{rangeLeaderRoot.range.id}}, 状态：{{rangeLeaderRoot.range.state}}, 上次心跳：{{rangeLeaderRoot.range.last_hb_time}}</div>
+          <div class="shardid">分片ID:{{rangeLeaderRoot.range.id}}, tableId:{{rangeLeaderRoot.range.table_id}}, 状态：{{rangeLeaderRoot.range.state}}, 上次心跳：{{rangeLeaderRoot.range.last_hb_time}}</div>
           <p class="topology-ip" ng-class="{'off': rangeLeaderRoot.leader.node.state != 1}" ng-mouseout="checkShardHide(rangeLeaderRoot)" ng-mouseover="checkShard(rangeLeaderRoot)">
             <strong ng-click="showRangeInfo(rangeLeaderRoot,'leader')">{{rangeLeaderRoot.leader.node.server_addr}}
             	<input type="text" hidden="true" value="{{rangeLeaderRoot.leader.id}}" id="rangeId" name="rangeId"/>

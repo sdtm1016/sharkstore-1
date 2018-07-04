@@ -2,23 +2,39 @@
 
 #include "storage/meta_store.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace range {
+
+static bool findPeerByNodeID(const metapb::Range& meta, uint64_t node_id, metapb::Peer *out_peer = nullptr) {
+    for (int i = 0; i < meta.peers_size(); i++) {
+        const auto &peer = meta.peers(i);
+        if (peer.node_id() == node_id) {
+            if (out_peer) out_peer->CopyFrom(peer);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Range::FindPeerByNodeID(uint64_t node_id, metapb::Peer *out_peer) {
+    sharkstore::shared_lock<sharkstore::shared_mutex> lock(meta_lock_);
+
+    return findPeerByNodeID(meta_, node_id, out_peer);
+}
 
 void Range::AddPeer(const metapb::Peer &peer) {
     raft::ConfChange cch;
 
-    auto fp = FindMetaPeer(peer.node_id());
-    if (fp != nullptr) {
+    if (FindPeerByNodeID(peer.node_id())) {
         FLOG_WARN("Range %" PRIu64 " AddPeer NodeId: %" PRIu64 " existed", meta_.id(),
                   peer.node_id());
         return;
     }
 
     cch.type = raft::ConfChangeType::kAdd;
-
-    cch.peer.type = raft::PeerType::kNormal;
+    cch.peer.type = peer.type() == metapb::PeerType_Learner ? raft::PeerType::kLearner
+                                                            : raft::PeerType::kNormal;
     cch.peer.node_id = peer.node_id();
     cch.peer.peer_id = peer.id();
 
@@ -27,7 +43,7 @@ void Range::AddPeer(const metapb::Peer &peer) {
     auto ap = pt.mutable_peer();
     ap->set_id(peer.id());
     ap->set_node_id(peer.node_id());
-    ap->set_role(peer.role());
+    ap->set_type(peer.type());
 
     auto ep = pt.mutable_verify_epoch();
     ep->set_conf_ver(meta_.range_epoch().conf_ver());
@@ -44,17 +60,18 @@ void Range::AddPeer(const metapb::Peer &peer) {
 void Range::DelPeer(const metapb::Peer &peer) {
     raft::ConfChange cch;
 
-    auto fp = FindMetaPeer(peer.node_id());
-    if (fp == nullptr || fp->id() != peer.id()) {
+    metapb::Peer old_peer;
+    if (!FindPeerByNodeID(peer.node_id(), &old_peer) || old_peer.id() != peer.id()) {
         FLOG_WARN("Range %" PRIu64 " DelPeer NodeId: %" PRIu64 " peer:%" PRIu64
-                  " info mismatch!",
-                  meta_.id(), peer.node_id(), peer.id());
+                  " info mismatch, Current Peer NodeId: %" PRIu64 " peer: %" PRIu64,
+                  meta_.id(), peer.node_id(), peer.id(), old_peer.node_id(), old_peer.id());
         return;
     }
 
     cch.type = raft::ConfChangeType::kRemove;
 
-    cch.peer.type = raft::PeerType::kNormal;
+    cch.peer.type = peer.type() == metapb::PeerType_Learner ? raft::PeerType::kLearner
+                                                            : raft::PeerType::kNormal;
     cch.peer.node_id = peer.node_id();
     cch.peer.peer_id = peer.id();
     raft_cmdpb::PeerTask pt;
@@ -62,7 +79,7 @@ void Range::DelPeer(const metapb::Peer &peer) {
     auto ap = pt.mutable_peer();
     ap->set_id(peer.id());
     ap->set_node_id(peer.node_id());
-    ap->set_role(peer.role());
+    ap->set_type(peer.type());
 
     auto ep = pt.mutable_verify_epoch();
     ep->set_conf_ver(meta_.range_epoch().conf_ver());
@@ -79,17 +96,20 @@ void Range::DelPeer(const metapb::Peer &peer) {
 Status Range::ApplyMemberChange(const raft::ConfChange &cc, uint64_t index) {
     Status ret;
     switch (cc.type) {
-    case raft::ConfChangeType::kAdd:
-        ret = ApplyAddPeer(cc);
-        break;
-    case raft::ConfChangeType::kRemove:
-        ret = ApplyDelPeer(cc);
-        break;
-    default:
-        ret = Status(Status::kNotSupported, "Apply member change not support type", "");
+        case raft::ConfChangeType::kAdd:
+            ret = ApplyAddPeer(cc);
+            break;
+        case raft::ConfChangeType::kRemove:
+            ret = ApplyDelPeer(cc);
+            break;
+        case raft::ConfChangeType::kPromote:
+            ret = ApplyPromotePeer(cc);
+            break;
+        default:
+            ret =
+                Status(Status::kNotSupported, "Apply member change not support type", "");
     }
-    if (!ret.ok())
-        return ret;
+    if (!ret.ok()) return ret;
 
     apply_index_ = index;
     auto s = context_->meta_store->SaveApplyIndex(meta_.id(), apply_index_);
@@ -132,10 +152,9 @@ Status Range::ApplyAddPeer(const raft::ConfChange &cc) {
 
     bool is_modify = false;
     do {
-        std::unique_lock<fbase::shared_mutex> lock(meta_lock_);
+        std::unique_lock<sharkstore::shared_mutex> lock(meta_lock_);
 
-        auto fp = FindMetaPeer(cc.peer.node_id);
-        if (fp != nullptr) {
+        if (findPeerByNodeID(meta_, cc.peer.node_id)) {
             FLOG_WARN("Range %" PRIu64 " ApplyAddPeer NodeId: %" PRIu64 " is existed",
                       meta_.id(), cc.peer.node_id);
             return Status::OK();
@@ -193,7 +212,7 @@ Status Range::ApplyDelPeer(const raft::ConfChange &cc) {
 
     bool is_modify = false;
     do {
-        std::unique_lock<fbase::shared_mutex> lock(meta_lock_);
+        std::unique_lock<sharkstore::shared_mutex> lock(meta_lock_);
 
         metapb::Range meta = meta_;
         if (DelPeer(pt, meta)) {
@@ -207,15 +226,58 @@ Status Range::ApplyDelPeer(const raft::ConfChange &cc) {
         // send Heartbeat message
         PushHeartBeatMessage();
     } else {
-        FLOG_WARN("Range %" PRIu64 " ApplyDelPeer Not Found NodeId: %" PRIu64 ,
-                meta_.id(), cc.peer.node_id);
+        FLOG_WARN("Range %" PRIu64 " ApplyDelPeer Not Found NodeId: %" PRIu64, meta_.id(),
+                  cc.peer.node_id);
     }
 
-    FLOG_INFO("Range %" PRIu64 " ApplyDelPeer NodeId: %" PRIu64
-              " End, version:%" PRIu64 " conf_ver:%" PRIu64,
+    FLOG_INFO("Range %" PRIu64 " ApplyDelPeer NodeId: %" PRIu64 " End, version:%" PRIu64
+              " conf_ver:%" PRIu64,
               meta_.id(), cc.peer.node_id, meta_.range_epoch().version(),
               meta_.range_epoch().conf_ver());
 
+    return Status::OK();
+}
+
+static bool promotePeer(const raft::Peer &peer, metapb::Range &meta) {
+    for (int i = 0; i < meta.peers_size(); ++i) {
+        auto mp = meta.mutable_peers(i);
+        if (mp->id() == peer.peer_id && mp->node_id() == peer.node_id &&
+            mp->type() == metapb::PeerType_Learner) {
+            mp->set_type(metapb::PeerType_Normal);
+            return true;
+        }
+    }
+    return false;
+}
+
+Status Range::ApplyPromotePeer(const raft::ConfChange &cc) {
+    FLOG_INFO("Range %" PRIu64 " ApplyPromotePeer NodeId:%" PRIu64
+              " Begin, version:%" PRIu64 " conf_ver:%" PRIu64,
+              meta_.id(), cc.peer.node_id, meta_.range_epoch().version(),
+              meta_.range_epoch().conf_ver());
+
+    bool is_modify = false;
+    {
+        std::unique_lock<sharkstore::shared_mutex> lock(meta_lock_);
+
+        if (promotePeer(cc.peer, meta_)) {
+            is_modify = true;
+            if (!SaveMeta(meta_)) {
+                return Status(Status::kIOError, "save meta", "");
+            }
+        }
+    }
+
+    if (is_modify) {
+        FLOG_INFO("Range %" PRIu64 " ApplyPromotePeer NodeId:%" PRIu64 " Successfully.",
+                  meta_.id(), cc.peer.node_id);
+
+        PushHeartBeatMessage();
+    } else {
+        FLOG_WARN("Range %" PRIu64 " ApplyPromotePeer NodeId:%" PRIu64
+                  " failed(maybe already promoted or doesn't exist)",
+                  meta_.id(), cc.peer.node_id);
+    }
     return Status::OK();
 }
 
@@ -223,7 +285,7 @@ void Range::AddPeer(raft_cmdpb::PeerTask &pt, metapb::Range &meta) {
     auto ap = meta.add_peers();
     ap->set_id(pt.peer().id());
     ap->set_node_id(pt.peer().node_id());
-    ap->set_role(pt.peer().role());
+    ap->set_type(pt.peer().type());
 
     auto ver = pt.verify_epoch().conf_ver() + 1;
     meta.mutable_range_epoch()->set_conf_ver(ver);
@@ -247,4 +309,4 @@ bool Range::DelPeer(raft_cmdpb::PeerTask &pt, metapb::Range &meta) {
 
 }  // namespace range
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

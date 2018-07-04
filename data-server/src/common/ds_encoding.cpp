@@ -5,7 +5,7 @@
 #include <cmath>
 #include <iostream>
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 
 void EncodeNonSortingUvarint(std::string *buf, uint64_t x) {
@@ -543,4 +543,4 @@ std::string EncodeToHexString(const std::string &str) {
 }
 
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

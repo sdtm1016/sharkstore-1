@@ -57,6 +57,7 @@ var (
 		&metapb.Column{Name: "cluster_sign", DataType: metapb.DataType_Varchar},
 		&metapb.Column{Name: "auto_transfer", DataType: metapb.DataType_Tinyint},
 		&metapb.Column{Name: "auto_failover", DataType: metapb.DataType_Tinyint},
+		&metapb.Column{Name: "auto_split", DataType: metapb.DataType_Tinyint},
 		&metapb.Column{Name: "create_time", DataType: metapb.DataType_Varchar},
 	}
 

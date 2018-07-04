@@ -1,10 +1,11 @@
 #include "server.h"
 
-#include "handler.h"
-#include "io_context_pool.h"
-#include "server_connection.h"
+#include "frame/sf_logger.h"
 
-namespace fbase {
+#include "io_context_pool.h"
+#include "session.h"
+
+namespace sharkstore {
 namespace dataserver {
 namespace net {
 
@@ -15,24 +16,23 @@ Server::Server(const ServerOptions& opt)
 
 Server::~Server() { Stop(); }
 
-Status Server::ListenAndServe(const std::string& listen_ip,
-                              uint16_t listen_port, Handler* handler) {
+Status Server::ListenAndServe(const std::string& listen_ip, uint16_t listen_port,
+                              const MsgHandler& handler) {
     std::string bind_ip = listen_ip;
     if (bind_ip.empty()) {
         bind_ip = "0.0.0.0";
     }
     try {
-        asio::ip::tcp::endpoint endpoint(asio::ip::make_address(bind_ip),
-                                         listen_port);
+        asio::ip::tcp::endpoint endpoint(asio::ip::make_address(bind_ip), listen_port);
         acceptor_.open(endpoint.protocol());
         acceptor_.set_option(asio::ip::tcp::acceptor::reuse_address(true));
         acceptor_.bind(endpoint);
-        acceptor_.listen();
+        acceptor_.listen(asio::socket_base::max_listen_connections);
     } catch (std::exception& e) {
         return Status(Status::kIOError, "listen", e.what());
     }
 
-    handler_ = handler;
+    msg_handler_ = handler;
     context_pool_->Start();
 
     doAccept();
@@ -58,11 +58,20 @@ void Server::Stop() {
 }
 
 void Server::doAccept() {
-    // prepare a new connection for accept
-    auto copt = static_cast<ConnectionOptions>(opt_);
-    auto connection = std::make_shared<ServerConnection>(copt, getContext());
+    acceptor_.async_accept(getContext(), [this](const std::error_code& ec,
+                                                asio::ip::tcp::socket socket) {
+        if (ec) {
+            FLOG_ERROR("[Net] accept error: %s", ec.message().c_str());
+        } else if (Session::TotalCount() > opt_.max_connections) {
+            FLOG_WARN("[Net] accept max connection limit reached: %lu",
+                      opt_.max_connections);
+        } else {
+            std::make_shared<Session>(opt_.session_opt, msg_handler_, std::move(socket))
+                ->Start();
+        }
 
-    // acceptor_.async_accept(connection->GetSocket(), );
+        doAccept();
+    });
 }
 
 asio::io_context& Server::getContext() {
@@ -75,4 +84,4 @@ asio::io_context& Server::getContext() {
 
 }  // namespace net
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

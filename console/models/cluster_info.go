@@ -13,7 +13,7 @@ type ClusterInfo struct {
 	CreateTime   		int64         `json:"create_time"`
 
 	//true 表示禁止自动分片
-	AutoShardingUnable 	bool        `json:"auto_sharding"`
+	AutoSplitUnable 	bool        `json:"auto_split"`
 	//true 表示禁止自动迁移
 	AutoTransferUnable 	bool        `json:"auto_transfer"`
 	// true 表示禁止自动failover

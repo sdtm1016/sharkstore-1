@@ -3,7 +3,7 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-namespace fbase
+namespace sharkstore
 {
     namespace monitor
     {

@@ -5,7 +5,7 @@
 
 #include <fastcommon/logger.h>
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace server {
 
@@ -55,4 +55,4 @@ void RaftLogger::Error(const char* file, int line, const char* format, ...) {
 
 } /* namespace server */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

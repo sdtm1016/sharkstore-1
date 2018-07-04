@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
 
 namespace {
 
-using namespace fbase;
+using namespace sharkstore;
 
 TEST(STATUS, Basic) {
     {

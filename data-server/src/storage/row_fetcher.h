@@ -5,7 +5,7 @@ _Pragma("once");
 #include "row_decoder.h"
 #include "store.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -39,4 +39,4 @@ private:
 
 } /* namespace storage */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

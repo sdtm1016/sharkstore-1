@@ -3,7 +3,7 @@ _Pragma("once");
 #include "field_value.h"
 #include "proto/gen/metapb.pb.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -86,4 +86,4 @@ private:
 
 } /* namespace storage */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

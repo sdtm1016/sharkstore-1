@@ -1,5 +1,5 @@
-1. cp conf/app.conf conf/app.conf_my (跟cmd/start.sh中的配置对应)
-2. 修改 app.conf_my 内容
+1. cp conf/config.toml ../config.toml (跟cmd/start.sh中的配置对应)
+2. 修改 config.toml 内容
     a. master的数据目录datapath 和 日志目录logpath、日志级别loglevel
     b. cluster.members 配置集群成员，
      [[cluster.peer]]

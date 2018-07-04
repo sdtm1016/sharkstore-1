@@ -413,6 +413,16 @@ public:
  ::google::protobuf::internal::ExplicitlyConstructed<LockResponse>
      _instance;
 } _LockResponse_default_instance_;
+class LockInfoDefaultTypeInternal {
+public:
+ ::google::protobuf::internal::ExplicitlyConstructed<LockInfo>
+     _instance;
+} _LockInfo_default_instance_;
+class LockScanResponseDefaultTypeInternal {
+public:
+ ::google::protobuf::internal::ExplicitlyConstructed<LockScanResponse>
+     _instance;
+} _LockScanResponse_default_instance_;
 class DsLockResponseDefaultTypeInternal {
 public:
  ::google::protobuf::internal::ExplicitlyConstructed<DsLockResponse>
@@ -463,13 +473,28 @@ public:
  ::google::protobuf::internal::ExplicitlyConstructed<DsUnlockForceResponse>
      _instance;
 } _DsUnlockForceResponse_default_instance_;
+class LockScanRequestDefaultTypeInternal {
+public:
+ ::google::protobuf::internal::ExplicitlyConstructed<LockScanRequest>
+     _instance;
+} _LockScanRequest_default_instance_;
+class DsLockScanRequestDefaultTypeInternal {
+public:
+ ::google::protobuf::internal::ExplicitlyConstructed<DsLockScanRequest>
+     _instance;
+} _DsLockScanRequest_default_instance_;
+class DsLockScanResponseDefaultTypeInternal {
+public:
+ ::google::protobuf::internal::ExplicitlyConstructed<DsLockScanResponse>
+     _instance;
+} _DsLockScanResponse_default_instance_;
 
 namespace protobuf_kvrpcpb_2eproto {
 
 
 namespace {
 
-::google::protobuf::Metadata file_level_metadata[89];
+::google::protobuf::Metadata file_level_metadata[94];
 const ::google::protobuf::EnumDescriptor* file_level_enum_descriptors[5];
 
 }  // namespace
@@ -485,6 +510,11 @@ PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::AuxillaryParseTableField
 };
 PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::ParseTable const
     TableStruct::schema[] GOOGLE_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
+  { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
+  { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
+  { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
+  { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
+  { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
@@ -1160,6 +1190,20 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LockResponse, value_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LockResponse, update_time_),
   ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LockInfo, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LockInfo, key_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LockInfo, value_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LockScanResponse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LockScanResponse, info_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LockScanResponse, last_key_),
+  ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DsLockResponse, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -1235,6 +1279,28 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DsUnlockForceResponse, header_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DsUnlockForceResponse, resp_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LockScanRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LockScanRequest, start_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LockScanRequest, limit_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LockScanRequest, count_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DsLockScanRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DsLockScanRequest, header_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DsLockScanRequest, req_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DsLockScanResponse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DsLockScanResponse, header_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DsLockScanResponse, resp_),
 };
 static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(KvPair)},
@@ -1316,16 +1382,21 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_ATTR
   { 557, -1, sizeof(LockRequest)},
   { 566, -1, sizeof(DsLockRequest)},
   { 573, -1, sizeof(LockResponse)},
-  { 582, -1, sizeof(DsLockResponse)},
-  { 589, -1, sizeof(LockUpdateRequest)},
-  { 599, -1, sizeof(DsLockUpdateRequest)},
-  { 606, -1, sizeof(DsLockUpdateResponse)},
-  { 613, -1, sizeof(UnlockRequest)},
-  { 622, -1, sizeof(DsUnlockRequest)},
-  { 629, -1, sizeof(DsUnlockResponse)},
-  { 636, -1, sizeof(UnlockForceRequest)},
-  { 644, -1, sizeof(DsUnlockForceRequest)},
-  { 651, -1, sizeof(DsUnlockForceResponse)},
+  { 582, -1, sizeof(LockInfo)},
+  { 589, -1, sizeof(LockScanResponse)},
+  { 596, -1, sizeof(DsLockResponse)},
+  { 603, -1, sizeof(LockUpdateRequest)},
+  { 613, -1, sizeof(DsLockUpdateRequest)},
+  { 620, -1, sizeof(DsLockUpdateResponse)},
+  { 627, -1, sizeof(UnlockRequest)},
+  { 636, -1, sizeof(DsUnlockRequest)},
+  { 643, -1, sizeof(DsUnlockResponse)},
+  { 650, -1, sizeof(UnlockForceRequest)},
+  { 658, -1, sizeof(DsUnlockForceRequest)},
+  { 665, -1, sizeof(DsUnlockForceResponse)},
+  { 672, -1, sizeof(LockScanRequest)},
+  { 680, -1, sizeof(DsLockScanRequest)},
+  { 687, -1, sizeof(DsLockScanResponse)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -1408,6 +1479,8 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::google::protobuf::Message*>(&_LockRequest_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_DsLockRequest_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_LockResponse_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&_LockInfo_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&_LockScanResponse_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_DsLockResponse_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_LockUpdateRequest_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_DsLockUpdateRequest_default_instance_),
@@ -1418,6 +1491,9 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::google::protobuf::Message*>(&_UnlockForceRequest_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_DsUnlockForceRequest_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_DsUnlockForceResponse_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&_LockScanRequest_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&_DsLockScanRequest_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&_DsLockScanResponse_default_instance_),
 };
 
 namespace {
@@ -1438,7 +1514,7 @@ void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) GOOGLE_ATTRIBUTE_COLD;
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 89);
+  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 94);
 }
 
 }  // namespace
@@ -1607,7 +1683,11 @@ void TableStruct::InitDefaultsImpl() {
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_DsLockRequest_default_instance_);_LockResponse_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
-      &_LockResponse_default_instance_);_DsLockResponse_default_instance_._instance.DefaultConstruct();
+      &_LockResponse_default_instance_);_LockInfo_default_instance_._instance.DefaultConstruct();
+  ::google::protobuf::internal::OnShutdownDestroyMessage(
+      &_LockInfo_default_instance_);_LockScanResponse_default_instance_._instance.DefaultConstruct();
+  ::google::protobuf::internal::OnShutdownDestroyMessage(
+      &_LockScanResponse_default_instance_);_DsLockResponse_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_DsLockResponse_default_instance_);_LockUpdateRequest_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
@@ -1627,7 +1707,13 @@ void TableStruct::InitDefaultsImpl() {
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_DsUnlockForceRequest_default_instance_);_DsUnlockForceResponse_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
-      &_DsUnlockForceResponse_default_instance_);_RequestHeader_default_instance_._instance.get_mutable()->timestamp_ = const_cast< ::timestamp::Timestamp*>(
+      &_DsUnlockForceResponse_default_instance_);_LockScanRequest_default_instance_._instance.DefaultConstruct();
+  ::google::protobuf::internal::OnShutdownDestroyMessage(
+      &_LockScanRequest_default_instance_);_DsLockScanRequest_default_instance_._instance.DefaultConstruct();
+  ::google::protobuf::internal::OnShutdownDestroyMessage(
+      &_DsLockScanRequest_default_instance_);_DsLockScanResponse_default_instance_._instance.DefaultConstruct();
+  ::google::protobuf::internal::OnShutdownDestroyMessage(
+      &_DsLockScanResponse_default_instance_);_RequestHeader_default_instance_._instance.get_mutable()->timestamp_ = const_cast< ::timestamp::Timestamp*>(
       ::timestamp::Timestamp::internal_default_instance());
   _RequestHeader_default_instance_._instance.get_mutable()->range_epoch_ = const_cast< ::metapb::RangeEpoch*>(
       ::metapb::RangeEpoch::internal_default_instance());
@@ -1785,6 +1871,8 @@ void TableStruct::InitDefaultsImpl() {
       ::kvrpcpb::RequestHeader::internal_default_instance());
   _DsLockRequest_default_instance_._instance.get_mutable()->req_ = const_cast< ::kvrpcpb::LockRequest*>(
       ::kvrpcpb::LockRequest::internal_default_instance());
+  _LockInfo_default_instance_._instance.get_mutable()->value_ = const_cast< ::kvrpcpb::LockValue*>(
+      ::kvrpcpb::LockValue::internal_default_instance());
   _DsLockResponse_default_instance_._instance.get_mutable()->header_ = const_cast< ::kvrpcpb::ResponseHeader*>(
       ::kvrpcpb::ResponseHeader::internal_default_instance());
   _DsLockResponse_default_instance_._instance.get_mutable()->resp_ = const_cast< ::kvrpcpb::LockResponse*>(
@@ -1819,6 +1907,14 @@ void TableStruct::InitDefaultsImpl() {
       ::kvrpcpb::ResponseHeader::internal_default_instance());
   _DsUnlockForceResponse_default_instance_._instance.get_mutable()->resp_ = const_cast< ::kvrpcpb::LockResponse*>(
       ::kvrpcpb::LockResponse::internal_default_instance());
+  _DsLockScanRequest_default_instance_._instance.get_mutable()->header_ = const_cast< ::kvrpcpb::RequestHeader*>(
+      ::kvrpcpb::RequestHeader::internal_default_instance());
+  _DsLockScanRequest_default_instance_._instance.get_mutable()->req_ = const_cast< ::kvrpcpb::LockScanRequest*>(
+      ::kvrpcpb::LockScanRequest::internal_default_instance());
+  _DsLockScanResponse_default_instance_._instance.get_mutable()->header_ = const_cast< ::kvrpcpb::ResponseHeader*>(
+      ::kvrpcpb::ResponseHeader::internal_default_instance());
+  _DsLockScanResponse_default_instance_._instance.get_mutable()->resp_ = const_cast< ::kvrpcpb::LockScanResponse*>(
+      ::kvrpcpb::LockScanResponse::internal_default_instance());
 }
 
 void InitDefaults() {
@@ -2003,43 +2099,53 @@ void AddDescriptorsImpl() {
       "tHeader\022!\n\003req\030\002 \001(\0132\024.kvrpcpb.LockReque"
       "st\"O\n\014LockResponse\022\014\n\004code\030\001 \001(\003\022\r\n\005erro"
       "r\030\002 \001(\t\022\r\n\005value\030\003 \001(\014\022\023\n\013update_time\030\004 "
-      "\001(\003\"^\n\016DsLockResponse\022\'\n\006header\030\001 \001(\0132\027."
-      "kvrpcpb.ResponseHeader\022#\n\004resp\030\002 \001(\0132\025.k"
-      "vrpcpb.LockResponse\"\200\001\n\021LockUpdateReques"
-      "t\022\013\n\003key\030\001 \001(\014\022\n\n\002id\030\003 \001(\t\022\023\n\013update_tim"
-      "e\030\005 \001(\003\022\024\n\014update_value\030\006 \001(\014\022\'\n\ttimesta"
-      "mp\030\n \001(\0132\024.timestamp.Timestamp\"f\n\023DsLock"
-      "UpdateRequest\022&\n\006header\030\001 \001(\0132\026.kvrpcpb."
-      "RequestHeader\022\'\n\003req\030\002 \001(\0132\032.kvrpcpb.Loc"
-      "kUpdateRequest\"d\n\024DsLockUpdateResponse\022\'"
-      "\n\006header\030\001 \001(\0132\027.kvrpcpb.ResponseHeader\022"
-      "#\n\004resp\030\002 \001(\0132\025.kvrpcpb.LockResponse\"]\n\r"
-      "UnlockRequest\022\013\n\003key\030\001 \001(\014\022\n\n\002id\030\003 \001(\t\022\'"
-      "\n\ttimestamp\030\n \001(\0132\024.timestamp.Timestamp\022"
-      "\n\n\002by\030\013 \001(\t\"^\n\017DsUnlockRequest\022&\n\006header"
-      "\030\001 \001(\0132\026.kvrpcpb.RequestHeader\022#\n\003req\030\002 "
-      "\001(\0132\026.kvrpcpb.UnlockRequest\"`\n\020DsUnlockR"
-      "esponse\022\'\n\006header\030\001 \001(\0132\027.kvrpcpb.Respon"
-      "seHeader\022#\n\004resp\030\002 \001(\0132\025.kvrpcpb.LockRes"
-      "ponse\"V\n\022UnlockForceRequest\022\013\n\003key\030\001 \001(\014"
+      "\001(\003\":\n\010LockInfo\022\013\n\003key\030\001 \001(\014\022!\n\005value\030\002 "
+      "\001(\0132\022.kvrpcpb.LockValue\"E\n\020LockScanRespo"
+      "nse\022\037\n\004info\030\001 \003(\0132\021.kvrpcpb.LockInfo\022\020\n\010"
+      "last_key\030\002 \001(\014\"^\n\016DsLockResponse\022\'\n\006head"
+      "er\030\001 \001(\0132\027.kvrpcpb.ResponseHeader\022#\n\004res"
+      "p\030\002 \001(\0132\025.kvrpcpb.LockResponse\"\200\001\n\021LockU"
+      "pdateRequest\022\013\n\003key\030\001 \001(\014\022\n\n\002id\030\003 \001(\t\022\023\n"
+      "\013update_time\030\005 \001(\003\022\024\n\014update_value\030\006 \001(\014"
       "\022\'\n\ttimestamp\030\n \001(\0132\024.timestamp.Timestam"
-      "p\022\n\n\002by\030\013 \001(\t\"h\n\024DsUnlockForceRequest\022&\n"
-      "\006header\030\001 \001(\0132\026.kvrpcpb.RequestHeader\022(\n"
-      "\003req\030\002 \001(\0132\033.kvrpcpb.UnlockForceRequest\""
-      "e\n\025DsUnlockForceResponse\022\'\n\006header\030\001 \001(\013"
-      "2\027.kvrpcpb.ResponseHeader\022#\n\004resp\030\002 \001(\0132"
-      "\025.kvrpcpb.LockResponse*;\n\013ExecuteType\022\017\n"
-      "\013ExecInvalid\020\000\022\013\n\007ExecPut\020\001\022\016\n\nExecDelet"
-      "e\020\002*k\n\tMatchType\022\013\n\007Invalid\020\000\022\t\n\005Equal\020\001"
-      "\022\014\n\010NotEqual\020\002\022\010\n\004Less\020\003\022\017\n\013LessOrEqual\020"
-      "\004\022\n\n\006Larger\020\005\022\021\n\rLargerOrEqual\020\006*Z\n\tExis"
-      "tCase\022\016\n\nEC_Invalid\020\000\022\020\n\014EC_NotExists\020\001\022"
-      "\r\n\tEC_Exists\020\002\022\016\n\nEC_AnyCase\020\003\022\014\n\010EC_For"
-      "ce\020\004*B\n\tOperation\022\016\n\nOP_Invalid\020\000\022\n\n\006OP_"
-      "Set\020\001\022\r\n\tOP_Delete\020\002\022\n\n\006OP_Get\020\003b\006proto3"
+      "p\"f\n\023DsLockUpdateRequest\022&\n\006header\030\001 \001(\013"
+      "2\026.kvrpcpb.RequestHeader\022\'\n\003req\030\002 \001(\0132\032."
+      "kvrpcpb.LockUpdateRequest\"d\n\024DsLockUpdat"
+      "eResponse\022\'\n\006header\030\001 \001(\0132\027.kvrpcpb.Resp"
+      "onseHeader\022#\n\004resp\030\002 \001(\0132\025.kvrpcpb.LockR"
+      "esponse\"]\n\rUnlockRequest\022\013\n\003key\030\001 \001(\014\022\n\n"
+      "\002id\030\003 \001(\t\022\'\n\ttimestamp\030\n \001(\0132\024.timestamp"
+      ".Timestamp\022\n\n\002by\030\013 \001(\t\"^\n\017DsUnlockReques"
+      "t\022&\n\006header\030\001 \001(\0132\026.kvrpcpb.RequestHeade"
+      "r\022#\n\003req\030\002 \001(\0132\026.kvrpcpb.UnlockRequest\"`"
+      "\n\020DsUnlockResponse\022\'\n\006header\030\001 \001(\0132\027.kvr"
+      "pcpb.ResponseHeader\022#\n\004resp\030\002 \001(\0132\025.kvrp"
+      "cpb.LockResponse\"V\n\022UnlockForceRequest\022\013"
+      "\n\003key\030\001 \001(\014\022\'\n\ttimestamp\030\n \001(\0132\024.timesta"
+      "mp.Timestamp\022\n\n\002by\030\013 \001(\t\"h\n\024DsUnlockForc"
+      "eRequest\022&\n\006header\030\001 \001(\0132\026.kvrpcpb.Reque"
+      "stHeader\022(\n\003req\030\002 \001(\0132\033.kvrpcpb.UnlockFo"
+      "rceRequest\"e\n\025DsUnlockForceResponse\022\'\n\006h"
+      "eader\030\001 \001(\0132\027.kvrpcpb.ResponseHeader\022#\n\004"
+      "resp\030\002 \001(\0132\025.kvrpcpb.LockResponse\">\n\017Loc"
+      "kScanRequest\022\r\n\005start\030\001 \001(\014\022\r\n\005limit\030\002 \001"
+      "(\014\022\r\n\005count\030\003 \001(\r\"b\n\021DsLockScanRequest\022&"
+      "\n\006header\030\001 \001(\0132\026.kvrpcpb.RequestHeader\022%"
+      "\n\003req\030\002 \001(\0132\030.kvrpcpb.LockScanRequest\"f\n"
+      "\022DsLockScanResponse\022\'\n\006header\030\001 \001(\0132\027.kv"
+      "rpcpb.ResponseHeader\022\'\n\004resp\030\002 \001(\0132\031.kvr"
+      "pcpb.LockScanResponse*;\n\013ExecuteType\022\017\n\013"
+      "ExecInvalid\020\000\022\013\n\007ExecPut\020\001\022\016\n\nExecDelete"
+      "\020\002*k\n\tMatchType\022\013\n\007Invalid\020\000\022\t\n\005Equal\020\001\022"
+      "\014\n\010NotEqual\020\002\022\010\n\004Less\020\003\022\017\n\013LessOrEqual\020\004"
+      "\022\n\n\006Larger\020\005\022\021\n\rLargerOrEqual\020\006*Z\n\tExist"
+      "Case\022\016\n\nEC_Invalid\020\000\022\020\n\014EC_NotExists\020\001\022\r"
+      "\n\tEC_Exists\020\002\022\016\n\nEC_AnyCase\020\003\022\014\n\010EC_Forc"
+      "e\020\004*B\n\tOperation\022\016\n\nOP_Invalid\020\000\022\n\n\006OP_S"
+      "et\020\001\022\r\n\tOP_Delete\020\002\022\n\n\006OP_Get\020\003b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 8320);
+      descriptor, 8719);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "kvrpcpb.proto", &protobuf_RegisterTypes);
   ::metapb::protobuf_metapb_2eproto::AddDescriptors();
@@ -32981,6 +33087,765 @@ void LockResponse::set_update_time(::google::protobuf::int64 value) {
 // ===================================================================
 
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int LockInfo::kKeyFieldNumber;
+const int LockInfo::kValueFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+LockInfo::LockInfo()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
+    protobuf_kvrpcpb_2eproto::InitDefaults();
+  }
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:kvrpcpb.LockInfo)
+}
+LockInfo::LockInfo(const LockInfo& from)
+  : ::google::protobuf::Message(),
+      _internal_metadata_(NULL),
+      _cached_size_(0) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  key_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.key().size() > 0) {
+    key_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.key_);
+  }
+  if (from.has_value()) {
+    value_ = new ::kvrpcpb::LockValue(*from.value_);
+  } else {
+    value_ = NULL;
+  }
+  // @@protoc_insertion_point(copy_constructor:kvrpcpb.LockInfo)
+}
+
+void LockInfo::SharedCtor() {
+  key_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  value_ = NULL;
+  _cached_size_ = 0;
+}
+
+LockInfo::~LockInfo() {
+  // @@protoc_insertion_point(destructor:kvrpcpb.LockInfo)
+  SharedDtor();
+}
+
+void LockInfo::SharedDtor() {
+  key_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (this != internal_default_instance()) delete value_;
+}
+
+void LockInfo::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* LockInfo::descriptor() {
+  protobuf_kvrpcpb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_kvrpcpb_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
+const LockInfo& LockInfo::default_instance() {
+  protobuf_kvrpcpb_2eproto::InitDefaults();
+  return *internal_default_instance();
+}
+
+LockInfo* LockInfo::New(::google::protobuf::Arena* arena) const {
+  LockInfo* n = new LockInfo;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void LockInfo::Clear() {
+// @@protoc_insertion_point(message_clear_start:kvrpcpb.LockInfo)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  key_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (GetArenaNoVirtual() == NULL && value_ != NULL) {
+    delete value_;
+  }
+  value_ = NULL;
+  _internal_metadata_.Clear();
+}
+
+bool LockInfo::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kvrpcpb.LockInfo)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // bytes key = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->mutable_key()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // .kvrpcpb.LockValue value = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_value()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kvrpcpb.LockInfo)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kvrpcpb.LockInfo)
+  return false;
+#undef DO_
+}
+
+void LockInfo::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kvrpcpb.LockInfo)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // bytes key = 1;
+  if (this->key().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
+      1, this->key(), output);
+  }
+
+  // .kvrpcpb.LockValue value = 2;
+  if (this->has_value()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      2, *this->value_, output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kvrpcpb.LockInfo)
+}
+
+::google::protobuf::uint8* LockInfo::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
+  // @@protoc_insertion_point(serialize_to_array_start:kvrpcpb.LockInfo)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // bytes key = 1;
+  if (this->key().size() > 0) {
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        1, this->key(), target);
+  }
+
+  // .kvrpcpb.LockValue value = 2;
+  if (this->has_value()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        2, *this->value_, deterministic, target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:kvrpcpb.LockInfo)
+  return target;
+}
+
+size_t LockInfo::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:kvrpcpb.LockInfo)
+  size_t total_size = 0;
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
+  }
+  // bytes key = 1;
+  if (this->key().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
+        this->key());
+  }
+
+  // .kvrpcpb.LockValue value = 2;
+  if (this->has_value()) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        *this->value_);
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = cached_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void LockInfo::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:kvrpcpb.LockInfo)
+  GOOGLE_DCHECK_NE(&from, this);
+  const LockInfo* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const LockInfo>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:kvrpcpb.LockInfo)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:kvrpcpb.LockInfo)
+    MergeFrom(*source);
+  }
+}
+
+void LockInfo::MergeFrom(const LockInfo& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:kvrpcpb.LockInfo)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.key().size() > 0) {
+
+    key_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.key_);
+  }
+  if (from.has_value()) {
+    mutable_value()->::kvrpcpb::LockValue::MergeFrom(from.value());
+  }
+}
+
+void LockInfo::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:kvrpcpb.LockInfo)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void LockInfo::CopyFrom(const LockInfo& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:kvrpcpb.LockInfo)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool LockInfo::IsInitialized() const {
+  return true;
+}
+
+void LockInfo::Swap(LockInfo* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void LockInfo::InternalSwap(LockInfo* other) {
+  using std::swap;
+  key_.Swap(&other->key_);
+  swap(value_, other->value_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata LockInfo::GetMetadata() const {
+  protobuf_kvrpcpb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_kvrpcpb_2eproto::file_level_metadata[kIndexInFileMessages];
+}
+
+#if PROTOBUF_INLINE_NOT_IN_HEADERS
+// LockInfo
+
+// bytes key = 1;
+void LockInfo::clear_key() {
+  key_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+const ::std::string& LockInfo::key() const {
+  // @@protoc_insertion_point(field_get:kvrpcpb.LockInfo.key)
+  return key_.GetNoArena();
+}
+void LockInfo::set_key(const ::std::string& value) {
+  
+  key_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:kvrpcpb.LockInfo.key)
+}
+#if LANG_CXX11
+void LockInfo::set_key(::std::string&& value) {
+  
+  key_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:kvrpcpb.LockInfo.key)
+}
+#endif
+void LockInfo::set_key(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  key_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:kvrpcpb.LockInfo.key)
+}
+void LockInfo::set_key(const void* value, size_t size) {
+  
+  key_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:kvrpcpb.LockInfo.key)
+}
+::std::string* LockInfo::mutable_key() {
+  
+  // @@protoc_insertion_point(field_mutable:kvrpcpb.LockInfo.key)
+  return key_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+::std::string* LockInfo::release_key() {
+  // @@protoc_insertion_point(field_release:kvrpcpb.LockInfo.key)
+  
+  return key_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void LockInfo::set_allocated_key(::std::string* key) {
+  if (key != NULL) {
+    
+  } else {
+    
+  }
+  key_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), key);
+  // @@protoc_insertion_point(field_set_allocated:kvrpcpb.LockInfo.key)
+}
+
+// .kvrpcpb.LockValue value = 2;
+bool LockInfo::has_value() const {
+  return this != internal_default_instance() && value_ != NULL;
+}
+void LockInfo::clear_value() {
+  if (GetArenaNoVirtual() == NULL && value_ != NULL) delete value_;
+  value_ = NULL;
+}
+const ::kvrpcpb::LockValue& LockInfo::value() const {
+  const ::kvrpcpb::LockValue* p = value_;
+  // @@protoc_insertion_point(field_get:kvrpcpb.LockInfo.value)
+  return p != NULL ? *p : *reinterpret_cast<const ::kvrpcpb::LockValue*>(
+      &::kvrpcpb::_LockValue_default_instance_);
+}
+::kvrpcpb::LockValue* LockInfo::mutable_value() {
+  
+  if (value_ == NULL) {
+    value_ = new ::kvrpcpb::LockValue;
+  }
+  // @@protoc_insertion_point(field_mutable:kvrpcpb.LockInfo.value)
+  return value_;
+}
+::kvrpcpb::LockValue* LockInfo::release_value() {
+  // @@protoc_insertion_point(field_release:kvrpcpb.LockInfo.value)
+  
+  ::kvrpcpb::LockValue* temp = value_;
+  value_ = NULL;
+  return temp;
+}
+void LockInfo::set_allocated_value(::kvrpcpb::LockValue* value) {
+  delete value_;
+  value_ = value;
+  if (value) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:kvrpcpb.LockInfo.value)
+}
+
+#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
+
+// ===================================================================
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int LockScanResponse::kInfoFieldNumber;
+const int LockScanResponse::kLastKeyFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+LockScanResponse::LockScanResponse()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
+    protobuf_kvrpcpb_2eproto::InitDefaults();
+  }
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:kvrpcpb.LockScanResponse)
+}
+LockScanResponse::LockScanResponse(const LockScanResponse& from)
+  : ::google::protobuf::Message(),
+      _internal_metadata_(NULL),
+      info_(from.info_),
+      _cached_size_(0) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  last_key_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.last_key().size() > 0) {
+    last_key_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.last_key_);
+  }
+  // @@protoc_insertion_point(copy_constructor:kvrpcpb.LockScanResponse)
+}
+
+void LockScanResponse::SharedCtor() {
+  last_key_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  _cached_size_ = 0;
+}
+
+LockScanResponse::~LockScanResponse() {
+  // @@protoc_insertion_point(destructor:kvrpcpb.LockScanResponse)
+  SharedDtor();
+}
+
+void LockScanResponse::SharedDtor() {
+  last_key_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+
+void LockScanResponse::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* LockScanResponse::descriptor() {
+  protobuf_kvrpcpb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_kvrpcpb_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
+const LockScanResponse& LockScanResponse::default_instance() {
+  protobuf_kvrpcpb_2eproto::InitDefaults();
+  return *internal_default_instance();
+}
+
+LockScanResponse* LockScanResponse::New(::google::protobuf::Arena* arena) const {
+  LockScanResponse* n = new LockScanResponse;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void LockScanResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:kvrpcpb.LockScanResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  info_.Clear();
+  last_key_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  _internal_metadata_.Clear();
+}
+
+bool LockScanResponse::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kvrpcpb.LockScanResponse)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // repeated .kvrpcpb.LockInfo info = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+                input, add_info()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // bytes last_key = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->mutable_last_key()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kvrpcpb.LockScanResponse)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kvrpcpb.LockScanResponse)
+  return false;
+#undef DO_
+}
+
+void LockScanResponse::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kvrpcpb.LockScanResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated .kvrpcpb.LockInfo info = 1;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->info_size()); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      1, this->info(static_cast<int>(i)), output);
+  }
+
+  // bytes last_key = 2;
+  if (this->last_key().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
+      2, this->last_key(), output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kvrpcpb.LockScanResponse)
+}
+
+::google::protobuf::uint8* LockScanResponse::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
+  // @@protoc_insertion_point(serialize_to_array_start:kvrpcpb.LockScanResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated .kvrpcpb.LockInfo info = 1;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->info_size()); i < n; i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        1, this->info(static_cast<int>(i)), deterministic, target);
+  }
+
+  // bytes last_key = 2;
+  if (this->last_key().size() > 0) {
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        2, this->last_key(), target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:kvrpcpb.LockScanResponse)
+  return target;
+}
+
+size_t LockScanResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:kvrpcpb.LockScanResponse)
+  size_t total_size = 0;
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
+  }
+  // repeated .kvrpcpb.LockInfo info = 1;
+  {
+    unsigned int count = static_cast<unsigned int>(this->info_size());
+    total_size += 1UL * count;
+    for (unsigned int i = 0; i < count; i++) {
+      total_size +=
+        ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+          this->info(static_cast<int>(i)));
+    }
+  }
+
+  // bytes last_key = 2;
+  if (this->last_key().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
+        this->last_key());
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = cached_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void LockScanResponse::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:kvrpcpb.LockScanResponse)
+  GOOGLE_DCHECK_NE(&from, this);
+  const LockScanResponse* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const LockScanResponse>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:kvrpcpb.LockScanResponse)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:kvrpcpb.LockScanResponse)
+    MergeFrom(*source);
+  }
+}
+
+void LockScanResponse::MergeFrom(const LockScanResponse& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:kvrpcpb.LockScanResponse)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  info_.MergeFrom(from.info_);
+  if (from.last_key().size() > 0) {
+
+    last_key_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.last_key_);
+  }
+}
+
+void LockScanResponse::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:kvrpcpb.LockScanResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void LockScanResponse::CopyFrom(const LockScanResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:kvrpcpb.LockScanResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool LockScanResponse::IsInitialized() const {
+  return true;
+}
+
+void LockScanResponse::Swap(LockScanResponse* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void LockScanResponse::InternalSwap(LockScanResponse* other) {
+  using std::swap;
+  info_.InternalSwap(&other->info_);
+  last_key_.Swap(&other->last_key_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata LockScanResponse::GetMetadata() const {
+  protobuf_kvrpcpb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_kvrpcpb_2eproto::file_level_metadata[kIndexInFileMessages];
+}
+
+#if PROTOBUF_INLINE_NOT_IN_HEADERS
+// LockScanResponse
+
+// repeated .kvrpcpb.LockInfo info = 1;
+int LockScanResponse::info_size() const {
+  return info_.size();
+}
+void LockScanResponse::clear_info() {
+  info_.Clear();
+}
+const ::kvrpcpb::LockInfo& LockScanResponse::info(int index) const {
+  // @@protoc_insertion_point(field_get:kvrpcpb.LockScanResponse.info)
+  return info_.Get(index);
+}
+::kvrpcpb::LockInfo* LockScanResponse::mutable_info(int index) {
+  // @@protoc_insertion_point(field_mutable:kvrpcpb.LockScanResponse.info)
+  return info_.Mutable(index);
+}
+::kvrpcpb::LockInfo* LockScanResponse::add_info() {
+  // @@protoc_insertion_point(field_add:kvrpcpb.LockScanResponse.info)
+  return info_.Add();
+}
+::google::protobuf::RepeatedPtrField< ::kvrpcpb::LockInfo >*
+LockScanResponse::mutable_info() {
+  // @@protoc_insertion_point(field_mutable_list:kvrpcpb.LockScanResponse.info)
+  return &info_;
+}
+const ::google::protobuf::RepeatedPtrField< ::kvrpcpb::LockInfo >&
+LockScanResponse::info() const {
+  // @@protoc_insertion_point(field_list:kvrpcpb.LockScanResponse.info)
+  return info_;
+}
+
+// bytes last_key = 2;
+void LockScanResponse::clear_last_key() {
+  last_key_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+const ::std::string& LockScanResponse::last_key() const {
+  // @@protoc_insertion_point(field_get:kvrpcpb.LockScanResponse.last_key)
+  return last_key_.GetNoArena();
+}
+void LockScanResponse::set_last_key(const ::std::string& value) {
+  
+  last_key_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:kvrpcpb.LockScanResponse.last_key)
+}
+#if LANG_CXX11
+void LockScanResponse::set_last_key(::std::string&& value) {
+  
+  last_key_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:kvrpcpb.LockScanResponse.last_key)
+}
+#endif
+void LockScanResponse::set_last_key(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  last_key_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:kvrpcpb.LockScanResponse.last_key)
+}
+void LockScanResponse::set_last_key(const void* value, size_t size) {
+  
+  last_key_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:kvrpcpb.LockScanResponse.last_key)
+}
+::std::string* LockScanResponse::mutable_last_key() {
+  
+  // @@protoc_insertion_point(field_mutable:kvrpcpb.LockScanResponse.last_key)
+  return last_key_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+::std::string* LockScanResponse::release_last_key() {
+  // @@protoc_insertion_point(field_release:kvrpcpb.LockScanResponse.last_key)
+  
+  return last_key_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void LockScanResponse::set_allocated_last_key(::std::string* last_key) {
+  if (last_key != NULL) {
+    
+  } else {
+    
+  }
+  last_key_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), last_key);
+  // @@protoc_insertion_point(field_set_allocated:kvrpcpb.LockScanResponse.last_key)
+}
+
+#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
+
+// ===================================================================
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int DsLockResponse::kHeaderFieldNumber;
 const int DsLockResponse::kRespFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
@@ -37373,6 +38238,1212 @@ void DsUnlockForceResponse::set_allocated_resp(::kvrpcpb::LockResponse* resp) {
     
   }
   // @@protoc_insertion_point(field_set_allocated:kvrpcpb.DsUnlockForceResponse.resp)
+}
+
+#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
+
+// ===================================================================
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int LockScanRequest::kStartFieldNumber;
+const int LockScanRequest::kLimitFieldNumber;
+const int LockScanRequest::kCountFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+LockScanRequest::LockScanRequest()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
+    protobuf_kvrpcpb_2eproto::InitDefaults();
+  }
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:kvrpcpb.LockScanRequest)
+}
+LockScanRequest::LockScanRequest(const LockScanRequest& from)
+  : ::google::protobuf::Message(),
+      _internal_metadata_(NULL),
+      _cached_size_(0) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  start_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.start().size() > 0) {
+    start_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.start_);
+  }
+  limit_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.limit().size() > 0) {
+    limit_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.limit_);
+  }
+  count_ = from.count_;
+  // @@protoc_insertion_point(copy_constructor:kvrpcpb.LockScanRequest)
+}
+
+void LockScanRequest::SharedCtor() {
+  start_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  limit_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  count_ = 0u;
+  _cached_size_ = 0;
+}
+
+LockScanRequest::~LockScanRequest() {
+  // @@protoc_insertion_point(destructor:kvrpcpb.LockScanRequest)
+  SharedDtor();
+}
+
+void LockScanRequest::SharedDtor() {
+  start_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  limit_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+
+void LockScanRequest::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* LockScanRequest::descriptor() {
+  protobuf_kvrpcpb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_kvrpcpb_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
+const LockScanRequest& LockScanRequest::default_instance() {
+  protobuf_kvrpcpb_2eproto::InitDefaults();
+  return *internal_default_instance();
+}
+
+LockScanRequest* LockScanRequest::New(::google::protobuf::Arena* arena) const {
+  LockScanRequest* n = new LockScanRequest;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void LockScanRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:kvrpcpb.LockScanRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  start_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  limit_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  count_ = 0u;
+  _internal_metadata_.Clear();
+}
+
+bool LockScanRequest::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kvrpcpb.LockScanRequest)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // bytes start = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->mutable_start()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // bytes limit = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->mutable_limit()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // uint32 count = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(24u /* 24 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &count_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kvrpcpb.LockScanRequest)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kvrpcpb.LockScanRequest)
+  return false;
+#undef DO_
+}
+
+void LockScanRequest::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kvrpcpb.LockScanRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // bytes start = 1;
+  if (this->start().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
+      1, this->start(), output);
+  }
+
+  // bytes limit = 2;
+  if (this->limit().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
+      2, this->limit(), output);
+  }
+
+  // uint32 count = 3;
+  if (this->count() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->count(), output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kvrpcpb.LockScanRequest)
+}
+
+::google::protobuf::uint8* LockScanRequest::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
+  // @@protoc_insertion_point(serialize_to_array_start:kvrpcpb.LockScanRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // bytes start = 1;
+  if (this->start().size() > 0) {
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        1, this->start(), target);
+  }
+
+  // bytes limit = 2;
+  if (this->limit().size() > 0) {
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        2, this->limit(), target);
+  }
+
+  // uint32 count = 3;
+  if (this->count() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->count(), target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:kvrpcpb.LockScanRequest)
+  return target;
+}
+
+size_t LockScanRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:kvrpcpb.LockScanRequest)
+  size_t total_size = 0;
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
+  }
+  // bytes start = 1;
+  if (this->start().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
+        this->start());
+  }
+
+  // bytes limit = 2;
+  if (this->limit().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::BytesSize(
+        this->limit());
+  }
+
+  // uint32 count = 3;
+  if (this->count() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        this->count());
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = cached_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void LockScanRequest::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:kvrpcpb.LockScanRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  const LockScanRequest* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const LockScanRequest>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:kvrpcpb.LockScanRequest)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:kvrpcpb.LockScanRequest)
+    MergeFrom(*source);
+  }
+}
+
+void LockScanRequest::MergeFrom(const LockScanRequest& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:kvrpcpb.LockScanRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.start().size() > 0) {
+
+    start_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.start_);
+  }
+  if (from.limit().size() > 0) {
+
+    limit_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.limit_);
+  }
+  if (from.count() != 0) {
+    set_count(from.count());
+  }
+}
+
+void LockScanRequest::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:kvrpcpb.LockScanRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void LockScanRequest::CopyFrom(const LockScanRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:kvrpcpb.LockScanRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool LockScanRequest::IsInitialized() const {
+  return true;
+}
+
+void LockScanRequest::Swap(LockScanRequest* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void LockScanRequest::InternalSwap(LockScanRequest* other) {
+  using std::swap;
+  start_.Swap(&other->start_);
+  limit_.Swap(&other->limit_);
+  swap(count_, other->count_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata LockScanRequest::GetMetadata() const {
+  protobuf_kvrpcpb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_kvrpcpb_2eproto::file_level_metadata[kIndexInFileMessages];
+}
+
+#if PROTOBUF_INLINE_NOT_IN_HEADERS
+// LockScanRequest
+
+// bytes start = 1;
+void LockScanRequest::clear_start() {
+  start_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+const ::std::string& LockScanRequest::start() const {
+  // @@protoc_insertion_point(field_get:kvrpcpb.LockScanRequest.start)
+  return start_.GetNoArena();
+}
+void LockScanRequest::set_start(const ::std::string& value) {
+  
+  start_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:kvrpcpb.LockScanRequest.start)
+}
+#if LANG_CXX11
+void LockScanRequest::set_start(::std::string&& value) {
+  
+  start_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:kvrpcpb.LockScanRequest.start)
+}
+#endif
+void LockScanRequest::set_start(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  start_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:kvrpcpb.LockScanRequest.start)
+}
+void LockScanRequest::set_start(const void* value, size_t size) {
+  
+  start_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:kvrpcpb.LockScanRequest.start)
+}
+::std::string* LockScanRequest::mutable_start() {
+  
+  // @@protoc_insertion_point(field_mutable:kvrpcpb.LockScanRequest.start)
+  return start_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+::std::string* LockScanRequest::release_start() {
+  // @@protoc_insertion_point(field_release:kvrpcpb.LockScanRequest.start)
+  
+  return start_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void LockScanRequest::set_allocated_start(::std::string* start) {
+  if (start != NULL) {
+    
+  } else {
+    
+  }
+  start_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), start);
+  // @@protoc_insertion_point(field_set_allocated:kvrpcpb.LockScanRequest.start)
+}
+
+// bytes limit = 2;
+void LockScanRequest::clear_limit() {
+  limit_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+const ::std::string& LockScanRequest::limit() const {
+  // @@protoc_insertion_point(field_get:kvrpcpb.LockScanRequest.limit)
+  return limit_.GetNoArena();
+}
+void LockScanRequest::set_limit(const ::std::string& value) {
+  
+  limit_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:kvrpcpb.LockScanRequest.limit)
+}
+#if LANG_CXX11
+void LockScanRequest::set_limit(::std::string&& value) {
+  
+  limit_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:kvrpcpb.LockScanRequest.limit)
+}
+#endif
+void LockScanRequest::set_limit(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  limit_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:kvrpcpb.LockScanRequest.limit)
+}
+void LockScanRequest::set_limit(const void* value, size_t size) {
+  
+  limit_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:kvrpcpb.LockScanRequest.limit)
+}
+::std::string* LockScanRequest::mutable_limit() {
+  
+  // @@protoc_insertion_point(field_mutable:kvrpcpb.LockScanRequest.limit)
+  return limit_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+::std::string* LockScanRequest::release_limit() {
+  // @@protoc_insertion_point(field_release:kvrpcpb.LockScanRequest.limit)
+  
+  return limit_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void LockScanRequest::set_allocated_limit(::std::string* limit) {
+  if (limit != NULL) {
+    
+  } else {
+    
+  }
+  limit_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), limit);
+  // @@protoc_insertion_point(field_set_allocated:kvrpcpb.LockScanRequest.limit)
+}
+
+// uint32 count = 3;
+void LockScanRequest::clear_count() {
+  count_ = 0u;
+}
+::google::protobuf::uint32 LockScanRequest::count() const {
+  // @@protoc_insertion_point(field_get:kvrpcpb.LockScanRequest.count)
+  return count_;
+}
+void LockScanRequest::set_count(::google::protobuf::uint32 value) {
+  
+  count_ = value;
+  // @@protoc_insertion_point(field_set:kvrpcpb.LockScanRequest.count)
+}
+
+#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
+
+// ===================================================================
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int DsLockScanRequest::kHeaderFieldNumber;
+const int DsLockScanRequest::kReqFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+DsLockScanRequest::DsLockScanRequest()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
+    protobuf_kvrpcpb_2eproto::InitDefaults();
+  }
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:kvrpcpb.DsLockScanRequest)
+}
+DsLockScanRequest::DsLockScanRequest(const DsLockScanRequest& from)
+  : ::google::protobuf::Message(),
+      _internal_metadata_(NULL),
+      _cached_size_(0) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  if (from.has_header()) {
+    header_ = new ::kvrpcpb::RequestHeader(*from.header_);
+  } else {
+    header_ = NULL;
+  }
+  if (from.has_req()) {
+    req_ = new ::kvrpcpb::LockScanRequest(*from.req_);
+  } else {
+    req_ = NULL;
+  }
+  // @@protoc_insertion_point(copy_constructor:kvrpcpb.DsLockScanRequest)
+}
+
+void DsLockScanRequest::SharedCtor() {
+  ::memset(&header_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&req_) -
+      reinterpret_cast<char*>(&header_)) + sizeof(req_));
+  _cached_size_ = 0;
+}
+
+DsLockScanRequest::~DsLockScanRequest() {
+  // @@protoc_insertion_point(destructor:kvrpcpb.DsLockScanRequest)
+  SharedDtor();
+}
+
+void DsLockScanRequest::SharedDtor() {
+  if (this != internal_default_instance()) delete header_;
+  if (this != internal_default_instance()) delete req_;
+}
+
+void DsLockScanRequest::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* DsLockScanRequest::descriptor() {
+  protobuf_kvrpcpb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_kvrpcpb_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
+const DsLockScanRequest& DsLockScanRequest::default_instance() {
+  protobuf_kvrpcpb_2eproto::InitDefaults();
+  return *internal_default_instance();
+}
+
+DsLockScanRequest* DsLockScanRequest::New(::google::protobuf::Arena* arena) const {
+  DsLockScanRequest* n = new DsLockScanRequest;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void DsLockScanRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:kvrpcpb.DsLockScanRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  if (GetArenaNoVirtual() == NULL && header_ != NULL) {
+    delete header_;
+  }
+  header_ = NULL;
+  if (GetArenaNoVirtual() == NULL && req_ != NULL) {
+    delete req_;
+  }
+  req_ = NULL;
+  _internal_metadata_.Clear();
+}
+
+bool DsLockScanRequest::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kvrpcpb.DsLockScanRequest)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // .kvrpcpb.RequestHeader header = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_header()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // .kvrpcpb.LockScanRequest req = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_req()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kvrpcpb.DsLockScanRequest)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kvrpcpb.DsLockScanRequest)
+  return false;
+#undef DO_
+}
+
+void DsLockScanRequest::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kvrpcpb.DsLockScanRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .kvrpcpb.RequestHeader header = 1;
+  if (this->has_header()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      1, *this->header_, output);
+  }
+
+  // .kvrpcpb.LockScanRequest req = 2;
+  if (this->has_req()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      2, *this->req_, output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kvrpcpb.DsLockScanRequest)
+}
+
+::google::protobuf::uint8* DsLockScanRequest::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
+  // @@protoc_insertion_point(serialize_to_array_start:kvrpcpb.DsLockScanRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .kvrpcpb.RequestHeader header = 1;
+  if (this->has_header()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        1, *this->header_, deterministic, target);
+  }
+
+  // .kvrpcpb.LockScanRequest req = 2;
+  if (this->has_req()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        2, *this->req_, deterministic, target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:kvrpcpb.DsLockScanRequest)
+  return target;
+}
+
+size_t DsLockScanRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:kvrpcpb.DsLockScanRequest)
+  size_t total_size = 0;
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
+  }
+  // .kvrpcpb.RequestHeader header = 1;
+  if (this->has_header()) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        *this->header_);
+  }
+
+  // .kvrpcpb.LockScanRequest req = 2;
+  if (this->has_req()) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        *this->req_);
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = cached_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void DsLockScanRequest::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:kvrpcpb.DsLockScanRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  const DsLockScanRequest* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const DsLockScanRequest>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:kvrpcpb.DsLockScanRequest)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:kvrpcpb.DsLockScanRequest)
+    MergeFrom(*source);
+  }
+}
+
+void DsLockScanRequest::MergeFrom(const DsLockScanRequest& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:kvrpcpb.DsLockScanRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.has_header()) {
+    mutable_header()->::kvrpcpb::RequestHeader::MergeFrom(from.header());
+  }
+  if (from.has_req()) {
+    mutable_req()->::kvrpcpb::LockScanRequest::MergeFrom(from.req());
+  }
+}
+
+void DsLockScanRequest::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:kvrpcpb.DsLockScanRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void DsLockScanRequest::CopyFrom(const DsLockScanRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:kvrpcpb.DsLockScanRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool DsLockScanRequest::IsInitialized() const {
+  return true;
+}
+
+void DsLockScanRequest::Swap(DsLockScanRequest* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void DsLockScanRequest::InternalSwap(DsLockScanRequest* other) {
+  using std::swap;
+  swap(header_, other->header_);
+  swap(req_, other->req_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata DsLockScanRequest::GetMetadata() const {
+  protobuf_kvrpcpb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_kvrpcpb_2eproto::file_level_metadata[kIndexInFileMessages];
+}
+
+#if PROTOBUF_INLINE_NOT_IN_HEADERS
+// DsLockScanRequest
+
+// .kvrpcpb.RequestHeader header = 1;
+bool DsLockScanRequest::has_header() const {
+  return this != internal_default_instance() && header_ != NULL;
+}
+void DsLockScanRequest::clear_header() {
+  if (GetArenaNoVirtual() == NULL && header_ != NULL) delete header_;
+  header_ = NULL;
+}
+const ::kvrpcpb::RequestHeader& DsLockScanRequest::header() const {
+  const ::kvrpcpb::RequestHeader* p = header_;
+  // @@protoc_insertion_point(field_get:kvrpcpb.DsLockScanRequest.header)
+  return p != NULL ? *p : *reinterpret_cast<const ::kvrpcpb::RequestHeader*>(
+      &::kvrpcpb::_RequestHeader_default_instance_);
+}
+::kvrpcpb::RequestHeader* DsLockScanRequest::mutable_header() {
+  
+  if (header_ == NULL) {
+    header_ = new ::kvrpcpb::RequestHeader;
+  }
+  // @@protoc_insertion_point(field_mutable:kvrpcpb.DsLockScanRequest.header)
+  return header_;
+}
+::kvrpcpb::RequestHeader* DsLockScanRequest::release_header() {
+  // @@protoc_insertion_point(field_release:kvrpcpb.DsLockScanRequest.header)
+  
+  ::kvrpcpb::RequestHeader* temp = header_;
+  header_ = NULL;
+  return temp;
+}
+void DsLockScanRequest::set_allocated_header(::kvrpcpb::RequestHeader* header) {
+  delete header_;
+  header_ = header;
+  if (header) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:kvrpcpb.DsLockScanRequest.header)
+}
+
+// .kvrpcpb.LockScanRequest req = 2;
+bool DsLockScanRequest::has_req() const {
+  return this != internal_default_instance() && req_ != NULL;
+}
+void DsLockScanRequest::clear_req() {
+  if (GetArenaNoVirtual() == NULL && req_ != NULL) delete req_;
+  req_ = NULL;
+}
+const ::kvrpcpb::LockScanRequest& DsLockScanRequest::req() const {
+  const ::kvrpcpb::LockScanRequest* p = req_;
+  // @@protoc_insertion_point(field_get:kvrpcpb.DsLockScanRequest.req)
+  return p != NULL ? *p : *reinterpret_cast<const ::kvrpcpb::LockScanRequest*>(
+      &::kvrpcpb::_LockScanRequest_default_instance_);
+}
+::kvrpcpb::LockScanRequest* DsLockScanRequest::mutable_req() {
+  
+  if (req_ == NULL) {
+    req_ = new ::kvrpcpb::LockScanRequest;
+  }
+  // @@protoc_insertion_point(field_mutable:kvrpcpb.DsLockScanRequest.req)
+  return req_;
+}
+::kvrpcpb::LockScanRequest* DsLockScanRequest::release_req() {
+  // @@protoc_insertion_point(field_release:kvrpcpb.DsLockScanRequest.req)
+  
+  ::kvrpcpb::LockScanRequest* temp = req_;
+  req_ = NULL;
+  return temp;
+}
+void DsLockScanRequest::set_allocated_req(::kvrpcpb::LockScanRequest* req) {
+  delete req_;
+  req_ = req;
+  if (req) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:kvrpcpb.DsLockScanRequest.req)
+}
+
+#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
+
+// ===================================================================
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int DsLockScanResponse::kHeaderFieldNumber;
+const int DsLockScanResponse::kRespFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+DsLockScanResponse::DsLockScanResponse()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
+    protobuf_kvrpcpb_2eproto::InitDefaults();
+  }
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:kvrpcpb.DsLockScanResponse)
+}
+DsLockScanResponse::DsLockScanResponse(const DsLockScanResponse& from)
+  : ::google::protobuf::Message(),
+      _internal_metadata_(NULL),
+      _cached_size_(0) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  if (from.has_header()) {
+    header_ = new ::kvrpcpb::ResponseHeader(*from.header_);
+  } else {
+    header_ = NULL;
+  }
+  if (from.has_resp()) {
+    resp_ = new ::kvrpcpb::LockScanResponse(*from.resp_);
+  } else {
+    resp_ = NULL;
+  }
+  // @@protoc_insertion_point(copy_constructor:kvrpcpb.DsLockScanResponse)
+}
+
+void DsLockScanResponse::SharedCtor() {
+  ::memset(&header_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&resp_) -
+      reinterpret_cast<char*>(&header_)) + sizeof(resp_));
+  _cached_size_ = 0;
+}
+
+DsLockScanResponse::~DsLockScanResponse() {
+  // @@protoc_insertion_point(destructor:kvrpcpb.DsLockScanResponse)
+  SharedDtor();
+}
+
+void DsLockScanResponse::SharedDtor() {
+  if (this != internal_default_instance()) delete header_;
+  if (this != internal_default_instance()) delete resp_;
+}
+
+void DsLockScanResponse::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* DsLockScanResponse::descriptor() {
+  protobuf_kvrpcpb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_kvrpcpb_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
+const DsLockScanResponse& DsLockScanResponse::default_instance() {
+  protobuf_kvrpcpb_2eproto::InitDefaults();
+  return *internal_default_instance();
+}
+
+DsLockScanResponse* DsLockScanResponse::New(::google::protobuf::Arena* arena) const {
+  DsLockScanResponse* n = new DsLockScanResponse;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void DsLockScanResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:kvrpcpb.DsLockScanResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  if (GetArenaNoVirtual() == NULL && header_ != NULL) {
+    delete header_;
+  }
+  header_ = NULL;
+  if (GetArenaNoVirtual() == NULL && resp_ != NULL) {
+    delete resp_;
+  }
+  resp_ = NULL;
+  _internal_metadata_.Clear();
+}
+
+bool DsLockScanResponse::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kvrpcpb.DsLockScanResponse)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // .kvrpcpb.ResponseHeader header = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_header()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // .kvrpcpb.LockScanResponse resp = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_resp()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kvrpcpb.DsLockScanResponse)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kvrpcpb.DsLockScanResponse)
+  return false;
+#undef DO_
+}
+
+void DsLockScanResponse::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kvrpcpb.DsLockScanResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .kvrpcpb.ResponseHeader header = 1;
+  if (this->has_header()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      1, *this->header_, output);
+  }
+
+  // .kvrpcpb.LockScanResponse resp = 2;
+  if (this->has_resp()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      2, *this->resp_, output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kvrpcpb.DsLockScanResponse)
+}
+
+::google::protobuf::uint8* DsLockScanResponse::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
+  // @@protoc_insertion_point(serialize_to_array_start:kvrpcpb.DsLockScanResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .kvrpcpb.ResponseHeader header = 1;
+  if (this->has_header()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        1, *this->header_, deterministic, target);
+  }
+
+  // .kvrpcpb.LockScanResponse resp = 2;
+  if (this->has_resp()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        2, *this->resp_, deterministic, target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:kvrpcpb.DsLockScanResponse)
+  return target;
+}
+
+size_t DsLockScanResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:kvrpcpb.DsLockScanResponse)
+  size_t total_size = 0;
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
+  }
+  // .kvrpcpb.ResponseHeader header = 1;
+  if (this->has_header()) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        *this->header_);
+  }
+
+  // .kvrpcpb.LockScanResponse resp = 2;
+  if (this->has_resp()) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        *this->resp_);
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = cached_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void DsLockScanResponse::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:kvrpcpb.DsLockScanResponse)
+  GOOGLE_DCHECK_NE(&from, this);
+  const DsLockScanResponse* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const DsLockScanResponse>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:kvrpcpb.DsLockScanResponse)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:kvrpcpb.DsLockScanResponse)
+    MergeFrom(*source);
+  }
+}
+
+void DsLockScanResponse::MergeFrom(const DsLockScanResponse& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:kvrpcpb.DsLockScanResponse)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.has_header()) {
+    mutable_header()->::kvrpcpb::ResponseHeader::MergeFrom(from.header());
+  }
+  if (from.has_resp()) {
+    mutable_resp()->::kvrpcpb::LockScanResponse::MergeFrom(from.resp());
+  }
+}
+
+void DsLockScanResponse::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:kvrpcpb.DsLockScanResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void DsLockScanResponse::CopyFrom(const DsLockScanResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:kvrpcpb.DsLockScanResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool DsLockScanResponse::IsInitialized() const {
+  return true;
+}
+
+void DsLockScanResponse::Swap(DsLockScanResponse* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void DsLockScanResponse::InternalSwap(DsLockScanResponse* other) {
+  using std::swap;
+  swap(header_, other->header_);
+  swap(resp_, other->resp_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata DsLockScanResponse::GetMetadata() const {
+  protobuf_kvrpcpb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_kvrpcpb_2eproto::file_level_metadata[kIndexInFileMessages];
+}
+
+#if PROTOBUF_INLINE_NOT_IN_HEADERS
+// DsLockScanResponse
+
+// .kvrpcpb.ResponseHeader header = 1;
+bool DsLockScanResponse::has_header() const {
+  return this != internal_default_instance() && header_ != NULL;
+}
+void DsLockScanResponse::clear_header() {
+  if (GetArenaNoVirtual() == NULL && header_ != NULL) delete header_;
+  header_ = NULL;
+}
+const ::kvrpcpb::ResponseHeader& DsLockScanResponse::header() const {
+  const ::kvrpcpb::ResponseHeader* p = header_;
+  // @@protoc_insertion_point(field_get:kvrpcpb.DsLockScanResponse.header)
+  return p != NULL ? *p : *reinterpret_cast<const ::kvrpcpb::ResponseHeader*>(
+      &::kvrpcpb::_ResponseHeader_default_instance_);
+}
+::kvrpcpb::ResponseHeader* DsLockScanResponse::mutable_header() {
+  
+  if (header_ == NULL) {
+    header_ = new ::kvrpcpb::ResponseHeader;
+  }
+  // @@protoc_insertion_point(field_mutable:kvrpcpb.DsLockScanResponse.header)
+  return header_;
+}
+::kvrpcpb::ResponseHeader* DsLockScanResponse::release_header() {
+  // @@protoc_insertion_point(field_release:kvrpcpb.DsLockScanResponse.header)
+  
+  ::kvrpcpb::ResponseHeader* temp = header_;
+  header_ = NULL;
+  return temp;
+}
+void DsLockScanResponse::set_allocated_header(::kvrpcpb::ResponseHeader* header) {
+  delete header_;
+  header_ = header;
+  if (header) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:kvrpcpb.DsLockScanResponse.header)
+}
+
+// .kvrpcpb.LockScanResponse resp = 2;
+bool DsLockScanResponse::has_resp() const {
+  return this != internal_default_instance() && resp_ != NULL;
+}
+void DsLockScanResponse::clear_resp() {
+  if (GetArenaNoVirtual() == NULL && resp_ != NULL) delete resp_;
+  resp_ = NULL;
+}
+const ::kvrpcpb::LockScanResponse& DsLockScanResponse::resp() const {
+  const ::kvrpcpb::LockScanResponse* p = resp_;
+  // @@protoc_insertion_point(field_get:kvrpcpb.DsLockScanResponse.resp)
+  return p != NULL ? *p : *reinterpret_cast<const ::kvrpcpb::LockScanResponse*>(
+      &::kvrpcpb::_LockScanResponse_default_instance_);
+}
+::kvrpcpb::LockScanResponse* DsLockScanResponse::mutable_resp() {
+  
+  if (resp_ == NULL) {
+    resp_ = new ::kvrpcpb::LockScanResponse;
+  }
+  // @@protoc_insertion_point(field_mutable:kvrpcpb.DsLockScanResponse.resp)
+  return resp_;
+}
+::kvrpcpb::LockScanResponse* DsLockScanResponse::release_resp() {
+  // @@protoc_insertion_point(field_release:kvrpcpb.DsLockScanResponse.resp)
+  
+  ::kvrpcpb::LockScanResponse* temp = resp_;
+  resp_ = NULL;
+  return temp;
+}
+void DsLockScanResponse::set_allocated_resp(::kvrpcpb::LockScanResponse* resp) {
+  delete resp_;
+  resp_ = resp;
+  if (resp) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:kvrpcpb.DsLockScanResponse.resp)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

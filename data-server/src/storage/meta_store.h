@@ -8,7 +8,7 @@ _Pragma("once");
 
 #include "base/status.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -48,4 +48,4 @@ private:
 
 }  // namespace storage
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

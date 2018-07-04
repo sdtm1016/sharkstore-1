@@ -23,7 +23,9 @@
     <input type="text" hidden="true" value="{[{.dbName}]}" id="dbName" name="dbName"/>
     <input type="text" hidden="true" value="{[{.clusterId}]}" id="clusterId" name="clusterId"/>
     <input type="text" hidden="true" value="{[{.rangeId}]}" id="rangeId" name="rangeId"/>
-
+    <div class="btn-group hidden-xs" id="exampleTableEventsToolbar" role="group">
+        <a class="btn btn-primary btn-rounded" ng-click="batchRecover(table)">批量恢复异常range</a>
+    </div>
     <table class="table table-striped table-bordered space-list-table" id="table">
         <thead>
         <tr class="space-list-name">

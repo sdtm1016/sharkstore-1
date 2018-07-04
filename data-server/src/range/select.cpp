@@ -3,15 +3,14 @@
 #include "frame/sf_logger.h"
 #include "server/range_server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace range {
 
-kvrpcpb::SelectResponse *Range::SelectResp(
-    const kvrpcpb::DsSelectRequest &req) {
+kvrpcpb::SelectResponse *Range::SelectResp(const kvrpcpb::DsSelectRequest &req) {
     auto &key = req.req().key();
 
-    if (is_leader && (key.empty() || KeyInRange(key))) {
+    if (is_leader_ && (key.empty() || KeyInRange(key))) {
         auto resp = new kvrpcpb::SelectResponse;
         auto ret = store_->Select(req.req(), resp);
         if (ret.ok()) {
@@ -39,8 +38,7 @@ void Range::Select(common::ProtoMessage *msg, kvrpcpb::DsSelectRequest &req) {
     errorpb::Error *err = nullptr;
 
     auto btime = get_micro_second();
-    context_->run_status->PushTime(monitor::PrintTag::Qwait,
-                                   btime - msg->begin_time);
+    context_->run_status->PushTime(monitor::PrintTag::Qwait, btime - msg->begin_time);
 
     auto ds_resp = new kvrpcpb::DsSelectResponse;
     auto header = ds_resp->mutable_header();
@@ -89,17 +87,16 @@ void Range::Select(common::ProtoMessage *msg, kvrpcpb::DsSelectRequest &req) {
         context_->run_status->PushTime(monitor::PrintTag::Store, etime - btime);
 
         if (etime - msg->begin_time > kTimeTakeWarnThresoldUSec) {
-            FLOG_WARN(
-                "range[%lu] select takes too long(%ld ms), sid=%ld, msgid=%ld",
-                meta_.id(), (etime - msg->begin_time) / 1000, msg->session_id,
-                msg->header.msg_id);
+            FLOG_WARN("range[%lu] select takes too long(%ld ms), sid=%ld, msgid=%ld",
+                      meta_.id(), (etime - msg->begin_time) / 1000, msg->session_id,
+                      msg->header.msg_id);
         }
 
         if (ret.ok()) {
             resp->set_code(0);
         } else {
-            FLOG_WARN("range[%" PRIu64 "] Select from store error: %s",
-                      meta_.id(), ret.ToString().c_str());
+            FLOG_WARN("range[%" PRIu64 "] Select from store error: %s", meta_.id(),
+                      ret.ToString().c_str());
 
             resp->set_code(static_cast<int>(ret.code()));
         }
@@ -107,8 +104,8 @@ void Range::Select(common::ProtoMessage *msg, kvrpcpb::DsSelectRequest &req) {
         if (key.empty() && !EpochIsEqual(epoch, err)) {
             ds_resp->clear_resp();
 
-            FLOG_WARN("range[%" PRIu64 "] epoch change Select error: %s",
-                      meta_.id(), err->message().c_str());
+            FLOG_WARN("range[%" PRIu64 "] epoch change Select error: %s", meta_.id(),
+                      err->message().c_str());
         }
     } while (false);
 
@@ -127,4 +124,4 @@ void Range::Select(common::ProtoMessage *msg, kvrpcpb::DsSelectRequest &req) {
 
 }  // namespace range
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

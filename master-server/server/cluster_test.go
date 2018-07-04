@@ -5,16 +5,18 @@ import (
 	"model/pkg/metapb"
 	"encoding/json"
 	"util/deepcopy"
+	"time"
+	"fmt"
 )
 
 var (
-	TABLE_NAME = "t0"
-	DB_NAME = "d0"
+	TABLE_NAME   = "t0"
+	DB_NAME      = "d0"
 	TABLE_PK_INT = []*metapb.Column{
-		&metapb.Column{Name: "id", DataType: metapb.DataType_BigInt, PrimaryKey: 1, },
+		&metapb.Column{Name: "id", DataType: metapb.DataType_BigInt, PrimaryKey: 1,},
 	}
 	TABLE_PK_VARCHAR = []*metapb.Column{
-		&metapb.Column{Name: "id", DataType: metapb.DataType_Varchar, PrimaryKey: 1, },
+		&metapb.Column{Name: "id", DataType: metapb.DataType_Varchar, PrimaryKey: 1,},
 	}
 )
 
@@ -59,7 +61,7 @@ func TestDeleteTableFast(t *testing.T) {
 	}
 	t.Logf("table: %v", *table)
 	// 模拟table创建成功
-    table.Status = metapb.TableStatus_TableRunning
+	table.Status = metapb.TableStatus_TableRunning
 	cluster.storeTable(table.Table)
 	cluster.creatingTables.Delete(table.GetId())
 	tt, err := cluster.DeleteTable(DB_NAME, TABLE_NAME, true)
@@ -114,12 +116,12 @@ func TestDeleteTableSlow(t *testing.T) {
 }
 
 func TestCreateTableSqlParse(t *testing.T) {
-	sql := `CREATE TABLE `+"fbase_user_bean_BEHAVIOR"+` (
-	`+"userPin"+` varchar(50) NOT NULL COMMENT '用户pin',
-	`+"periods"+` varchar(12) NOT NULL COMMENT '周期',
-	`+"isPlus"+` int(11) DEFAULT NULL COMMENT '是否plus',
-	`+"test"+` int(123123123123)                  primary     key,
-	PRIMARY KEY (`+"userPin"+`,`+"periods"+`),
+	sql := `CREATE TABLE ` + "fbase_user_bean_BEHAVIOR" + ` (
+	` + "userPin" + ` varchar(50) NOT NULL COMMENT '用户pin',
+	` + "periods" + ` varchar(12) NOT NULL COMMENT '周期',
+	` + "isPlus" + ` int(11) DEFAULT NULL COMMENT '是否plus',
+	` + "test" + ` int(123123123123)                  primary     key,
+	PRIMARY KEY (` + "userPin" + `,` + "periods" + `),
 	)`
 	table := parseCreateTableSql(sql)
 	if t == nil {
@@ -162,7 +164,6 @@ func TestCreateTableWithLetterRangeKeys(t *testing.T) {
 		t.Fatalf("create table error: %v", err)
 	}
 
-
 	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", TABLE_PK_VARCHAR, nil, false, sliceKeys)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
@@ -195,7 +196,6 @@ func TestCreateTableWithNumericRangeKeys(t *testing.T) {
 	if sliceKeys, err = rangeKeysSplit(rangeKeys, ","); err != nil {
 		t.Fatalf("create table error: %v", err)
 	}
-
 
 	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", TABLE_PK_VARCHAR, nil, false, sliceKeys)
 	if err != nil {
@@ -233,7 +233,6 @@ func TestCreateTableWithRangeNumber1(t *testing.T) {
 		t.Fatalf("create table error: %v", err)
 	}
 
-
 	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", TABLE_PK_VARCHAR, nil, false, sliceKeys)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
@@ -269,7 +268,6 @@ func TestCreateTableWithRangeNumber2(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
 	}
-
 
 	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", TABLE_PK_VARCHAR, nil, false, sliceKeys)
 	if err != nil {
@@ -307,7 +305,6 @@ func TestCreateTableWithRangeNumber3(t *testing.T) {
 		t.Fatalf("create table error: %v", err)
 	}
 
-
 	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", TABLE_PK_VARCHAR, nil, false, sliceKeys)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
@@ -334,8 +331,8 @@ func TestTableColumnEdit(t *testing.T) {
 		t.Fatalf("create db error: %v", err)
 	}
 	table0 := []*metapb.Column{
-		&metapb.Column{Name: "RANGEID", DataType: metapb.DataType_BigInt, PrimaryKey: 1, },
-		&metapb.Column{Name: "size1", DataType: metapb.DataType_BigInt, },
+		&metapb.Column{Name: "RANGEID", DataType: metapb.DataType_BigInt, PrimaryKey: 1,},
+		&metapb.Column{Name: "size1", DataType: metapb.DataType_BigInt,},
 	}
 	property, err := json.Marshal(TableProperty{Columns: table0})
 	if err != nil {
@@ -359,7 +356,7 @@ func TestTableColumnEdit(t *testing.T) {
 		}
 	}
 	table1 = append(table1, &metapb.Column{
-		Name: "addCol",
+		Name:     "addCol",
 		DataType: metapb.DataType_BigInt,
 	})
 
@@ -393,3 +390,109 @@ func TestTableColumnEdit(t *testing.T) {
 	t.Log("test success!!! ", table.GetColumns())
 }
 
+func TestAllocPeerAndSelectNode(t *testing.T) {
+	cluster := MockCluster(t)
+	defer closeLocalCluster(cluster)
+	if _, err := cluster.CreateDatabase(DB_NAME, ""); err != nil {
+		t.Fatalf("create db error: %v", err)
+	}
+
+	cluster.workerManger = NewWorkerManager(cluster, nil)
+	cluster.AddCreateTableWorker()
+
+	for i := 0; i < 500; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			var err error
+			var sliceKeys [][]byte
+			rangeKeys := `1,2,3,4,5,6,7,8,9,10,11,12,13,15,18,20,24,28,32,38`
+			if sliceKeys, err = rangeKeysSplit(rangeKeys, ","); err != nil {
+				t.Fatalf("create table error: %v", err)
+			}
+
+			table, err := cluster.CreateTable(DB_NAME, fmt.Sprintf("%s%d", TABLE_NAME, i), TABLE_PK_VARCHAR, nil, false, sliceKeys)
+			if err != nil {
+				t.Fatalf("create table error: %v", err)
+			}
+			t.Log("table: ", *table)
+
+			time.Sleep(20 * time.Second)
+
+			rngStat := cluster.GetNodeRangeStatByTable(table.GetId())
+			t.Logf("init table %v: distribution: %v", table.GetName(), rngStat)
+
+			ranges := cluster.GetTableAllRanges(table.GetId())
+			t.Logf("table %v total range size : %v", table.GetName(), len(ranges))
+
+			for _, rng := range ranges {
+				go func(rng *Range) {
+					newPeer, err := cluster.allocPeerAndSelectNode(rng, false)
+					if err != nil {
+						t.Errorf("alloc rangeId:%d, %s", rng.GetId(), err.Error())
+						return
+					}
+					peers := rng.GetPeers()
+					peers = append(peers, newPeer)
+					rng.Peers = peers
+					cluster.AddRange(rng)
+				}(rng)
+			}
+			time.Sleep(30 * time.Second)
+
+			rngStat = cluster.GetNodeRangeStatByTable(table.GetId())
+			t.Logf("worker table %v: distribution: %v", table.GetName(), rngStat)
+
+			for _, rng := range ranges {
+				go func(rng *Range) {
+					newPeer, err := cluster.allocPeerAndSelectNode(rng, false)
+					if err != nil {
+						t.Errorf("alloc rangeId:%d, %s", rng.GetId(), err.Error())
+						return
+					}
+					peers := rng.GetPeers()
+					peers = append(peers, newPeer)
+					rng.Peers = peers
+					cluster.AddRange(rng)
+				}(rng)
+			}
+
+			time.Sleep(30 * time.Second)
+			rngStat = cluster.GetNodeRangeStatByTable(table.GetId())
+			t.Logf("final worker table %v: distribution: %v", table.GetName(), rngStat)
+		}(i)
+	}
+
+	wg.Wait()
+}
+
+func TestConfig_LoadFromFile(t *testing.T) {
+	cluster := MockCluster(t)
+	defer closeLocalCluster(cluster)
+
+	get(cluster, t)
+	cluster.UpdateAutoScheduleInfo(false, true, false)
+	get(cluster, t)
+}
+
+func get(cluster *Cluster, t *testing.T)  {
+
+	if err := cluster.loadAutoSplit(); err != nil {
+		t.Errorf("error1 %v", err)
+	}
+
+	t.Logf("split %v", cluster.autoSplitUnable)
+
+
+	if err := cluster.loadAutoFailover(); err != nil {
+		t.Errorf("error2 %v", err)
+	}
+
+	t.Logf("failover %v", cluster.autoFailoverUnable)
+
+	if err := cluster.loadAutoTransfer(); err != nil {
+		t.Errorf("error3 %v", err)
+	}
+
+	t.Logf("transfer %v", cluster.autoTransferUnable)
+}

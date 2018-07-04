@@ -4,7 +4,7 @@ _Pragma("once");
 #include <map>
 #include "raft/options.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace playground {
 
@@ -53,4 +53,4 @@ private:
 
 } /* namespace playground */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

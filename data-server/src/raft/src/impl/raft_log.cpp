@@ -1,16 +1,17 @@
 #include "raft_log.h"
 
 #include <sstream>
+#include "logger.h"
 #include "raft_exception.h"
 #include "raft_log_unstable.h"
 #include "storage/storage.h"
-#include "logger.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
-RaftLog::RaftLog(uint64_t id, const std::shared_ptr<storage::Storage>& s) : id_(id), storage_(s) {
+RaftLog::RaftLog(uint64_t id, const std::shared_ptr<storage::Storage>& s)
+    : id_(id), storage_(s) {
     auto status = open();
     if (!status.ok()) {
         throw RaftException(status);
@@ -37,7 +38,7 @@ Status RaftLog::open() {
     return Status::OK();
 }
 
-uint64_t RaftLog::firstIndex() {
+uint64_t RaftLog::firstIndex() const {
     uint64_t first_index = 0;
     auto s = storage_->FirstIndex(&first_index);
     if (!s.ok()) {
@@ -47,7 +48,7 @@ uint64_t RaftLog::firstIndex() {
     return first_index;
 }
 
-uint64_t RaftLog::lastIndex() {
+uint64_t RaftLog::lastIndex() const {
     uint64_t last_index = 0;
     if (unstable_->maybeLastIndex(&last_index)) {
         return last_index;
@@ -61,7 +62,7 @@ uint64_t RaftLog::lastIndex() {
     return last_index;
 }
 
-Status RaftLog::term(uint64_t index, uint64_t* term) {
+Status RaftLog::term(uint64_t index, uint64_t* term) const {
     uint64_t dummy_index = firstIndex() - 1;
     if (index < dummy_index || index > lastIndex()) {
         *term = 0;
@@ -74,20 +75,17 @@ Status RaftLog::term(uint64_t index, uint64_t* term) {
 
     bool compacted = false;
     Status s = storage_->Term(index, term, &compacted);
-    if (compacted) {
+    if (!s.ok()) {
+        return Status(Status::kIOError, "get raft log term", s.ToString());
+    } else if (compacted) {
         *term = 0;
         return Status(Status::kCompacted);
+    } else {
+        return s;
     }
-    if (s.ok()) {
-        return Status::OK();
-    }
-
-    std::ostringstream ss;
-    ss << "[raftLog->term]get term" << index << " from storage err:" << s.ToString();
-    throw RaftException(ss.str());
 }
 
-uint64_t RaftLog::lastTerm() {
+uint64_t RaftLog::lastTerm() const {
     uint64_t term = 0;
     auto s = this->term(lastIndex(), &term);
     if (!s.ok()) {
@@ -98,7 +96,7 @@ uint64_t RaftLog::lastTerm() {
     return term;
 }
 
-void RaftLog::lastIndexAndTerm(uint64_t* index, uint64_t* term) {
+void RaftLog::lastIndexAndTerm(uint64_t* index, uint64_t* term) const {
     *index = lastIndex();
     auto s = this->term(*index, term);
     if (!s.ok()) {
@@ -109,7 +107,7 @@ void RaftLog::lastIndexAndTerm(uint64_t* index, uint64_t* term) {
     }
 }
 
-bool RaftLog::matchTerm(uint64_t index, uint64_t term) {
+bool RaftLog::matchTerm(uint64_t index, uint64_t term) const {
     uint64_t t = 0;
     auto s = this->term(index, &t);
     if (!s.ok()) {
@@ -118,14 +116,16 @@ bool RaftLog::matchTerm(uint64_t index, uint64_t term) {
     return t == term;
 }
 
-uint64_t RaftLog::findConfilct(const std::vector<EntryPtr>& ents) {
+uint64_t RaftLog::findConfilct(const std::vector<EntryPtr>& ents) const {
     for (const auto& e : ents) {
         if (!matchTerm(e->index(), e->term())) {
             if (e->index() <= this->lastIndex()) {
                 uint64_t eterm = 0;
                 auto s = this->term(e->index(), &eterm);
-				LOG_INFO("raft[%lu] found conflict at index %lu [existing term: %lu, conflicting term: %lu]", 
-                    id_, e->index(), this->zeroTermOnErrCompacted(eterm, s), e->term());
+                LOG_INFO("raft[%lu] found conflict at index %lu [existing term: %lu, "
+                         "conflicting term: %lu]",
+                         id_, e->index(), this->zeroTermOnErrCompacted(eterm, s),
+                         e->term());
             }
             return e->index();
         }
@@ -185,7 +185,8 @@ void RaftLog::nextEntries(uint64_t max_size, std::vector<EntryPtr>* ents) {
     }
 }
 
-Status RaftLog::entries(uint64_t index, uint64_t max_size, std::vector<EntryPtr>* ents) {
+Status RaftLog::entries(uint64_t index, uint64_t max_size,
+                        std::vector<EntryPtr>* ents) const {
     if (index > lastIndex()) {
         return Status::OK();
     }
@@ -265,7 +266,7 @@ void limitSize(std::vector<EntryPtr>& ents, uint64_t max_size) {
 }
 
 Status RaftLog::slice(uint64_t lo, uint64_t hi, uint64_t max_size,
-                      std::vector<EntryPtr>* ents) {
+                      std::vector<EntryPtr>* ents) const {
     if (lo == hi) {
         return Status::OK();
     }
@@ -305,7 +306,7 @@ Status RaftLog::slice(uint64_t lo, uint64_t hi, uint64_t max_size,
     return Status::OK();
 }
 
-Status RaftLog::mustCheckOutOfBounds(uint64_t lo, uint64_t hi) {
+Status RaftLog::mustCheckOutOfBounds(uint64_t lo, uint64_t hi) const {
     if (lo > hi) {
         std::ostringstream ss;
         ss << "[raftLog->mustCheckOutOfBounds]invalid slice " << lo << " > " << hi;
@@ -338,7 +339,7 @@ uint64_t RaftLog::zeroTermOnErrCompacted(uint64_t term, const Status& s) {
     }
 }
 
-void RaftLog::allEntries(std::vector<EntryPtr>* ents) {
+void RaftLog::allEntries(std::vector<EntryPtr>* ents) const {
     Status s = this->entries(firstIndex(), kNoLimit, ents);
     if (s.ok()) {
         return;
@@ -354,4 +355,4 @@ void RaftLog::allEntries(std::vector<EntryPtr>* ents) {
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

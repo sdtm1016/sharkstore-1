@@ -27,8 +27,8 @@ int main(int argc, char* argv[]) {
 
 char level[8] = "debug";
 
-using namespace fbase::dataserver;
-using namespace fbase::dataserver::storage;
+using namespace sharkstore::dataserver;
+using namespace sharkstore::dataserver::storage;
 
 class RawTest: public ::testing::Test {
 protected:
@@ -36,7 +36,7 @@ protected:
         log_init2();
         set_log_level(level);
 
-        strcpy(ds_config.db_path, "/tmp/fbase_ds_store_test_");
+        strcpy(ds_config.db_path, "/tmp/sharkstore_ds_store_test_");
         strcat(ds_config.db_path, std::to_string(getticks()).c_str());
 
         range_server_ = new server::RangeServer;

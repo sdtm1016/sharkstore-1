@@ -8,7 +8,69 @@ import (
 	"proxy/gateway-server/errors"
 	"proxy/gateway-server/mysql"
 	"proxy/gateway-server/sqlparser"
+
+	"model/pkg/kvrpcpb"
+	"proxy/store/dskv"
+	"util/log"
+	"util"
+	"context"
 )
+
+func (p *Proxy) selectAggre(t *Table, kvproxy *dskv.KvProxy, req *kvrpcpb.SelectRequest) ([][]*kvrpcpb.Row, error) {
+	var key, start, limit []byte
+	var allRows [][]*kvrpcpb.Row
+
+	negativeInfi := util.EncodeStorePrefix(util.Store_Prefix_KV, t.GetId())
+	_, positiveInfi := bytesPrefix(start)
+
+	if req.Scope.Start == nil {
+		start = negativeInfi
+	} else {
+		start = req.Scope.Start
+	}
+	if req.Scope.Limit == nil {
+		limit = positiveInfi
+	} else {
+		limit = req.Scope.Limit
+	}
+
+	var tasks []*aggreTask
+	for {
+		if key == nil {
+			key = start
+		} else {
+			bo := dskv.NewBackoffer(dskv.MsMaxBackoff, context.Background())
+			route, _ := kvproxy.RangeCache.LocateKey(bo, key)
+			key = route.EndKey
+
+			if bytes.Compare(key, start) < 0 || bytes.Compare(key, limit) >= 0 {
+				break
+			}
+		}
+
+		task := newAggreTask(p, kvproxy, key, req)
+		err := p.Submit(task)
+		if err != nil {
+			log.Error("submit aggre task failed, err[%v]", err)
+			return nil, err
+		}
+		tasks = append(tasks, task)
+	}
+
+	for _, task := range tasks {
+		err := task.Wait()
+		if err != nil {
+			log.Error("select aggre task do failed, err[%v]", err)
+			return nil, err
+		}
+		rows := task.result
+		if len(rows) > 0 {
+			allRows = append(allRows, rows)
+		}
+	}
+
+	return allRows, nil
+}
 
 func getSumFuncExprValue(rs []*mysql.Result, index int) (interface{}, error) {
 	var sumf float64

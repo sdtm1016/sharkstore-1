@@ -3,32 +3,35 @@ package server
 import (
 	"golang.org/x/net/context"
 
-	"util/log"
 	"model/pkg/metapb"
+	"util/log"
 
 	"time"
 )
 
 const (
 	Min_leader_balance_num = 5
+	Min_leader_adjust_num  = 50
 )
 
 type balanceNodeLeaderWorker struct {
-	name     string
-	ctx      context.Context
-	cancel   context.CancelFunc
-	interval time.Duration
-	option   *scheduleOption
+	name            string
+	ctx             context.Context
+	cancel          context.CancelFunc
+	interval        time.Duration
+	defaultInterval time.Duration
+	option          *scheduleOption
 }
 
 func NewBalanceNodeLeaderWorker(wm *WorkerManager, interval time.Duration) Worker {
 	ctx, cancel := context.WithCancel(wm.ctx)
 	return &balanceNodeLeaderWorker{
-		name:     balanceLeaderWorkerName,
-		ctx:      ctx,
-		cancel:   cancel,
-		interval: interval,
-		option:   wm.opt,
+		name:            balanceLeaderWorkerName,
+		ctx:             ctx,
+		cancel:          cancel,
+		interval:        interval,
+		defaultInterval: interval,
+		option:          wm.opt,
 	}
 }
 
@@ -38,8 +41,8 @@ func (w *balanceNodeLeaderWorker) GetName() string {
 
 func (w *balanceNodeLeaderWorker) Work(cluster *Cluster) {
 	log.Debug("start %s", w.GetName())
-	rng, newLeader := selectChangeLeader(cluster, w.GetName())
-	if rng == nil {
+	rng, newLeader := w.selectChangeLeader(cluster)
+	if rng == nil || newLeader == nil {
 		log.Debug("%v: no node need to change leader", w.GetName())
 		return
 	}
@@ -54,12 +57,15 @@ func (w *balanceNodeLeaderWorker) Work(cluster *Cluster) {
 
 	cluster.metric.CollectScheduleCounter(w.GetName(), "new_operator")
 	log.Debug("start to transfer leader, range:[%v], new leader:[%v]", rng.GetId(), newLeader.GetId())
-	cluster.eventDispatcher.pushEvent(NewTryChangeLeaderEvent(id, rng.GetId(), rng.GetLeader(), newLeader, w.GetName()))
+	tc := NewTaskChain(id, rng.GetId(), "balance-change-leader",
+		NewChangeLeaderTask(rng.GetLeader().GetNodeId(), newLeader.GetNodeId()))
+	// TODO: check return
+	cluster.taskManager.Add(tc)
 	return
 }
 
 func (w *balanceNodeLeaderWorker) AllowWork(cluster *Cluster) bool {
-	if cluster.autoFailoverUnable {
+	if cluster.autoTransferUnable {
 		return false
 	}
 	return true
@@ -84,12 +90,12 @@ func countLeaderAvg(nodes []*Node) float64 {
 
 /**
 选择需要切换leader的range
- */
-func selectChangeLeader(cluster *Cluster, workerName string) (*Range, *metapb.Peer) {
+*/
+func (w *balanceNodeLeaderWorker) selectChangeLeader(cluster *Cluster) (*Range, *metapb.Peer) {
 	nodes := cluster.GetAllActiveNode()
 	if len(nodes) == 0 {
-		log.Debug("%v: node is nil", workerName)
-		cluster.metric.CollectScheduleCounter(workerName, "no_node")
+		log.Debug("%v: node is nil", w.GetName())
+		cluster.metric.CollectScheduleCounter(w.GetName(), "no_node")
 		return nil, nil
 	}
 
@@ -111,10 +117,13 @@ func selectChangeLeader(cluster *Cluster, workerName string) (*Range, *metapb.Pe
 	}
 
 	if log.IsEnableDebug() {
-		log.Debug("%v: mostLeaderNum  %v, leastLeaderNum %v, avg leader num :%v", workerName, mostLeaderNum, leastLeaderNum, avgLeaderNum)
+		log.Debug("%v: mostLeaderNum  %v, leastLeaderNum %v, avg leader num :%v", w.GetName(), mostLeaderNum, leastLeaderNum, avgLeaderNum)
 	}
 
-	if (mostLeaderNum - avgLeaderNum) > float64(Min_leader_balance_num) {
+	w.adjustNextInterval(mostLeaderNum, leastLeaderNum, avgLeaderNum)
+
+	balanceThreshold := maxFloat64(avgLeaderNum/10, float64(Min_leader_balance_num))
+	if (mostLeaderNum - avgLeaderNum) > balanceThreshold {
 		// 在Node上选择一个leader
 		for _, r := range mostLeaderNode.GetAllRanges() {
 			if r.GetLeader().GetNodeId() == mostLeaderNode.GetId() && r.require(cluster) {
@@ -127,12 +136,12 @@ func selectChangeLeader(cluster *Cluster, workerName string) (*Range, *metapb.Pe
 		}
 	}
 
-	if (avgLeaderNum - leastLeaderNum) > float64(Min_leader_balance_num) {
+	if (avgLeaderNum - leastLeaderNum) > balanceThreshold {
 		// 在Node上选择一个不是leader的
 		for _, r := range leastLeaderNode.GetAllRanges() {
 			if r.GetLeader().GetNodeId() != leastLeaderNode.GetId() && r.require(cluster) {
 				leaderNode := cluster.getLeaderNode(r)
-				if float64(leaderNode.GetLeaderCount()- leastLeaderNode.GetLeaderCount()) > float64(Min_leader_balance_num) {
+				if float64(leaderNode.GetLeaderCount()-leastLeaderNode.GetLeaderCount()) > float64(Min_leader_balance_num) {
 					return r, r.GetNodePeer(leastLeaderNode.GetId())
 				}
 			}
@@ -141,4 +150,13 @@ func selectChangeLeader(cluster *Cluster, workerName string) (*Range, *metapb.Pe
 
 	return nil, nil
 
+}
+
+func (w *balanceNodeLeaderWorker) adjustNextInterval(mostLeaderNum, leastLeaderNum, avgLeaderNum float64) {
+	adjustThreshold := maxFloat64(avgLeaderNum/2, float64(Min_leader_adjust_num))
+	if (mostLeaderNum - leastLeaderNum) > adjustThreshold {
+		w.interval = maxDuration(time.Duration(float64(w.interval)*scheduleIntervalFactor), minScheduleInterval)
+	} else {
+		w.interval = w.defaultInterval
+	}
 }

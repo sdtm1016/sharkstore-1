@@ -5,7 +5,7 @@
 #include "frame/sf_logger.h"
 #include "rpc_types.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace master {
 
@@ -27,8 +27,8 @@ Status Client::GetNodeID(const mspb::GetNodeIdRequest& req, uint64_t* node_id,
     }
 
     grpc::ClientContext context;
-    auto deadline = std::chrono::system_clock::now() +
-                    std::chrono::milliseconds(kRpcTimeoutMs);
+    auto deadline =
+        std::chrono::system_clock::now() + std::chrono::milliseconds(kRpcTimeoutMs);
     context.set_deadline(deadline);
 
     mspb::GetNodeIdResponse resp;
@@ -54,8 +54,8 @@ Status Client::NodeLogin(uint64_t node_id) {
     }
 
     grpc::ClientContext context;
-    auto deadline = std::chrono::system_clock::now() +
-                    std::chrono::milliseconds(kRpcTimeoutMs);
+    auto deadline =
+        std::chrono::system_clock::now() + std::chrono::milliseconds(kRpcTimeoutMs);
     context.set_deadline(deadline);
 
     mspb::NodeLoginRequest req;
@@ -143,8 +143,7 @@ Status Client::AsyncAskSplit(const mspb::AskSplitRequest& req) {
 
     auto call = new AsyncCallResultT<mspb::AskSplitResponse>;
     call->type = AsyncCallType::kAskSplit;
-    call->response_reader =
-        conn->GetStub()->AsyncAskSplit(&call->context, req, &cq_);
+    call->response_reader = conn->GetStub()->AsyncAskSplit(&call->context, req, &cq_);
     call->Finish();
     return Status::OK();
 }
@@ -157,8 +156,7 @@ Status Client::AsyncReportSplit(const mspb::ReportSplitRequest& req) {
 
     auto call = new AsyncCallResultT<mspb::ReportSplitResponse>;
     call->type = AsyncCallType::kReportSplit;
-    call->response_reader =
-        conn->GetStub()->AsyncReportSplit(&call->context, req, &cq_);
+    call->response_reader = conn->GetStub()->AsyncReportSplit(&call->context, req, &cq_);
     call->Finish();
     return Status::OK();
 }
@@ -196,13 +194,12 @@ void Client::addAddr(const std::string& addr) {
 void Client::updateLeader(const std::string& from,
                           const mspb::GetMSLeaderResponse& resp) {
     if (resp.has_leader()) {
-        FLOG_INFO("[Master] GetMSLeader resp from %s report new leader=%s.",
-                  from.c_str(), resp.leader().address().c_str());
+        FLOG_INFO("[Master] GetMSLeader resp from %s report new leader=%s.", from.c_str(),
+                  resp.leader().address().c_str());
 
         set_leader(resp.leader().address());
     } else {
-        FLOG_WARN("[Master] GetMSLeader resp from %s leader not set.",
-                  from.c_str());
+        FLOG_WARN("[Master] GetMSLeader resp from %s leader not set.", from.c_str());
     }
 }
 
@@ -210,8 +207,8 @@ void Client::askLeader() {
     mspb::GetMSLeaderRequest req;
     mspb::GetMSLeaderResponse resp;
     grpc::ClientContext context;
-    auto deadline = std::chrono::system_clock::now() +
-                    std::chrono::milliseconds(kRpcTimeoutMs);
+    auto deadline =
+        std::chrono::system_clock::now() + std::chrono::milliseconds(kRpcTimeoutMs);
     context.set_deadline(deadline);
 
     std::string addr = this->candidate();
@@ -220,9 +217,8 @@ void Client::askLeader() {
 
     auto status = conn->GetStub()->GetMSLeader(&context, req, &resp);
     if (!status.ok()) {
-        FLOG_ERROR(
-            "[Master] call GetMSLeader to %s failed. code=%d, errmsg=%s.",
-            addr.c_str(), status.error_code(), status.error_message().c_str());
+        FLOG_ERROR("[Master] call GetMSLeader to %s failed. code=%d, errmsg=%s.",
+                   addr.c_str(), status.error_code(), status.error_message().c_str());
     } else if (!checkResponseError(addr, resp.header())) {
         updateLeader(addr, resp);
     }
@@ -234,8 +230,7 @@ void Client::asyncAskLeader() {
 
     auto now = std::chrono::steady_clock::now();
     auto elapse_secs =
-        std::chrono::duration_cast<std::chrono::seconds>(now - last_async_ask_)
-            .count();
+        std::chrono::duration_cast<std::chrono::seconds>(now - last_async_ask_).count();
     if (elapse_secs <= kMinAsyncAskIntervalSec) {
         return;
     } else {
@@ -250,8 +245,7 @@ void Client::asyncAskLeader() {
 
     auto call = new AsyncCallResultT<mspb::GetMSLeaderResponse>;
     call->type = AsyncCallType::kGetMSLeader;
-    call->response_reader =
-        conn->GetStub()->AsyncGetMSLeader(&call->context, req, &cq_);
+    call->response_reader = conn->GetStub()->AsyncGetMSLeader(&call->context, req, &cq_);
     call->Finish();
 }
 
@@ -305,8 +299,7 @@ void Client::recvResponse(TaskHandler* handler) {
         if (!call->status.ok()) {
             FLOG_ERROR("[Master] rpc failed to %s. type=%s, code=%d, msg=%s.",
                        from.c_str(), AsyncCallTypeName(call->type).c_str(),
-                       call->status.error_code(),
-                       call->status.error_message().c_str());
+                       call->status.error_code(), call->status.error_message().c_str());
         } else {
             FLOG_DEBUG("[Master] recv %s respone from %s.",
                        AsyncCallTypeName(call->type).c_str(), from.c_str());
@@ -320,24 +313,19 @@ void Client::dispatchResponse(TaskHandler* handler, const std::string& from,
                               AsyncCallResult* call) {
     switch (call->type) {
         case AsyncCallType::kAskSplit: {
-            auto res =
-                dynamic_cast<AsyncCallResultT<mspb::AskSplitResponse>*>(call);
+            auto res = dynamic_cast<AsyncCallResultT<mspb::AskSplitResponse>*>(call);
             if (!checkResponseError(from, res->response.header())) {
                 handler->OnAskSplitResp(res->response);
             }
             break;
         }
         case AsyncCallType::kReportSplit: {
-            auto res =
-                dynamic_cast<AsyncCallResultT<mspb::ReportSplitResponse>*>(
-                    call);
+            auto res = dynamic_cast<AsyncCallResultT<mspb::ReportSplitResponse>*>(call);
             checkResponseError(from, res->response.header());
             break;
         }
         case AsyncCallType::kNodeHeartbeat: {
-            auto res =
-                dynamic_cast<AsyncCallResultT<mspb::NodeHeartbeatResponse>*>(
-                    call);
+            auto res = dynamic_cast<AsyncCallResultT<mspb::NodeHeartbeatResponse>*>(call);
             if (!checkResponseError(from, res->response.header())) {
                 handler->OnNodeHeartbeatResp(res->response);
             }
@@ -345,17 +333,14 @@ void Client::dispatchResponse(TaskHandler* handler, const std::string& from,
         }
         case AsyncCallType::kRangeHeartbeat: {
             auto res =
-                dynamic_cast<AsyncCallResultT<mspb::RangeHeartbeatResponse>*>(
-                    call);
+                dynamic_cast<AsyncCallResultT<mspb::RangeHeartbeatResponse>*>(call);
             if (!checkResponseError(from, res->response.header())) {
                 handler->OnRangeHeartbeatResp(res->response);
             }
             break;
         }
         case AsyncCallType::kGetMSLeader: {
-            auto res =
-                dynamic_cast<AsyncCallResultT<mspb::GetMSLeaderResponse>*>(
-                    call);
+            auto res = dynamic_cast<AsyncCallResultT<mspb::GetMSLeaderResponse>*>(call);
             if (!checkResponseError(from, res->response.header())) {
                 updateLeader(from, res->response);
             }
@@ -385,14 +370,13 @@ bool Client::checkResponseError(const std::string& from,
                                 const mspb::ResponseHeader& header) {
     if (header.has_error()) {
         const auto& error = header.error();
-        if (error.has_ms_leader()) {
-            FLOG_INFO("[Master] resp header from %s report new leader=%s.",
-                      from.c_str(), error.ms_leader().ms_leader().c_str());
+        if (error.has_new_leader()) {
+            FLOG_INFO("[Master] resp header from %s report new leader=%s.", from.c_str(),
+                      error.new_leader().address().c_str());
 
-            set_leader(error.ms_leader().ms_leader());
+            set_leader(error.new_leader().address());
         } else if (error.has_no_leader()) {
-            FLOG_WARN("[Master] resp header from %s report no leader.",
-                      from.c_str());
+            FLOG_WARN("[Master] resp header from %s report no leader.", from.c_str());
 
             set_leader("");
         }
@@ -404,4 +388,4 @@ bool Client::checkResponseError(const std::string& from,
 
 }  // namespace master
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

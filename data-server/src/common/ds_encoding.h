@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string>
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 
 static const uint32_t kNoColumnID = 0;
@@ -59,6 +59,6 @@ bool DecodeBytesAscending(const std::string& buf, size_t& pos, std::string* out)
 std::string EncodeToHexString(const std::string& str);
 
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */
 
 #endif /* end of include guard: FBASE_DATASERVER_ENCODING_H_ */

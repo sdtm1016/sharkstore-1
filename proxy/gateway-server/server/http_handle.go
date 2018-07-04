@@ -18,6 +18,8 @@ import (
 	"util/log"
 	"master-server/server"
 	"proxy/metric"
+	"util"
+	"sync"
 )
 
 type Response struct {
@@ -82,7 +84,7 @@ func (q *Query) commandFieldNameToLower() {
 		}
 	}
 
-	andLower := func (and *And) {
+	andLower := func(and *And) {
 		if and.Field != nil {
 			and.Field.Column = strings.ToLower(and.Field.Column)
 		}
@@ -116,9 +118,9 @@ func (q *Query) commandFieldNameToLower() {
 
 func (s *Server) handleKVCommand(w http.ResponseWriter, r *http.Request) {
 	var (
-		query *Query
-		err   error
-		reply *Reply
+		query       *Query
+		err         error
+		reply       *Reply
 		commandType string
 	)
 	defer func() {
@@ -173,26 +175,26 @@ func (s *Server) handleKVCommand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	start := time.Now()
-    	var slowLogThreshold int
+	var slowLogThreshold util.Duration
 	query.commandFieldNameToLower()
 	commandType = query.Command.Type
 	switch query.Command.Type {
 	case "get":
-		slowLogThreshold = s.proxy.config.SelectSlowLog
+		slowLogThreshold = s.proxy.config.Performance.SelectSlowLog
 		reply, err = query.getCommand(s.proxy, t)
 		if err != nil {
 			log.Error("getcommand error: %v", err)
 			reply = &Reply{Code: errCommandRun, Message: fmt.Errorf("%v: %v", ErrHttpCmdRun, err).Error()}
 		}
 	case "set":
-		slowLogThreshold = s.proxy.config.InsertSlowLog
+		slowLogThreshold = s.proxy.config.Performance.InsertSlowLog
 		reply, err = query.setCommand(s.proxy, t)
 		if err != nil {
 			log.Error("setcommand error: %v", err)
 			reply = &Reply{Code: errCommandRun, Message: fmt.Errorf("%v: %v", ErrHttpCmdRun, err).Error()}
 		}
 	case "del":
-		slowLogThreshold = s.proxy.config.SelectSlowLog
+		slowLogThreshold = s.proxy.config.Performance.SelectSlowLog
 		reply, err = query.delCommand(s.proxy, t)
 		if err != nil {
 			log.Error("delcommand error: %v", err)
@@ -209,7 +211,7 @@ func (s *Server) handleKVCommand(w http.ResponseWriter, r *http.Request) {
 	} else {
 		metric.GsMetric.ProxyApiMetric(query.Command.Type, false, delay)
 	}
-	if delay > time.Duration(slowLogThreshold) * time.Millisecond {
+	if delay > slowLogThreshold.Duration {
 		cmd, _ := json.Marshal(query)
 		metric.GsMetric.SlowLogMetric(string(cmd), delay)
 		log.Debug("[kvcommand slow log %v %v ", delay.String(), string(cmd))
@@ -306,7 +308,6 @@ func (query *Query) getCommand(proxy *Proxy, t *Table) (*Reply, error) {
 				return nil, err
 			}
 		}
-
 
 		return formatReply(t.columns, allRows, nil, columns), nil
 	}
@@ -481,9 +482,9 @@ func (query *Query) setCommand(proxy *Proxy, t *Table) (*Reply, error) {
 	}
 	if len(duplicateKey) > 0 {
 		return nil, fmt.Errorf("duplicate key: %v", duplicateKey)
-	}else if affected != uint64(len(rows)){
-		log.Error("insert error table[%s:%s],request num:%d,inserted num:%d", db, tableName, len(rows),affected)
-		return nil,ErrAffectRows
+	} else if affected != uint64(len(rows)) {
+		log.Error("insert error table[%s:%s],request num:%d,inserted num:%d", db, tableName, len(rows), affected)
+		return nil, ErrAffectRows
 	}
 	return &Reply{
 		Code:         0,
@@ -571,7 +572,6 @@ func (s *Server) handleTableInfo(w http.ResponseWriter, r *http.Request) {
 	resp.Data = tInfo
 }
 
-
 func (s *Server) handleCreateDatabase(w http.ResponseWriter, r *http.Request) {
 	var (
 		query *CreateDatabase
@@ -627,17 +627,17 @@ func (s *Server) handleLockDebug(w http.ResponseWriter, r *http.Request) {
 		uuid := r.FormValue("uuid")
 		deleteTime, err := strconv.ParseInt(r.FormValue("deleteTime"), 10, 64)
 		if err != nil {
-			w.Write([]byte("deleteTime: "+err.Error()))
+			w.Write([]byte("deleteTime: " + err.Error()))
 			return
 		}
 		resp, err := s.proxy.Lock(dbName, tableName, lockName, userCondition, uuid, deleteTime, userName)
 		if err != nil {
-			w.Write([]byte("lock: "+err.Error()))
+			w.Write([]byte("lock: " + err.Error()))
 			return
 		}
 		reply, err := json.Marshal(resp)
 		if err != nil {
-			w.Write([]byte("lock reply marshal: "+err.Error()))
+			w.Write([]byte("lock reply marshal: " + err.Error()))
 			return
 		}
 		w.Write(reply)
@@ -645,12 +645,12 @@ func (s *Server) handleLockDebug(w http.ResponseWriter, r *http.Request) {
 		uuid := r.FormValue("uuid")
 		resp, err := s.proxy.LockUpdate(dbName, tableName, lockName, uuid, []byte(""))
 		if err != nil {
-			w.Write([]byte("lockupdate: "+err.Error()))
+			w.Write([]byte("lockupdate: " + err.Error()))
 			return
 		}
 		reply, err := json.Marshal(resp)
 		if err != nil {
-			w.Write([]byte("lockupdate reply marshal: "+err.Error()))
+			w.Write([]byte("lockupdate reply marshal: " + err.Error()))
 			return
 		}
 		w.Write(reply)
@@ -659,12 +659,12 @@ func (s *Server) handleLockDebug(w http.ResponseWriter, r *http.Request) {
 		userName := r.FormValue("userName")
 		resp, err := s.proxy.Unlock(dbName, tableName, lockName, uuid, userName)
 		if err != nil {
-			w.Write([]byte("unlock reply marshal: "+err.Error()))
+			w.Write([]byte("unlock: "+err.Error()))
 			return
 		}
 		reply, err := json.Marshal(resp)
 		if err != nil {
-			w.Write([]byte("unlock reply marshal: "+err.Error()))
+			w.Write([]byte("unlock reply marshal: " + err.Error()))
 			return
 		}
 		w.Write(reply)
@@ -672,12 +672,28 @@ func (s *Server) handleLockDebug(w http.ResponseWriter, r *http.Request) {
 		userName := r.FormValue("userName")
 		resp, err := s.proxy.UnlockForce(dbName, tableName, lockName, userName)
 		if err != nil {
-			w.Write([]byte("unlockforce reply marshal: "+err.Error()))
+			w.Write([]byte("unlockforce: "+err.Error()))
 			return
 		}
 		reply, err := json.Marshal(resp)
 		if err != nil {
-			w.Write([]byte("unlockforce reply marshal: "+err.Error()))
+			w.Write([]byte("unlockforce reply marshal: " + err.Error()))
+			return
+		}
+		w.Write(reply)
+	case "scan":
+		startKey := r.FormValue("startKey")
+		endKey := r.FormValue("endKey")
+		number, _ := strconv.ParseUint(r.FormValue("number"), 10, 64)
+
+		resp, err := s.proxy.LockScan(dbName, tableName, startKey, endKey, uint32(number))
+		if err != nil {
+			w.Write([]byte("lockscan: "+err.Error()))
+			return
+		}
+		reply, err := json.Marshal(resp)
+		if err != nil {
+			w.Write([]byte("lockscan reply marshal: "+err.Error()))
 			return
 		}
 		w.Write(reply)
@@ -777,6 +793,45 @@ func (s *Server) handleCreateTable(w http.ResponseWriter, r *http.Request) {
 		reply = &Response{Code: errCreateTable, Message: err.Error()}
 		return
 	}
+	return
+}
+
+func (s *Server) handleMetricConfigGet(w http.ResponseWriter, r *http.Request) {
+	reply := new(Response)
+	defer httpSendReply(w, reply)
+
+	addr := metric.GsMetric.GetMetricAddress()
+	reply.Data = &MetricConfig{Address: addr}
+	log.Info("get metric send config success, addr:%v", addr)
+	return
+}
+
+var metricConfigLock sync.Mutex
+func (s *Server) handleMetricConfigSet(w http.ResponseWriter, r *http.Request) {
+	reply := new(Response)
+	defer httpSendReply(w, reply)
+
+	addr := r.FormValue("address")
+
+	metricConfigLock.Lock()
+	defer metricConfigLock.Unlock()
+
+	err := metric.UpdateMetric(addr)
+	if err != nil {
+		log.Warn("set metric send config err, %v", err)
+		reply.Code = errCommandRun
+		reply.Message = err.Error()
+		return
+	}
+	//落盘
+	err = UpdateConfig(addr)
+	if err != nil {
+		log.Warn("set metric send config to store err, %v", err)
+		reply.Code = errCommandRun
+		reply.Message = err.Error()
+		return
+	}
+	log.Info("set metric send config success, addr:%v", addr)
 	return
 }
 

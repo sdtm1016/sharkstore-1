@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include "server.h"
 
-using namespace fbase::raft::playground;
+using namespace sharkstore::raft::playground;
 
 int main(int argc, char *argv[]) {
     parseCommandLine(argc, argv);

@@ -7,6 +7,7 @@
 #include "common/socket_session_impl.h"
 #include "frame/sf_logger.h"
 
+#include "version.h"
 #include "manager.h"
 #include "master/worker.h"
 #include "node_address.h"
@@ -15,7 +16,7 @@
 #include "run_status.h"
 #include "worker.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace server {
 
@@ -72,11 +73,47 @@ DataServer::~DataServer() {
     delete context_;
 }
 
+bool DataServer::startRaftServer() {
+    raft::SetLogger(new RaftLogger());
+
+    // 初始化 raft server
+    raft::RaftServerOptions ops;
+
+    ops.node_id = context_->node_id;
+    ops.consensus_threads_num = ds_config.raft_config.consensus_threads;
+    ops.consensus_queue_capacity = ds_config.raft_config.consensus_queue;
+    ops.apply_threads_num = ds_config.raft_config.apply_threads;
+    ops.apply_queue_capacity = ds_config.raft_config.apply_queue;
+    ops.tick_interval =
+        std::chrono::milliseconds(ds_config.raft_config.tick_interval_ms);
+    ops.max_size_per_msg = ds_config.raft_config.max_msg_size;
+
+    ops.transport_options.listen_port = ds_config.raft_config.port;
+    ops.transport_options.send_io_threads =
+        ds_config.raft_config.transport_send_threads;
+    ops.transport_options.recv_io_threads =
+        ds_config.raft_config.transport_recv_threads;
+    ops.transport_options.resolver = std::make_shared<NodeAddress>();
+
+    auto rs = raft::CreateRaftServer(ops);
+    context_->raft_server = rs.release();
+    auto s = context_->raft_server->Start();
+    if (!s.ok()) {
+        FLOG_ERROR("RaftServer Start error ... : %s", s.ToString().c_str());
+        return false;
+    }
+
+    FLOG_DEBUG("RaftServer Started...");
+    return true;
+}
+
 int DataServer::Init() {
+    std::string version = GetGitDescribe();
+    FLOG_INFO("Version: %s", version.c_str());
+
     // GetNodeId from master server
     bool clearup = false;
     uint64_t node_id = 0;
-    std::string version;
     auto s = context_->master_worker->GetNodeId(
         ds_config.raft_config.port, ds_config.worker_config.port,
         ds_config.manager_config.port, version, &node_id, &clearup);
@@ -91,33 +128,9 @@ int DataServer::Init() {
         context_->range_server->Clear();
     }
 
-    raft::SetLogger(new RaftLogger());
-
-    // 初始化 raft server
-    raft::RaftServerOptions ops;
-    ops.node_id = context_->node_id;
-    ops.listen_port = ds_config.raft_config.port;
-    ops.consensus_threads_num = ds_config.raft_config.consensus_threads;
-    ops.consensus_queue_capacity = ds_config.raft_config.consensus_queue;
-    ops.apply_threads_num = ds_config.raft_config.apply_threads;
-    ops.apply_queue_capacity = ds_config.raft_config.apply_queue;
-    ops.transport_send_threads = ds_config.raft_config.transport_send_threads;
-    ops.transport_recv_threads = ds_config.raft_config.transport_recv_threads;
-    ops.tick_interval =
-        std::chrono::milliseconds(ds_config.raft_config.tick_interval_ms);
-    ops.max_size_per_msg = ds_config.raft_config.max_msg_size;
-    ops.resolver = std::make_shared<NodeAddress>();
-    // ops.use_grpc_transport = true;
-
-    auto rs = raft::CreateRaftServer(ops);
-    context_->raft_server = rs.release();
-    s = context_->raft_server->Start();
-    if (!s.ok()) {
-        FLOG_ERROR("RaftServer Start error ... : %s", s.ToString().c_str());
+    if (!startRaftServer()) {
         return -1;
     }
-
-    FLOG_DEBUG("RaftServer Started...");
 
     if (context_->range_server->Init(context_) != 0) {
         return -1;
@@ -200,4 +213,4 @@ void DataServer::DealTask(common::ProtoMessage *task) {
 
 } /* namespace server */
 } /* namespace dataserver  */
-} /* namespace fbase */
+} /* namespace sharkstore */

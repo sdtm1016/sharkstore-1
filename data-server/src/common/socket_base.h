@@ -5,7 +5,7 @@
 #include "frame/sf_socket_thread.h"
 #include "frame/sf_status.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace common {
 
@@ -32,5 +32,5 @@ protected:
 
 }  // namespace common
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore
 #endif  //__SOCKET_BASE_H__

@@ -5,7 +5,7 @@ _Pragma("once");
 #include "base/status.h"
 #include "raft/statemachine.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace test {
 
@@ -142,4 +142,4 @@ private:
 
 } /* test  */
 } /* raft  */
-} /* fbase  */
+} /* sharkstore  */

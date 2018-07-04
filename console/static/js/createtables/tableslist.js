@@ -82,7 +82,7 @@ app.controller('mytables', function($rootScope, $scope, $http, $timeout) {
     };
     $scope.getAbnormalRangeView = function (table) {
         swal({
-                title: "异常range",
+                title: "异常range or 查询单个range",
                 text: "请输入一个rangeId来查询",
                 type: "input",
                 showCancelButton: true,
@@ -92,93 +92,88 @@ app.controller('mytables', function($rootScope, $scope, $http, $timeout) {
             },
             function (inputValue) {
                 if (inputValue === false) return;
-                if (inputValue === "") {
-                    swal.showInputError("你需要输入rangeId");
-                    return
-                }
-
                 var rangeId = inputValue;
-                if (rangeId == "" || rangeId == null) {
-                    swal("请输入rangeId");
-                    return
-                }
                 window.location.href = "/page/range/unhealthy?dbName=" + table.db_name + "&tableName=" + table.name + "&clusterId=" + clusterId + "&rangeId=" + rangeId;
             }
         );
     };
 
-     $scope.deleteRow = function(table) {
-    	 swal({
-	    	  title: "删除表?",
-	    	  type: "warning",
-	    	  showCancelButton: true,
-	    	  confirmButtonColor: "#DD6B55",
-	    	  confirmButtonText: "删除",
-	    	  closeOnConfirm: false
-	    	},
-	    	function(){
-	    	//执行ajax提交
-	    		$.ajax({
-	    			url:"/metadata/delTable",
-	    			type:"post",
-	    	        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-	    	        dataType:"json",
-	    	        data:{
-	    	        	"clusterId":clusterId,
-	    	        	"dbName":table.db_name,
-	    	        	"tableName":table.name,
-	    	        	"flag": false
-	    	        },
-	    			success: function(data){
-	    				if(data.code === 0){
-	    					swal("删除成功!", data.msg, "success");
-	    					window.location.reload();
-	    				}else {
-	    					swal("删除失败", data.msg, "error");
-	    				}
-	    	        },
-	    	        error: function(res){
-	    	        	swal("删除失败", res, "error");
-	    	        }
-	    		});
-	    	});
-     };
-     $scope.fastDeleteRow = function(table) {
-         	 swal({
-     	    	  title: "快速删除表?【一个周期清表】",
-     	    	  type: "warning",
-     	    	  showCancelButton: true,
-     	    	  confirmButtonColor: "#DD6B55",
-     	    	  confirmButtonText: "删除",
-     	    	  closeOnConfirm: false
-     	    	},
-     	    	function(){
-     	    	//执行ajax提交
-     	    		$.ajax({
-     	    			url:"/metadata/delTable",
-     	    			type:"post",
-     	    	        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-     	    	        dataType:"json",
-     	    	        data:{
-     	    	        	"clusterId":clusterId,
-     	    	        	"dbName":table.db_name,
-     	    	        	"tableName":table.name,
-     	    	        	"flag": true
-     	    	        },
-     	    			success: function(data){
-     	    				if(data.code === 0){
-     	    					swal("删除成功!", data.msg, "success");
-     	    					window.location.reload();
-     	    				}else {
-     	    					swal("删除失败", data.msg, "error");
-     	    				}
-     	    	        },
-     	    	        error: function(res){
-     	    	        	swal("删除失败", res, "error");
-     	    	        }
-     	    		});
-     	    	});
-          };
+    $scope.getUnstableRangeView = function (table) {
+        window.location.href = "/page/range/unstable?dbName=" + table.db_name + "&tableName=" + table.name + "&clusterId=" + clusterId;
+    };
+
+	$scope.deleteRow = function(table) {
+	 swal({
+		  title: "删除表?",
+		  type: "warning",
+		  showCancelButton: true,
+		  confirmButtonColor: "#DD6B55",
+		  confirmButtonText: "删除",
+		  closeOnConfirm: false
+		},
+		function(){
+		//执行ajax提交
+			$.ajax({
+				url:"/metadata/delTable",
+				type:"post",
+				contentType:"application/x-www-form-urlencoded; charset=UTF-8",
+				dataType:"json",
+				data:{
+					"clusterId":clusterId,
+					"dbName":table.db_name,
+					"tableName":table.name,
+					"flag": false
+				},
+				success: function(data){
+					if(data.code === 0){
+						swal("删除成功!", data.msg, "success");
+						window.location.reload();
+					}else {
+						swal("删除失败", data.msg, "error");
+					}
+				},
+				error: function(res){
+					swal("删除失败", res, "error");
+				}
+			});
+		});
+	};
+	$scope.fastDeleteRow = function(table) {
+	 swal({
+		  title: "快速删除表?【一个周期清表】",
+		  type: "warning",
+		  showCancelButton: true,
+		  confirmButtonColor: "#DD6B55",
+		  confirmButtonText: "删除",
+		  closeOnConfirm: false
+		},
+		function(){
+		//执行ajax提交
+			$.ajax({
+				url:"/metadata/delTable",
+				type:"post",
+				contentType:"application/x-www-form-urlencoded; charset=UTF-8",
+				dataType:"json",
+				data:{
+					"clusterId":clusterId,
+					"dbName":table.db_name,
+					"tableName":table.name,
+					"flag": true
+				},
+				success: function(data){
+					if(data.code === 0){
+						swal("删除成功!", data.msg, "success");
+						window.location.reload();
+					}else {
+						swal("删除失败", data.msg, "error");
+					}
+				},
+				error: function(res){
+					swal("删除失败", res, "error");
+				}
+			});
+		});
+	};
     //设置表读写策略
     $scope.rwPolicys = function(table) {
     	var policyObject = {};
@@ -207,41 +202,6 @@ app.controller('mytables', function($rootScope, $scope, $http, $timeout) {
 	        }
 		});
     };
-    //集群批量恢复不健康range
-    $scope.batchRecover = function(table) {
-        swal({
-                title: "确定一键恢复异常range",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "执行",
-                closeOnConfirm: false
-            },
-            function () {
-                $.ajax({
-                    url: "/range/batchRecoverRange",
-                    type: "post",
-                    contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-                    dataType: "json",
-                    data: {
-                        "clusterId": clusterId,
-                        "dbName": table.db_name,
-                        "tableName": table.name
-                    },
-                    success: function (data) {
-                        if (data.code === 0) {
-                            swal("批量恢复中！", "批量恢复中!", "success");
-                            window.location.reload();
-                        } else {
-                            swal("批量恢复失败！", data.message, "error");
-                        }
-                    },
-                    error: function (res) {
-                        swal("批量恢复失败！", "请联系管理员!", "error");
-                    }
-                });
-            });
-    }
 });
 
 //时间格式化

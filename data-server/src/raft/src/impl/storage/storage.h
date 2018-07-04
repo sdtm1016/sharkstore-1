@@ -6,15 +6,15 @@ _Pragma("once");
 #include "../raft.pb.h"
 #include "../raft_types.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace storage {
 
 class Storage {
 public:
-    Storage() {}
-    virtual ~Storage() {}
+    Storage() = default;
+    virtual ~Storage() = default;
 
     Storage(const Storage&) = delete;
     Storage& operator=(const Storage&) = delete;
@@ -24,7 +24,7 @@ public:
 
     // InitialState returns the saved HardState information to init the repl
     // state.
-    virtual Status InitialState(pb::HardState* hs) = 0;
+    virtual Status InitialState(pb::HardState* hs) const = 0;
 
     // Entries returns a slice of log entries in the range [lo,hi), the hi is
     // not
@@ -35,8 +35,7 @@ public:
     // If no entries,then return entries nil.
     // Note: math.MaxUint32 is no limit.
     virtual Status Entries(uint64_t lo, uint64_t hi, uint64_t max_size,
-                           std::vector<EntryPtr>* entries,
-                           bool* is_compacted) = 0;
+                           std::vector<EntryPtr>* entries, bool* is_compacted) const = 0;
 
     // Term returns the term of entry i, which must be in the range
     // [FirstIndex()-1, LastIndex()].
@@ -44,16 +43,16 @@ public:
     // even though the
     // rest of that entry may not be available.
     // If lo <= CompactIndex,then return isCompact true.
-    virtual Status Term(uint64_t index, uint64_t* term, bool* is_compacted) = 0;
+    virtual Status Term(uint64_t index, uint64_t* term, bool* is_compacted) const = 0;
 
     // FirstIndex returns the index of the first log entry that is possibly
     // available via Entries (older entries have been incorporated
     // into the latest Snapshot; if storage only contains the dummy entry the
     // first log entry is not available).
-    virtual Status FirstIndex(uint64_t* index) = 0;
+    virtual Status FirstIndex(uint64_t* index) const = 0;
 
     // LastIndex returns the index of the last entry in the log.
-    virtual Status LastIndex(uint64_t* index) = 0;
+    virtual Status LastIndex(uint64_t* index) const = 0;
 
     // StoreEntries store the log entries to the repository.
     // If first index of entries > LastIndex,then append all entries,
@@ -85,4 +84,4 @@ public:
 } /* namespace storage */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

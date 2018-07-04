@@ -1,11 +1,9 @@
 _Pragma("once");
 
-#include <chrono>
-
 #include "raft.pb.h"
 #include "raft_types.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
@@ -31,14 +29,14 @@ private:
 
 class Replica {
 public:
-    Replica(const pb::Peer& peer, int max_inflight);
+    explicit Replica(const Peer& peer, int max_inflight = 0);
     ~Replica() = default;
 
     Replica(const Replica&) = delete;
     Replica& operator=(const Replica&) = delete;
 
-    const pb::Peer& peer() const { return peer_; }
-    void set_peer(const pb::Peer& peer) { peer_ = peer; }
+    const Peer& peer() const { return peer_; }
+    bool is_learner() const { return peer_.type == PeerType::kLearner; }
 
     Inflight& inflight() { return inflight_; }
 
@@ -51,10 +49,10 @@ public:
     uint64_t committed() const { return committed_; }
     void set_committed(uint64_t committed) { committed_ = committed; }
 
-    // 设置为活跃的
-    bool active() const { return active_; }
-    void set_active();
-    int inactive_seconds() const;
+    // 每次tick时增加，收到来自副本的消息后重置
+    void incr_inactive_tick() { ++inactive_ticks_; }
+    void set_active() { inactive_ticks_ = 0; }
+    uint64_t inactive_ticks() const { return inactive_ticks_; }
 
     ReplicaState state() const { return state_; }
     void resetState(ReplicaState state);
@@ -73,22 +71,15 @@ public:
     void resume();
     bool isPaused() const;
 
-    bool pending() const { return pending_; }
-    void set_pending(bool b) { pending_ = b; }
-
     std::string ToString() const;
 
 private:
-    typedef std::chrono::time_point<std::chrono::steady_clock> TimePoint;
-
-    pb::Peer peer_;
+    Peer peer_;
     ReplicaState state_{ReplicaState::kProbe};
     Inflight inflight_;
 
     bool paused_ = false;
-    bool pending_ = false;
-    bool active_ = false;
-    TimePoint last_active_;
+    uint64_t inactive_ticks_ = 0;
 
     uint64_t match_ = 0;
     uint64_t next_ = 0;
@@ -98,4 +89,4 @@ private:
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

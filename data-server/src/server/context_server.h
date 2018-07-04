@@ -6,7 +6,7 @@
 #include "common/socket_session.h"
 #include "raft/server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 
 namespace storage {
@@ -39,6 +39,7 @@ struct ContextServer {
 
     rocksdb::DB *rocks_db = nullptr;
     std::shared_ptr<rocksdb::Cache> block_cache;  // rocksdb block cache
+    std::shared_ptr<rocksdb::Cache> row_cache; // rocksdb row cache
     storage::MetaStore *meta_store = nullptr;
 
     raft::RaftServer *raft_server = nullptr;
@@ -46,6 +47,6 @@ struct ContextServer {
 
 }  // namespace server
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore
 
 #endif  // __CONTEXT_SERVER_H__

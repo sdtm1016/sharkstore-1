@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
@@ -34,82 +34,103 @@ std::string ReplicateStateName(ReplicaState state) {
     }
 }
 
-pb::Peer toPBPeer(Peer p) {
-    pb::Peer pp;
-    pp.set_node_id(p.node_id);
-    pp.set_peer_id(p.peer_id);
-    switch (p.type) {
+Status EncodePeer(const Peer& peer, pb::Peer* pb_peer) {
+    assert(pb_peer != nullptr);
+    pb_peer->set_node_id(peer.node_id);
+    pb_peer->set_peer_id(peer.peer_id);
+    switch (peer.type) {
         case PeerType::kNormal:
-            pp.set_type(pb::PEER_NORMAL);
+            pb_peer->set_type(pb::PEER_NORMAL);
             break;
         case PeerType::kLearner:
-            pp.set_type(pb::PEER_LEARNER);
+            pb_peer->set_type(pb::PEER_LEARNER);
             break;
         default:
-            break;
+            return Status(Status::kInvalidArgument, "EncodePeer(): unknown peer type",
+                          PeerTypeName(peer.type));
     }
-    return pp;
+    return Status::OK();
 }
 
-Peer fromPBPeer(pb::Peer pp) {
-    Peer p;
-    p.node_id = pp.node_id();
-    p.peer_id = pp.peer_id();
-    switch (pp.type()) {
+Status DecodePeer(const pb::Peer& pb_peer, Peer* peer) {
+    assert(peer != nullptr);
+    peer->node_id = pb_peer.node_id();
+    peer->peer_id = pb_peer.peer_id();
+    switch (pb_peer.type()) {
         case pb::PEER_NORMAL:
-            p.type = PeerType::kNormal;
+            peer->type = PeerType::kNormal;
             break;
         case pb::PEER_LEARNER:
-            p.type = PeerType::kLearner;
+            peer->type = PeerType::kLearner;
             break;
         default:
-            break;
+            return Status(Status::kInvalidArgument, "DecodePeer(): unkown peer type:",
+                          std::to_string(pb_peer.type()));
     }
-    return p;
+    return Status::OK();
 }
 
-void toPBCC(const ConfChange& cc, pb::ConfChange* pb_cc) {
+Status EncodeConfChange(const ConfChange& cc, std::string* pb_str) {
+    assert(pb_str != nullptr);
+
+    pb::ConfChange pb_cc;
+    auto s = EncodePeer(cc.peer, pb_cc.mutable_peer());
+    if (!s.ok()) return s;
+
+    pb_cc.set_context(cc.context);
     switch (cc.type) {
         case ConfChangeType::kAdd:
-            pb_cc->set_type(pb::CONF_ADD_NODE);
+            pb_cc.set_type(pb::CONF_ADD_PEER);
             break;
         case ConfChangeType::kRemove:
-            pb_cc->set_type(pb::CONF_REMOVE_NODE);
+            pb_cc.set_type(pb::CONF_REMOVE_PEER);
             break;
-        case ConfChangeType::kUpdate:
-            pb_cc->set_type(pb::CONF_UPDATE_NODE);
+        case ConfChangeType::kPromote:
+            pb_cc.set_type(pb::CONF_PROMOTE_PEER);
             break;
         default:
-            break;
+            return Status(Status::kInvalidArgument,
+                          "EncodeConfChange(): unknown confchange type",
+                          ConfChangeTypeName(cc.type));
     }
-    pb_cc->mutable_peer()->CopyFrom(toPBPeer(cc.peer));
-    pb_cc->set_context(cc.context);
+
+    bool ret = pb_cc.SerializeToString(pb_str);
+    if (!ret) {
+        return Status(Status::kCorruption,
+                      "EncodeConfChange(): protobuf SerializeToString failed", "false");
+    }
+    return Status::OK();
 }
 
-void fromPBCC(const pb::ConfChange& pb_cc, ConfChange* cc) {
+Status DecodeConfChange(const std::string& pb_str, ConfChange* cc) {
+    pb::ConfChange pb_cc;
+    bool ret = pb_cc.ParseFromString(pb_str);
+    if (!ret) {
+        return Status(Status::kCorruption,
+                      "DecodeConfChange(): protobuf ParseFromString failed", "false");
+    }
+
+    auto s = DecodePeer(pb_cc.peer(), &cc->peer);
+    if (!s.ok()) return s;
+
+    cc->context = pb_cc.context();
+
     switch (pb_cc.type()) {
-        case pb::CONF_ADD_NODE:
+        case pb::CONF_ADD_PEER:
             cc->type = ConfChangeType::kAdd;
             break;
-        case pb::CONF_REMOVE_NODE:
+        case pb::CONF_REMOVE_PEER:
             cc->type = ConfChangeType::kRemove;
             break;
-        case pb::CONF_UPDATE_NODE:
-            cc->type = ConfChangeType::kUpdate;
+        case pb::CONF_PROMOTE_PEER:
+            cc->type = ConfChangeType::kPromote;
             break;
         default:
-            break;
+            return Status(Status::kInvalidArgument,
+                          "DecodeConfChange(): unknown confchange type",
+                          std::to_string(pb_cc.type()));
     }
-    cc->peer = fromPBPeer(pb_cc.peer());
-    cc->context = pb_cc.context();
-}
-
-std::string MessageToString(const pb::Message& msg) {
-    std::ostringstream ss;
-    ss << "type=" << pb::MessageType_Name(msg.type()) << ", from=" << msg.from()
-       << ", to=" << msg.to() << ", id=" << msg.id() << ", term=" << msg.term();
-
-    return ss.str();
+    return Status::OK();
 }
 
 bool IsLocalMsg(MessagePtr& msg) {
@@ -128,7 +149,6 @@ bool IsResponseMsg(MessagePtr& msg) {
         case pb::APPEND_ENTRIES_RESPONSE:
         case pb::VOTE_RESPONSE:
         case pb::HEARTBEAT_RESPONSE:
-        case pb::SNAPSHOT_RESPONSE:
         case pb::SNAPSHOT_ACK:
         case pb::PRE_VOTE_RESPONSE:
             return true;
@@ -139,4 +159,4 @@ bool IsResponseMsg(MessagePtr& msg) {
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

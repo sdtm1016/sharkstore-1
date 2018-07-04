@@ -30,7 +30,7 @@ type Node struct {
 	stats         *mspb.NodeStats
 	LastHeartbeatTS time.Time
 	Trace         bool
-	opsStat *NodeOpsStat
+	opsStat		  *NodeOpsStat
 	// 创建/删除range副本失败产生的垃圾副本,n/2以上的节点挂掉、手动处理不可用的副本
 	// 远程GC DS上的垃圾range副本
 	trashReplicas    *ReplicaCache
@@ -636,4 +636,23 @@ func (rb *HbRingBuf)CalcMaxHbDiff() (time.Duration, error) {
 	}
 	rb.lock.RUnlock()
 	return d, nil
+}
+
+type Distribution struct {
+	nodeId uint64
+	count int
+}
+
+type Distributions []Distribution
+
+func (d Distributions) Len() int{
+	return len(d)
+}
+
+func (d Distributions) Less(i, j int) bool {
+	return d[i].count > d[j].count
+}
+
+func (d Distributions) Swap(i, j int) {
+	d[i], d[j] = d[j], d[i]
 }

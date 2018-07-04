@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace playground {
 
@@ -72,4 +72,4 @@ void checkCommandLineValid() {
 
 } /* namespace playground */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

@@ -14,4 +14,4 @@ foreach(f IN LISTS frame_SOURCES)
         COMPILE_DEFINITIONS "__FNAME__=\"frame/${f}\"") 
 endforeach() 
 
-add_library(fbase-frame STATIC ${frame_SOURCES})
+add_library(sharkstore-frame STATIC ${frame_SOURCES})

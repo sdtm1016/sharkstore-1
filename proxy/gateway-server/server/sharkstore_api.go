@@ -1,63 +1,60 @@
 package server
-import(
+
+import (
 	"util/log"
 	"encoding/json"
 	"fmt"
 	"time"
+	"util"
 )
 
-type SharkStoreApi struct{
+type SharkStoreApi struct {
+}
+
+func (api *SharkStoreApi) Insert(s *Server, dbName string, tableName string, fields []string, values [][]interface{}) *Reply {
+
+	cmd := &Command{
+		Type:   "set",
+		Field:  fields,
+		Values: values,
+	}
+	query := &Query{
+		Command: cmd,
+	}
+
+	return api.execute(s, dbName, tableName, query)
 
 }
 
-
-func (api *SharkStoreApi) Insert(s *Server,dbName string,tableName string,fields []string,values [][]interface{}) *Reply{
-	
-
-	cmd := & Command{
-		Type:"set",
-		Field:fields,
-		Values:values,
-	}
-	query := &Query{
-		Command:cmd,
-	}
-
-	return api.execute(s,dbName,tableName,query)
-	
-} 
-
-
-func (api *SharkStoreApi) Select(s *Server,dbName string,tableName string,fields []string,pks map[string]interface{} ) *Reply{
-	ands := make([]*And,0)
-	for k,v := range pks {
-		and :=&And{
+func (api *SharkStoreApi) Select(s *Server, dbName string, tableName string, fields []string, pks map[string]interface{}) *Reply {
+	ands := make([]*And, 0)
+	for k, v := range pks {
+		and := &And{
 			Field:  &Field_{Column: k, Value: v},
 			Relate: "=",
 		}
-		ands = append(ands,and)
+		ands = append(ands, and)
 
 	}
 	cmd := &Command{
-		Type:"get",
+		Type:  "get",
 		Field: fields,
 		Filter: &Filter_{
-		And: ands,
+			And: ands,
 		},
 	}
 	query := &Query{
-		Command:cmd,
+		Command: cmd,
 	}
 
-	return api.execute(s,dbName,tableName,query)
+	return api.execute(s, dbName, tableName, query)
 }
 
-func (api *SharkStoreApi) Delete() *Reply{
+func (api *SharkStoreApi) Delete() *Reply {
 	return nil
 }
 
-
-func (api *SharkStoreApi) execute(s *Server,dbName string ,tableName string,query *Query) (reply *Reply){
+func (api *SharkStoreApi) execute(s *Server, dbName string, tableName string, query *Query) (reply *Reply) {
 	var err error
 	if len(dbName) == 0 {
 		log.Error("args[dbName] wrong")
@@ -83,25 +80,25 @@ func (api *SharkStoreApi) execute(s *Server,dbName string ,tableName string,quer
 	}
 
 	start := time.Now()
-    var slowLogThreshold int
+	var slowLogThreshold util.Duration
 	query.commandFieldNameToLower()
 	switch query.Command.Type {
 	case "get":
-		slowLogThreshold = s.proxy.config.SelectSlowLog
+		slowLogThreshold = s.proxy.config.Performance.SelectSlowLog
 		reply, err = query.getCommand(s.proxy, t)
 		if err != nil {
 			log.Error("getcommand error: %v", err)
 			reply = &Reply{Code: errCommandRun, Message: fmt.Errorf("%v: %v", ErrHttpCmdRun, err).Error()}
 		}
 	case "set":
-		slowLogThreshold = s.proxy.config.InsertSlowLog
+		slowLogThreshold = s.proxy.config.Performance.InsertSlowLog
 		reply, err = query.setCommand(s.proxy, t)
 		if err != nil {
 			log.Error("setcommand error: %v", err)
 			reply = &Reply{Code: errCommandRun, Message: fmt.Errorf("%v: %v", ErrHttpCmdRun, err).Error()}
 		}
 	case "del":
-		slowLogThreshold = s.proxy.config.SelectSlowLog
+		slowLogThreshold = s.proxy.config.Performance.SelectSlowLog
 		reply, err = query.delCommand(s.proxy, t)
 		if err != nil {
 			log.Error("delcommand error: %v", err)
@@ -113,12 +110,11 @@ func (api *SharkStoreApi) execute(s *Server,dbName string ,tableName string,quer
 	}
 
 	delay := time.Since(start)
-	if delay > time.Duration(slowLogThreshold) * time.Millisecond {
+	if delay > slowLogThreshold.Duration {
 		cmd, _ := json.Marshal(query)
-		
+
 		log.Warn("[kvcommand slow log %v %v ", delay.String(), string(cmd))
 	}
-
 
 	return reply
 }

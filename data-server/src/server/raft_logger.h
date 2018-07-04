@@ -3,7 +3,7 @@
 
 #include "raft/logger.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace server {
 
@@ -24,6 +24,6 @@ public:
 
 } /* namespace server */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */
 
 #endif /* end of include guard: FBASE_DATASERVER_SERVER_RAFT_LOGGER_H_ */

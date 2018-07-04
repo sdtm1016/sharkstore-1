@@ -1,12 +1,12 @@
 _Pragma("once");
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 
 class Logger {
 public:
-    Logger() {}
-    virtual ~Logger() {}
+    Logger() = default;
+    virtual ~Logger() = default;
 
     Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
@@ -25,4 +25,4 @@ public:
 void SetLogger(Logger* logger);
 
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

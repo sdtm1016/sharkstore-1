@@ -4,7 +4,7 @@ _Pragma("once");
 #include <vector>
 #include "raft/node_resolver.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace bench {
 
@@ -25,4 +25,4 @@ private:
 
 } /* namespace bench */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

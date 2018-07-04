@@ -4,7 +4,7 @@
 #include "fast_connection.h"
 #include "fast_server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace transport {
@@ -12,7 +12,6 @@ namespace transport {
 FastTransport::FastTransport(const std::shared_ptr<NodeResolver>& resolver,
                              size_t send_threads, size_t recv_threads)
     : resolver_(resolver),
-      send_threads_num_(send_threads),
       recv_threads_num_(recv_threads) {}
 
 FastTransport::~FastTransport() {
@@ -82,4 +81,4 @@ Status FastTransport::GetConnection(uint64_t to,
 } /* namespace transport */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

@@ -12,15 +12,15 @@ int main(int argc, char *argv[]) {
 
 namespace {
 
-using namespace fbase::dataserver;
-using namespace fbase::dataserver::storage;
+using namespace sharkstore::dataserver;
+using namespace sharkstore::dataserver::storage;
 
 class MetaStoreTest : public ::testing::Test {
 protected:
     MetaStoreTest() : store_(nullptr) {}
 
     void SetUp() override {
-        char path[] = "/tmp/fbase_ds_meta_store_test_XXXXXX";
+        char path[] = "/tmp/sharkstore_ds_meta_store_test_XXXXXX";
         char *tmp = mkdtemp(path);
         ASSERT_TRUE(tmp != NULL);
         tmp_dir_ = tmp;
@@ -33,7 +33,7 @@ protected:
     void TearDown() override {
         delete store_;
         if (!tmp_dir_.empty()) {
-            fbase::RemoveDirAll(tmp_dir_.c_str());
+            sharkstore::RemoveDirAll(tmp_dir_.c_str());
         }
     }
 
@@ -48,7 +48,7 @@ protected:
 ////    auto s = rocksdb::DB::OpenForReadOnly(rocksdb::Options(),
 ///"/home/jonah/meta", &db);
 //    auto s = rocksdb::DB::OpenForReadOnly(rocksdb::Options(),
-//    "/home/jonah/test/fbase/d1/db/meta", &db);
+//    "/home/jonah/test/sharkstore/d1/db/meta", &db);
 //    ASSERT_TRUE(s.ok()) << s.ToString();
 //    auto it = db->NewIterator(rocksdb::ReadOptions());
 //    it->SeekToFirst();
@@ -60,7 +60,7 @@ protected:
 //    }
 //}
 TEST_F(MetaStoreTest, NodeID) {
-    uint64_t node = fbase::randomInt();
+    uint64_t node = sharkstore::randomInt();
     auto s = store_->SaveNodeID(node);
     ASSERT_TRUE(s.ok()) << s.ToString();
 
@@ -71,13 +71,13 @@ TEST_F(MetaStoreTest, NodeID) {
 }
 
 TEST_F(MetaStoreTest, ApplyIndex) {
-    uint64_t range_id = fbase::randomInt();
+    uint64_t range_id = sharkstore::randomInt();
     uint64_t applied = 1;
     auto s = store_->LoadApplyIndex(range_id, &applied);
     ASSERT_TRUE(s.ok()) << s.ToString();
     ASSERT_EQ(applied, 0);
 
-    uint64_t save_applied = fbase::randomInt();
+    uint64_t save_applied = sharkstore::randomInt();
     s = store_->SaveApplyIndex(range_id, save_applied);
     ASSERT_TRUE(s.ok()) << s.ToString();
 

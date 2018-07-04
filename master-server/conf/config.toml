@@ -34,8 +34,8 @@ level = "info"
 [metric]
 # metric client push interval, set "0s" to disable metric.
 interval = "15s"
-# metric address, leaves it empty will disable metric.
-address = "127.0.0.1:8887"
+# receive metric address, leaves it empty will disable metric.
+address = ""
 
 [metric.server]
 address = "127.0.0.1:8887"

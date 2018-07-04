@@ -14,4 +14,4 @@ foreach(f IN LISTS common_SOURCES)
         COMPILE_DEFINITIONS "__FNAME__=\"common/${f}\"") 
 endforeach() 
 
-add_library(fbase-common STATIC ${common_SOURCES})
+add_library(sharkstore-common STATIC ${common_SOURCES})

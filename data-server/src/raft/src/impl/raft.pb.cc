@@ -17,7 +17,7 @@
 #include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace pb {
@@ -56,16 +56,6 @@ public:
  ::google::protobuf::internal::ExplicitlyConstructed<Message>
      _instance;
 } _Message_default_instance_;
-class RaftMessageRequestDefaultTypeInternal {
-public:
- ::google::protobuf::internal::ExplicitlyConstructed<RaftMessageRequest>
-     _instance;
-} _RaftMessageRequest_default_instance_;
-class RaftMessageResponseDefaultTypeInternal {
-public:
- ::google::protobuf::internal::ExplicitlyConstructed<RaftMessageResponse>
-     _instance;
-} _RaftMessageResponse_default_instance_;
 class HardStateDefaultTypeInternal {
 public:
  ::google::protobuf::internal::ExplicitlyConstructed<HardState>
@@ -92,7 +82,7 @@ namespace protobuf_raft_2eproto {
 
 namespace {
 
-::google::protobuf::Metadata file_level_metadata[13];
+::google::protobuf::Metadata file_level_metadata[11];
 const ::google::protobuf::EnumDescriptor* file_level_enum_descriptors[4];
 
 }  // namespace
@@ -108,8 +98,6 @@ PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::AuxillaryParseTableField
 };
 PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::ParseTable const
     TableStruct::schema[] GOOGLE_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-  { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
-  { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
@@ -193,17 +181,6 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Message, hb_ctx_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Message, snapshot_),
   ~0u,  // no _has_bits_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RaftMessageRequest, _internal_metadata_),
-  ~0u,  // no _extensions_
-  ~0u,  // no _oneof_case_
-  ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RaftMessageRequest, msg_),
-  ~0u,  // no _has_bits_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RaftMessageResponse, _internal_metadata_),
-  ~0u,  // no _extensions_
-  ~0u,  // no _oneof_case_
-  ~0u,  // no _weak_field_map_
-  ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(HardState, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -241,12 +218,10 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_ATTR
   { 31, -1, sizeof(SnapshotMeta)},
   { 40, -1, sizeof(Snapshot)},
   { 50, -1, sizeof(Message)},
-  { 68, -1, sizeof(RaftMessageRequest)},
-  { 74, -1, sizeof(RaftMessageResponse)},
-  { 79, -1, sizeof(HardState)},
-  { 87, -1, sizeof(TruncateMeta)},
-  { 94, -1, sizeof(IndexItem)},
-  { 102, -1, sizeof(LogIndex)},
+  { 68, -1, sizeof(HardState)},
+  { 76, -1, sizeof(TruncateMeta)},
+  { 83, -1, sizeof(IndexItem)},
+  { 91, -1, sizeof(LogIndex)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -257,8 +232,6 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::google::protobuf::Message*>(&_SnapshotMeta_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_Snapshot_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_Message_default_instance_),
-  reinterpret_cast<const ::google::protobuf::Message*>(&_RaftMessageRequest_default_instance_),
-  reinterpret_cast<const ::google::protobuf::Message*>(&_RaftMessageResponse_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_HardState_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_TruncateMeta_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_IndexItem_default_instance_),
@@ -283,7 +256,7 @@ void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) GOOGLE_ATTRIBUTE_COLD;
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 13);
+  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 11);
 }
 
 }  // namespace
@@ -305,11 +278,7 @@ void TableStruct::InitDefaultsImpl() {
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_Snapshot_default_instance_);_Message_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
-      &_Message_default_instance_);_RaftMessageRequest_default_instance_._instance.DefaultConstruct();
-  ::google::protobuf::internal::OnShutdownDestroyMessage(
-      &_RaftMessageRequest_default_instance_);_RaftMessageResponse_default_instance_._instance.DefaultConstruct();
-  ::google::protobuf::internal::OnShutdownDestroyMessage(
-      &_RaftMessageResponse_default_instance_);_HardState_default_instance_._instance.DefaultConstruct();
+      &_Message_default_instance_);_HardState_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_HardState_default_instance_);_TruncateMeta_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
@@ -317,16 +286,14 @@ void TableStruct::InitDefaultsImpl() {
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_IndexItem_default_instance_);_LogIndex_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
-      &_LogIndex_default_instance_);_ConfChange_default_instance_._instance.get_mutable()->peer_ = const_cast< ::fbase::raft::impl::pb::Peer*>(
-      ::fbase::raft::impl::pb::Peer::internal_default_instance());
-  _Snapshot_default_instance_._instance.get_mutable()->meta_ = const_cast< ::fbase::raft::impl::pb::SnapshotMeta*>(
-      ::fbase::raft::impl::pb::SnapshotMeta::internal_default_instance());
-  _Message_default_instance_._instance.get_mutable()->hb_ctx_ = const_cast< ::fbase::raft::impl::pb::HeartbeatContext*>(
-      ::fbase::raft::impl::pb::HeartbeatContext::internal_default_instance());
-  _Message_default_instance_._instance.get_mutable()->snapshot_ = const_cast< ::fbase::raft::impl::pb::Snapshot*>(
-      ::fbase::raft::impl::pb::Snapshot::internal_default_instance());
-  _RaftMessageRequest_default_instance_._instance.get_mutable()->msg_ = const_cast< ::fbase::raft::impl::pb::Message*>(
-      ::fbase::raft::impl::pb::Message::internal_default_instance());
+      &_LogIndex_default_instance_);_ConfChange_default_instance_._instance.get_mutable()->peer_ = const_cast< ::sharkstore::raft::impl::pb::Peer*>(
+      ::sharkstore::raft::impl::pb::Peer::internal_default_instance());
+  _Snapshot_default_instance_._instance.get_mutable()->meta_ = const_cast< ::sharkstore::raft::impl::pb::SnapshotMeta*>(
+      ::sharkstore::raft::impl::pb::SnapshotMeta::internal_default_instance());
+  _Message_default_instance_._instance.get_mutable()->hb_ctx_ = const_cast< ::sharkstore::raft::impl::pb::HeartbeatContext*>(
+      ::sharkstore::raft::impl::pb::HeartbeatContext::internal_default_instance());
+  _Message_default_instance_._instance.get_mutable()->snapshot_ = const_cast< ::sharkstore::raft::impl::pb::Snapshot*>(
+      ::sharkstore::raft::impl::pb::Snapshot::internal_default_instance());
 }
 
 void InitDefaults() {
@@ -337,57 +304,54 @@ namespace {
 void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-      "\n\nraft.proto\022\022fbase.raft.impl.pb\"T\n\004Peer"
-      "\022*\n\004type\030\001 \001(\0162\034.fbase.raft.impl.pb.Peer"
-      "Type\022\017\n\007node_id\030\002 \001(\004\022\017\n\007peer_id\030\003 \001(\004\"w"
-      "\n\nConfChange\0220\n\004type\030\001 \001(\0162\".fbase.raft."
-      "impl.pb.ConfChangeType\022&\n\004Peer\030\002 \001(\0132\030.f"
-      "base.raft.impl.pb.Peer\022\017\n\007context\030\003 \001(\014\""
-      "_\n\005Entry\022+\n\004type\030\001 \001(\0162\035.fbase.raft.impl"
-      ".pb.EntryType\022\r\n\005index\030\002 \001(\004\022\014\n\004term\030\003 \001"
-      "(\004\022\014\n\004data\030\004 \001(\014\"\037\n\020HeartbeatContext\022\013\n\003"
-      "ids\030\001 \003(\004\"e\n\014SnapshotMeta\022\r\n\005index\030\001 \001(\004"
-      "\022\014\n\004term\030\002 \001(\004\022\'\n\005peers\030\003 \003(\0132\030.fbase.ra"
-      "ft.impl.pb.Peer\022\017\n\007context\030\004 \001(\014\"s\n\010Snap"
-      "shot\022\014\n\004uuid\030\001 \001(\004\022.\n\004meta\030\002 \001(\0132 .fbase"
-      ".raft.impl.pb.SnapshotMeta\022\r\n\005datas\030\003 \003("
-      "\014\022\r\n\005final\030\004 \001(\010\022\013\n\003seq\030\005 \001(\003\"\330\002\n\007Messag"
-      "e\022-\n\004type\030\001 \001(\0162\037.fbase.raft.impl.pb.Mes"
-      "sageType\022\n\n\002id\030\002 \001(\004\022\014\n\004from\030\003 \001(\004\022\n\n\002to"
-      "\030\004 \001(\004\022\014\n\004term\030\005 \001(\004\022\016\n\006commit\030\006 \001(\004\022\020\n\010"
-      "log_term\030\010 \001(\004\022\021\n\tlog_index\030\t \001(\004\022*\n\007ent"
-      "ries\030\n \003(\0132\031.fbase.raft.impl.pb.Entry\022\016\n"
-      "\006reject\030\014 \001(\010\022\023\n\013reject_hint\030\r \001(\004\0224\n\006hb"
-      "_ctx\030\016 \001(\0132$.fbase.raft.impl.pb.Heartbea"
-      "tContext\022.\n\010snapshot\030\017 \001(\0132\034.fbase.raft."
-      "impl.pb.Snapshot\">\n\022RaftMessageRequest\022("
-      "\n\003msg\030\001 \001(\0132\033.fbase.raft.impl.pb.Message"
-      "\"\025\n\023RaftMessageResponse\"7\n\tHardState\022\014\n\004"
-      "term\030\001 \001(\004\022\016\n\006commit\030\002 \001(\004\022\014\n\004vote\030\003 \001(\004"
-      "\"+\n\014TruncateMeta\022\r\n\005index\030\001 \001(\004\022\014\n\004term\030"
-      "\002 \001(\004\"8\n\tIndexItem\022\r\n\005index\030\001 \001(\004\022\014\n\004ter"
-      "m\030\002 \001(\004\022\016\n\006offset\030\003 \001(\r\"8\n\010LogIndex\022,\n\005i"
-      "tems\030\001 \003(\0132\035.fbase.raft.impl.pb.IndexIte"
-      "m*-\n\010PeerType\022\017\n\013PEER_NORMAL\020\000\022\020\n\014PEER_L"
-      "EARNER\020\001*O\n\016ConfChangeType\022\021\n\rCONF_ADD_N"
-      "ODE\020\000\022\024\n\020CONF_REMOVE_NODE\020\001\022\024\n\020CONF_UPDA"
-      "TE_NODE\020\002*L\n\tEntryType\022\026\n\022ENTRY_TYPE_INV"
-      "ALID\020\000\022\020\n\014ENTRY_NORMAL\020\001\022\025\n\021ENTRY_CONF_C"
-      "HANGE\020\002*\333\002\n\013MessageType\022\030\n\024MESSAGE_TYPE_"
-      "INVALID\020\000\022\032\n\026APPEND_ENTRIES_REQUEST\020\001\022\033\n"
-      "\027APPEND_ENTRIES_RESPONSE\020\002\022\020\n\014VOTE_REQUE"
-      "ST\020\003\022\021\n\rVOTE_RESPONSE\020\004\022\025\n\021HEARTBEAT_REQ"
-      "UEST\020\005\022\026\n\022HEARTBEAT_RESPONSE\020\006\022\024\n\020SNAPSH"
-      "OT_REQUEST\020\007\022\025\n\021SNAPSHOT_RESPONSE\020\010\022\020\n\014S"
-      "NAPSHOT_ACK\020\t\022\021\n\rLOCAL_MSG_HUP\020\n\022\022\n\016LOCA"
-      "L_MSG_PROP\020\013\022\022\n\016LOCAL_MSG_TICK\020\014\022\024\n\020PRE_"
-      "VOTE_REQUEST\020\r\022\025\n\021PRE_VOTE_RESPONSE\020\0162m\n"
-      "\tMultiRaft\022`\n\013RaftMessage\022&.fbase.raft.i"
-      "mpl.pb.RaftMessageRequest\032\'.fbase.raft.i"
-      "mpl.pb.RaftMessageResponse\"\000b\006proto3"
+      "\n\nraft.proto\022\027sharkstore.raft.impl.pb\"Y\n"
+      "\004Peer\022/\n\004type\030\001 \001(\0162!.sharkstore.raft.im"
+      "pl.pb.PeerType\022\017\n\007node_id\030\002 \001(\004\022\017\n\007peer_"
+      "id\030\003 \001(\004\"\201\001\n\nConfChange\0225\n\004type\030\001 \001(\0162\'."
+      "sharkstore.raft.impl.pb.ConfChangeType\022+"
+      "\n\004Peer\030\002 \001(\0132\035.sharkstore.raft.impl.pb.P"
+      "eer\022\017\n\007context\030\003 \001(\014\"d\n\005Entry\0220\n\004type\030\001 "
+      "\001(\0162\".sharkstore.raft.impl.pb.EntryType\022"
+      "\r\n\005index\030\002 \001(\004\022\014\n\004term\030\003 \001(\004\022\014\n\004data\030\004 \001"
+      "(\014\"\037\n\020HeartbeatContext\022\013\n\003ids\030\001 \003(\004\"j\n\014S"
+      "napshotMeta\022\r\n\005index\030\001 \001(\004\022\014\n\004term\030\002 \001(\004"
+      "\022,\n\005peers\030\003 \003(\0132\035.sharkstore.raft.impl.p"
+      "b.Peer\022\017\n\007context\030\004 \001(\014\"x\n\010Snapshot\022\014\n\004u"
+      "uid\030\001 \001(\004\0223\n\004meta\030\002 \001(\0132%.sharkstore.raf"
+      "t.impl.pb.SnapshotMeta\022\r\n\005datas\030\003 \003(\014\022\r\n"
+      "\005final\030\004 \001(\010\022\013\n\003seq\030\005 \001(\003\"\354\002\n\007Message\0222\n"
+      "\004type\030\001 \001(\0162$.sharkstore.raft.impl.pb.Me"
+      "ssageType\022\n\n\002id\030\002 \001(\004\022\014\n\004from\030\003 \001(\004\022\n\n\002t"
+      "o\030\004 \001(\004\022\014\n\004term\030\005 \001(\004\022\016\n\006commit\030\006 \001(\004\022\020\n"
+      "\010log_term\030\010 \001(\004\022\021\n\tlog_index\030\t \001(\004\022/\n\007en"
+      "tries\030\n \003(\0132\036.sharkstore.raft.impl.pb.En"
+      "try\022\016\n\006reject\030\014 \001(\010\022\023\n\013reject_hint\030\r \001(\004"
+      "\0229\n\006hb_ctx\030\016 \001(\0132).sharkstore.raft.impl."
+      "pb.HeartbeatContext\0223\n\010snapshot\030\017 \001(\0132!."
+      "sharkstore.raft.impl.pb.Snapshot\"7\n\tHard"
+      "State\022\014\n\004term\030\001 \001(\004\022\016\n\006commit\030\002 \001(\004\022\014\n\004v"
+      "ote\030\003 \001(\004\"+\n\014TruncateMeta\022\r\n\005index\030\001 \001(\004"
+      "\022\014\n\004term\030\002 \001(\004\"8\n\tIndexItem\022\r\n\005index\030\001 \001"
+      "(\004\022\014\n\004term\030\002 \001(\004\022\016\n\006offset\030\003 \001(\r\"=\n\010LogI"
+      "ndex\0221\n\005items\030\001 \003(\0132\".sharkstore.raft.im"
+      "pl.pb.IndexItem*-\n\010PeerType\022\017\n\013PEER_NORM"
+      "AL\020\000\022\020\n\014PEER_LEARNER\020\001*P\n\016ConfChangeType"
+      "\022\021\n\rCONF_ADD_PEER\020\000\022\024\n\020CONF_REMOVE_PEER\020"
+      "\001\022\025\n\021CONF_PROMOTE_PEER\020\002*L\n\tEntryType\022\026\n"
+      "\022ENTRY_TYPE_INVALID\020\000\022\020\n\014ENTRY_NORMAL\020\001\022"
+      "\025\n\021ENTRY_CONF_CHANGE\020\002*\337\002\n\013MessageType\022\030"
+      "\n\024MESSAGE_TYPE_INVALID\020\000\022\032\n\026APPEND_ENTRI"
+      "ES_REQUEST\020\001\022\033\n\027APPEND_ENTRIES_RESPONSE\020"
+      "\002\022\020\n\014VOTE_REQUEST\020\003\022\021\n\rVOTE_RESPONSE\020\004\022\025"
+      "\n\021HEARTBEAT_REQUEST\020\005\022\026\n\022HEARTBEAT_RESPO"
+      "NSE\020\006\022\024\n\020SNAPSHOT_REQUEST\020\007\022\020\n\014SNAPSHOT_"
+      "ACK\020\010\022\031\n\025LOCAL_SNAPSHOT_STATUS\020\t\022\021\n\rLOCA"
+      "L_MSG_HUP\020\n\022\022\n\016LOCAL_MSG_PROP\020\013\022\022\n\016LOCAL"
+      "_MSG_TICK\020\014\022\024\n\020PRE_VOTE_REQUEST\020\r\022\025\n\021PRE"
+      "_VOTE_RESPONSE\020\016b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 1916);
+      descriptor, 1784);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "raft.proto", &protobuf_RegisterTypes);
 }
@@ -492,7 +456,7 @@ Peer::Peer()
     protobuf_raft_2eproto::InitDefaults();
   }
   SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.Peer)
+  // @@protoc_insertion_point(constructor:sharkstore.raft.impl.pb.Peer)
 }
 Peer::Peer(const Peer& from)
   : ::google::protobuf::Message(),
@@ -502,7 +466,7 @@ Peer::Peer(const Peer& from)
   ::memcpy(&node_id_, &from.node_id_,
     static_cast<size_t>(reinterpret_cast<char*>(&type_) -
     reinterpret_cast<char*>(&node_id_)) + sizeof(type_));
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.Peer)
+  // @@protoc_insertion_point(copy_constructor:sharkstore.raft.impl.pb.Peer)
 }
 
 void Peer::SharedCtor() {
@@ -513,7 +477,7 @@ void Peer::SharedCtor() {
 }
 
 Peer::~Peer() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.Peer)
+  // @@protoc_insertion_point(destructor:sharkstore.raft.impl.pb.Peer)
   SharedDtor();
 }
 
@@ -544,7 +508,7 @@ Peer* Peer::New(::google::protobuf::Arena* arena) const {
 }
 
 void Peer::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.Peer)
+// @@protoc_insertion_point(message_clear_start:sharkstore.raft.impl.pb.Peer)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -559,13 +523,13 @@ bool Peer::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.Peer)
+  // @@protoc_insertion_point(parse_start:sharkstore.raft.impl.pb.Peer)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // .fbase.raft.impl.pb.PeerType type = 1;
+      // .sharkstore.raft.impl.pb.PeerType type = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
@@ -573,7 +537,7 @@ bool Peer::MergePartialFromCodedStream(
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          set_type(static_cast< ::fbase::raft::impl::pb::PeerType >(value));
+          set_type(static_cast< ::sharkstore::raft::impl::pb::PeerType >(value));
         } else {
           goto handle_unusual;
         }
@@ -620,21 +584,21 @@ bool Peer::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.Peer)
+  // @@protoc_insertion_point(parse_success:sharkstore.raft.impl.pb.Peer)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.Peer)
+  // @@protoc_insertion_point(parse_failure:sharkstore.raft.impl.pb.Peer)
   return false;
 #undef DO_
 }
 
 void Peer::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.Peer)
+  // @@protoc_insertion_point(serialize_start:sharkstore.raft.impl.pb.Peer)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .fbase.raft.impl.pb.PeerType type = 1;
+  // .sharkstore.raft.impl.pb.PeerType type = 1;
   if (this->type() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       1, this->type(), output);
@@ -654,17 +618,17 @@ void Peer::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.Peer)
+  // @@protoc_insertion_point(serialize_end:sharkstore.raft.impl.pb.Peer)
 }
 
 ::google::protobuf::uint8* Peer::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.Peer)
+  // @@protoc_insertion_point(serialize_to_array_start:sharkstore.raft.impl.pb.Peer)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .fbase.raft.impl.pb.PeerType type = 1;
+  // .sharkstore.raft.impl.pb.PeerType type = 1;
   if (this->type() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       1, this->type(), target);
@@ -684,12 +648,12 @@ void Peer::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.Peer)
+  // @@protoc_insertion_point(serialize_to_array_end:sharkstore.raft.impl.pb.Peer)
   return target;
 }
 
 size_t Peer::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.Peer)
+// @@protoc_insertion_point(message_byte_size_start:sharkstore.raft.impl.pb.Peer)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -711,7 +675,7 @@ size_t Peer::ByteSizeLong() const {
         this->peer_id());
   }
 
-  // .fbase.raft.impl.pb.PeerType type = 1;
+  // .sharkstore.raft.impl.pb.PeerType type = 1;
   if (this->type() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::EnumSize(this->type());
@@ -725,22 +689,22 @@ size_t Peer::ByteSizeLong() const {
 }
 
 void Peer::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.Peer)
+// @@protoc_insertion_point(generalized_merge_from_start:sharkstore.raft.impl.pb.Peer)
   GOOGLE_DCHECK_NE(&from, this);
   const Peer* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const Peer>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.Peer)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:sharkstore.raft.impl.pb.Peer)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.Peer)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:sharkstore.raft.impl.pb.Peer)
     MergeFrom(*source);
   }
 }
 
 void Peer::MergeFrom(const Peer& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.Peer)
+// @@protoc_insertion_point(class_specific_merge_from_start:sharkstore.raft.impl.pb.Peer)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -758,14 +722,14 @@ void Peer::MergeFrom(const Peer& from) {
 }
 
 void Peer::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.Peer)
+// @@protoc_insertion_point(generalized_copy_from_start:sharkstore.raft.impl.pb.Peer)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void Peer::CopyFrom(const Peer& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.Peer)
+// @@protoc_insertion_point(class_specific_copy_from_start:sharkstore.raft.impl.pb.Peer)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -796,18 +760,18 @@ void Peer::InternalSwap(Peer* other) {
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
 // Peer
 
-// .fbase.raft.impl.pb.PeerType type = 1;
+// .sharkstore.raft.impl.pb.PeerType type = 1;
 void Peer::clear_type() {
   type_ = 0;
 }
-::fbase::raft::impl::pb::PeerType Peer::type() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Peer.type)
-  return static_cast< ::fbase::raft::impl::pb::PeerType >(type_);
+::sharkstore::raft::impl::pb::PeerType Peer::type() const {
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Peer.type)
+  return static_cast< ::sharkstore::raft::impl::pb::PeerType >(type_);
 }
-void Peer::set_type(::fbase::raft::impl::pb::PeerType value) {
+void Peer::set_type(::sharkstore::raft::impl::pb::PeerType value) {
   
   type_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Peer.type)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Peer.type)
 }
 
 // uint64 node_id = 2;
@@ -815,13 +779,13 @@ void Peer::clear_node_id() {
   node_id_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Peer::node_id() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Peer.node_id)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Peer.node_id)
   return node_id_;
 }
 void Peer::set_node_id(::google::protobuf::uint64 value) {
   
   node_id_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Peer.node_id)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Peer.node_id)
 }
 
 // uint64 peer_id = 3;
@@ -829,13 +793,13 @@ void Peer::clear_peer_id() {
   peer_id_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Peer::peer_id() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Peer.peer_id)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Peer.peer_id)
   return peer_id_;
 }
 void Peer::set_peer_id(::google::protobuf::uint64 value) {
   
   peer_id_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Peer.peer_id)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Peer.peer_id)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -854,7 +818,7 @@ ConfChange::ConfChange()
     protobuf_raft_2eproto::InitDefaults();
   }
   SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.ConfChange)
+  // @@protoc_insertion_point(constructor:sharkstore.raft.impl.pb.ConfChange)
 }
 ConfChange::ConfChange(const ConfChange& from)
   : ::google::protobuf::Message(),
@@ -866,12 +830,12 @@ ConfChange::ConfChange(const ConfChange& from)
     context_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.context_);
   }
   if (from.has_peer()) {
-    peer_ = new ::fbase::raft::impl::pb::Peer(*from.peer_);
+    peer_ = new ::sharkstore::raft::impl::pb::Peer(*from.peer_);
   } else {
     peer_ = NULL;
   }
   type_ = from.type_;
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.ConfChange)
+  // @@protoc_insertion_point(copy_constructor:sharkstore.raft.impl.pb.ConfChange)
 }
 
 void ConfChange::SharedCtor() {
@@ -883,7 +847,7 @@ void ConfChange::SharedCtor() {
 }
 
 ConfChange::~ConfChange() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.ConfChange)
+  // @@protoc_insertion_point(destructor:sharkstore.raft.impl.pb.ConfChange)
   SharedDtor();
 }
 
@@ -916,7 +880,7 @@ ConfChange* ConfChange::New(::google::protobuf::Arena* arena) const {
 }
 
 void ConfChange::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.ConfChange)
+// @@protoc_insertion_point(message_clear_start:sharkstore.raft.impl.pb.ConfChange)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -934,13 +898,13 @@ bool ConfChange::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.ConfChange)
+  // @@protoc_insertion_point(parse_start:sharkstore.raft.impl.pb.ConfChange)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // .fbase.raft.impl.pb.ConfChangeType type = 1;
+      // .sharkstore.raft.impl.pb.ConfChangeType type = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
@@ -948,14 +912,14 @@ bool ConfChange::MergePartialFromCodedStream(
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          set_type(static_cast< ::fbase::raft::impl::pb::ConfChangeType >(value));
+          set_type(static_cast< ::sharkstore::raft::impl::pb::ConfChangeType >(value));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // .fbase.raft.impl.pb.Peer Peer = 2;
+      // .sharkstore.raft.impl.pb.Peer Peer = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
@@ -991,27 +955,27 @@ bool ConfChange::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.ConfChange)
+  // @@protoc_insertion_point(parse_success:sharkstore.raft.impl.pb.ConfChange)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.ConfChange)
+  // @@protoc_insertion_point(parse_failure:sharkstore.raft.impl.pb.ConfChange)
   return false;
 #undef DO_
 }
 
 void ConfChange::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.ConfChange)
+  // @@protoc_insertion_point(serialize_start:sharkstore.raft.impl.pb.ConfChange)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .fbase.raft.impl.pb.ConfChangeType type = 1;
+  // .sharkstore.raft.impl.pb.ConfChangeType type = 1;
   if (this->type() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       1, this->type(), output);
   }
 
-  // .fbase.raft.impl.pb.Peer Peer = 2;
+  // .sharkstore.raft.impl.pb.Peer Peer = 2;
   if (this->has_peer()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
       2, *this->peer_, output);
@@ -1027,23 +991,23 @@ void ConfChange::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.ConfChange)
+  // @@protoc_insertion_point(serialize_end:sharkstore.raft.impl.pb.ConfChange)
 }
 
 ::google::protobuf::uint8* ConfChange::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.ConfChange)
+  // @@protoc_insertion_point(serialize_to_array_start:sharkstore.raft.impl.pb.ConfChange)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .fbase.raft.impl.pb.ConfChangeType type = 1;
+  // .sharkstore.raft.impl.pb.ConfChangeType type = 1;
   if (this->type() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       1, this->type(), target);
   }
 
-  // .fbase.raft.impl.pb.Peer Peer = 2;
+  // .sharkstore.raft.impl.pb.Peer Peer = 2;
   if (this->has_peer()) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageNoVirtualToArray(
@@ -1061,12 +1025,12 @@ void ConfChange::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.ConfChange)
+  // @@protoc_insertion_point(serialize_to_array_end:sharkstore.raft.impl.pb.ConfChange)
   return target;
 }
 
 size_t ConfChange::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.ConfChange)
+// @@protoc_insertion_point(message_byte_size_start:sharkstore.raft.impl.pb.ConfChange)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -1081,14 +1045,14 @@ size_t ConfChange::ByteSizeLong() const {
         this->context());
   }
 
-  // .fbase.raft.impl.pb.Peer Peer = 2;
+  // .sharkstore.raft.impl.pb.Peer Peer = 2;
   if (this->has_peer()) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
         *this->peer_);
   }
 
-  // .fbase.raft.impl.pb.ConfChangeType type = 1;
+  // .sharkstore.raft.impl.pb.ConfChangeType type = 1;
   if (this->type() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::EnumSize(this->type());
@@ -1102,22 +1066,22 @@ size_t ConfChange::ByteSizeLong() const {
 }
 
 void ConfChange::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.ConfChange)
+// @@protoc_insertion_point(generalized_merge_from_start:sharkstore.raft.impl.pb.ConfChange)
   GOOGLE_DCHECK_NE(&from, this);
   const ConfChange* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const ConfChange>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.ConfChange)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:sharkstore.raft.impl.pb.ConfChange)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.ConfChange)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:sharkstore.raft.impl.pb.ConfChange)
     MergeFrom(*source);
   }
 }
 
 void ConfChange::MergeFrom(const ConfChange& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.ConfChange)
+// @@protoc_insertion_point(class_specific_merge_from_start:sharkstore.raft.impl.pb.ConfChange)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -1128,7 +1092,7 @@ void ConfChange::MergeFrom(const ConfChange& from) {
     context_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.context_);
   }
   if (from.has_peer()) {
-    mutable_peer()->::fbase::raft::impl::pb::Peer::MergeFrom(from.peer());
+    mutable_peer()->::sharkstore::raft::impl::pb::Peer::MergeFrom(from.peer());
   }
   if (from.type() != 0) {
     set_type(from.type());
@@ -1136,14 +1100,14 @@ void ConfChange::MergeFrom(const ConfChange& from) {
 }
 
 void ConfChange::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.ConfChange)
+// @@protoc_insertion_point(generalized_copy_from_start:sharkstore.raft.impl.pb.ConfChange)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void ConfChange::CopyFrom(const ConfChange& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.ConfChange)
+// @@protoc_insertion_point(class_specific_copy_from_start:sharkstore.raft.impl.pb.ConfChange)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -1174,21 +1138,21 @@ void ConfChange::InternalSwap(ConfChange* other) {
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
 // ConfChange
 
-// .fbase.raft.impl.pb.ConfChangeType type = 1;
+// .sharkstore.raft.impl.pb.ConfChangeType type = 1;
 void ConfChange::clear_type() {
   type_ = 0;
 }
-::fbase::raft::impl::pb::ConfChangeType ConfChange::type() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.ConfChange.type)
-  return static_cast< ::fbase::raft::impl::pb::ConfChangeType >(type_);
+::sharkstore::raft::impl::pb::ConfChangeType ConfChange::type() const {
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.ConfChange.type)
+  return static_cast< ::sharkstore::raft::impl::pb::ConfChangeType >(type_);
 }
-void ConfChange::set_type(::fbase::raft::impl::pb::ConfChangeType value) {
+void ConfChange::set_type(::sharkstore::raft::impl::pb::ConfChangeType value) {
   
   type_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.ConfChange.type)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.ConfChange.type)
 }
 
-// .fbase.raft.impl.pb.Peer Peer = 2;
+// .sharkstore.raft.impl.pb.Peer Peer = 2;
 bool ConfChange::has_peer() const {
   return this != internal_default_instance() && peer_ != NULL;
 }
@@ -1196,28 +1160,28 @@ void ConfChange::clear_peer() {
   if (GetArenaNoVirtual() == NULL && peer_ != NULL) delete peer_;
   peer_ = NULL;
 }
-const ::fbase::raft::impl::pb::Peer& ConfChange::peer() const {
-  const ::fbase::raft::impl::pb::Peer* p = peer_;
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.ConfChange.Peer)
-  return p != NULL ? *p : *reinterpret_cast<const ::fbase::raft::impl::pb::Peer*>(
-      &::fbase::raft::impl::pb::_Peer_default_instance_);
+const ::sharkstore::raft::impl::pb::Peer& ConfChange::peer() const {
+  const ::sharkstore::raft::impl::pb::Peer* p = peer_;
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.ConfChange.Peer)
+  return p != NULL ? *p : *reinterpret_cast<const ::sharkstore::raft::impl::pb::Peer*>(
+      &::sharkstore::raft::impl::pb::_Peer_default_instance_);
 }
-::fbase::raft::impl::pb::Peer* ConfChange::mutable_peer() {
+::sharkstore::raft::impl::pb::Peer* ConfChange::mutable_peer() {
   
   if (peer_ == NULL) {
-    peer_ = new ::fbase::raft::impl::pb::Peer;
+    peer_ = new ::sharkstore::raft::impl::pb::Peer;
   }
-  // @@protoc_insertion_point(field_mutable:fbase.raft.impl.pb.ConfChange.Peer)
+  // @@protoc_insertion_point(field_mutable:sharkstore.raft.impl.pb.ConfChange.Peer)
   return peer_;
 }
-::fbase::raft::impl::pb::Peer* ConfChange::release_peer() {
-  // @@protoc_insertion_point(field_release:fbase.raft.impl.pb.ConfChange.Peer)
+::sharkstore::raft::impl::pb::Peer* ConfChange::release_peer() {
+  // @@protoc_insertion_point(field_release:sharkstore.raft.impl.pb.ConfChange.Peer)
   
-  ::fbase::raft::impl::pb::Peer* temp = peer_;
+  ::sharkstore::raft::impl::pb::Peer* temp = peer_;
   peer_ = NULL;
   return temp;
 }
-void ConfChange::set_allocated_peer(::fbase::raft::impl::pb::Peer* peer) {
+void ConfChange::set_allocated_peer(::sharkstore::raft::impl::pb::Peer* peer) {
   delete peer_;
   peer_ = peer;
   if (peer) {
@@ -1225,7 +1189,7 @@ void ConfChange::set_allocated_peer(::fbase::raft::impl::pb::Peer* peer) {
   } else {
     
   }
-  // @@protoc_insertion_point(field_set_allocated:fbase.raft.impl.pb.ConfChange.Peer)
+  // @@protoc_insertion_point(field_set_allocated:sharkstore.raft.impl.pb.ConfChange.Peer)
 }
 
 // bytes context = 3;
@@ -1233,41 +1197,41 @@ void ConfChange::clear_context() {
   context_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 const ::std::string& ConfChange::context() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.ConfChange.context)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.ConfChange.context)
   return context_.GetNoArena();
 }
 void ConfChange::set_context(const ::std::string& value) {
   
   context_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.ConfChange.context)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.ConfChange.context)
 }
 #if LANG_CXX11
 void ConfChange::set_context(::std::string&& value) {
   
   context_.SetNoArena(
     &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:fbase.raft.impl.pb.ConfChange.context)
+  // @@protoc_insertion_point(field_set_rvalue:sharkstore.raft.impl.pb.ConfChange.context)
 }
 #endif
 void ConfChange::set_context(const char* value) {
   GOOGLE_DCHECK(value != NULL);
   
   context_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:fbase.raft.impl.pb.ConfChange.context)
+  // @@protoc_insertion_point(field_set_char:sharkstore.raft.impl.pb.ConfChange.context)
 }
 void ConfChange::set_context(const void* value, size_t size) {
   
   context_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:fbase.raft.impl.pb.ConfChange.context)
+  // @@protoc_insertion_point(field_set_pointer:sharkstore.raft.impl.pb.ConfChange.context)
 }
 ::std::string* ConfChange::mutable_context() {
   
-  // @@protoc_insertion_point(field_mutable:fbase.raft.impl.pb.ConfChange.context)
+  // @@protoc_insertion_point(field_mutable:sharkstore.raft.impl.pb.ConfChange.context)
   return context_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 ::std::string* ConfChange::release_context() {
-  // @@protoc_insertion_point(field_release:fbase.raft.impl.pb.ConfChange.context)
+  // @@protoc_insertion_point(field_release:sharkstore.raft.impl.pb.ConfChange.context)
   
   return context_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -1278,7 +1242,7 @@ void ConfChange::set_allocated_context(::std::string* context) {
     
   }
   context_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), context);
-  // @@protoc_insertion_point(field_set_allocated:fbase.raft.impl.pb.ConfChange.context)
+  // @@protoc_insertion_point(field_set_allocated:sharkstore.raft.impl.pb.ConfChange.context)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -1298,7 +1262,7 @@ Entry::Entry()
     protobuf_raft_2eproto::InitDefaults();
   }
   SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.Entry)
+  // @@protoc_insertion_point(constructor:sharkstore.raft.impl.pb.Entry)
 }
 Entry::Entry(const Entry& from)
   : ::google::protobuf::Message(),
@@ -1312,7 +1276,7 @@ Entry::Entry(const Entry& from)
   ::memcpy(&index_, &from.index_,
     static_cast<size_t>(reinterpret_cast<char*>(&type_) -
     reinterpret_cast<char*>(&index_)) + sizeof(type_));
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.Entry)
+  // @@protoc_insertion_point(copy_constructor:sharkstore.raft.impl.pb.Entry)
 }
 
 void Entry::SharedCtor() {
@@ -1324,7 +1288,7 @@ void Entry::SharedCtor() {
 }
 
 Entry::~Entry() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.Entry)
+  // @@protoc_insertion_point(destructor:sharkstore.raft.impl.pb.Entry)
   SharedDtor();
 }
 
@@ -1356,7 +1320,7 @@ Entry* Entry::New(::google::protobuf::Arena* arena) const {
 }
 
 void Entry::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.Entry)
+// @@protoc_insertion_point(message_clear_start:sharkstore.raft.impl.pb.Entry)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -1372,13 +1336,13 @@ bool Entry::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.Entry)
+  // @@protoc_insertion_point(parse_start:sharkstore.raft.impl.pb.Entry)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // .fbase.raft.impl.pb.EntryType type = 1;
+      // .sharkstore.raft.impl.pb.EntryType type = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
@@ -1386,7 +1350,7 @@ bool Entry::MergePartialFromCodedStream(
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          set_type(static_cast< ::fbase::raft::impl::pb::EntryType >(value));
+          set_type(static_cast< ::sharkstore::raft::impl::pb::EntryType >(value));
         } else {
           goto handle_unusual;
         }
@@ -1445,21 +1409,21 @@ bool Entry::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.Entry)
+  // @@protoc_insertion_point(parse_success:sharkstore.raft.impl.pb.Entry)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.Entry)
+  // @@protoc_insertion_point(parse_failure:sharkstore.raft.impl.pb.Entry)
   return false;
 #undef DO_
 }
 
 void Entry::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.Entry)
+  // @@protoc_insertion_point(serialize_start:sharkstore.raft.impl.pb.Entry)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .fbase.raft.impl.pb.EntryType type = 1;
+  // .sharkstore.raft.impl.pb.EntryType type = 1;
   if (this->type() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       1, this->type(), output);
@@ -1485,17 +1449,17 @@ void Entry::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.Entry)
+  // @@protoc_insertion_point(serialize_end:sharkstore.raft.impl.pb.Entry)
 }
 
 ::google::protobuf::uint8* Entry::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.Entry)
+  // @@protoc_insertion_point(serialize_to_array_start:sharkstore.raft.impl.pb.Entry)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .fbase.raft.impl.pb.EntryType type = 1;
+  // .sharkstore.raft.impl.pb.EntryType type = 1;
   if (this->type() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       1, this->type(), target);
@@ -1522,12 +1486,12 @@ void Entry::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.Entry)
+  // @@protoc_insertion_point(serialize_to_array_end:sharkstore.raft.impl.pb.Entry)
   return target;
 }
 
 size_t Entry::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.Entry)
+// @@protoc_insertion_point(message_byte_size_start:sharkstore.raft.impl.pb.Entry)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -1556,7 +1520,7 @@ size_t Entry::ByteSizeLong() const {
         this->term());
   }
 
-  // .fbase.raft.impl.pb.EntryType type = 1;
+  // .sharkstore.raft.impl.pb.EntryType type = 1;
   if (this->type() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::EnumSize(this->type());
@@ -1570,22 +1534,22 @@ size_t Entry::ByteSizeLong() const {
 }
 
 void Entry::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.Entry)
+// @@protoc_insertion_point(generalized_merge_from_start:sharkstore.raft.impl.pb.Entry)
   GOOGLE_DCHECK_NE(&from, this);
   const Entry* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const Entry>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.Entry)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:sharkstore.raft.impl.pb.Entry)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.Entry)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:sharkstore.raft.impl.pb.Entry)
     MergeFrom(*source);
   }
 }
 
 void Entry::MergeFrom(const Entry& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.Entry)
+// @@protoc_insertion_point(class_specific_merge_from_start:sharkstore.raft.impl.pb.Entry)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -1607,14 +1571,14 @@ void Entry::MergeFrom(const Entry& from) {
 }
 
 void Entry::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.Entry)
+// @@protoc_insertion_point(generalized_copy_from_start:sharkstore.raft.impl.pb.Entry)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void Entry::CopyFrom(const Entry& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.Entry)
+// @@protoc_insertion_point(class_specific_copy_from_start:sharkstore.raft.impl.pb.Entry)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -1646,18 +1610,18 @@ void Entry::InternalSwap(Entry* other) {
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
 // Entry
 
-// .fbase.raft.impl.pb.EntryType type = 1;
+// .sharkstore.raft.impl.pb.EntryType type = 1;
 void Entry::clear_type() {
   type_ = 0;
 }
-::fbase::raft::impl::pb::EntryType Entry::type() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Entry.type)
-  return static_cast< ::fbase::raft::impl::pb::EntryType >(type_);
+::sharkstore::raft::impl::pb::EntryType Entry::type() const {
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Entry.type)
+  return static_cast< ::sharkstore::raft::impl::pb::EntryType >(type_);
 }
-void Entry::set_type(::fbase::raft::impl::pb::EntryType value) {
+void Entry::set_type(::sharkstore::raft::impl::pb::EntryType value) {
   
   type_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Entry.type)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Entry.type)
 }
 
 // uint64 index = 2;
@@ -1665,13 +1629,13 @@ void Entry::clear_index() {
   index_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Entry::index() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Entry.index)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Entry.index)
   return index_;
 }
 void Entry::set_index(::google::protobuf::uint64 value) {
   
   index_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Entry.index)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Entry.index)
 }
 
 // uint64 term = 3;
@@ -1679,13 +1643,13 @@ void Entry::clear_term() {
   term_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Entry::term() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Entry.term)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Entry.term)
   return term_;
 }
 void Entry::set_term(::google::protobuf::uint64 value) {
   
   term_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Entry.term)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Entry.term)
 }
 
 // bytes data = 4;
@@ -1693,41 +1657,41 @@ void Entry::clear_data() {
   data_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 const ::std::string& Entry::data() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Entry.data)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Entry.data)
   return data_.GetNoArena();
 }
 void Entry::set_data(const ::std::string& value) {
   
   data_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Entry.data)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Entry.data)
 }
 #if LANG_CXX11
 void Entry::set_data(::std::string&& value) {
   
   data_.SetNoArena(
     &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:fbase.raft.impl.pb.Entry.data)
+  // @@protoc_insertion_point(field_set_rvalue:sharkstore.raft.impl.pb.Entry.data)
 }
 #endif
 void Entry::set_data(const char* value) {
   GOOGLE_DCHECK(value != NULL);
   
   data_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:fbase.raft.impl.pb.Entry.data)
+  // @@protoc_insertion_point(field_set_char:sharkstore.raft.impl.pb.Entry.data)
 }
 void Entry::set_data(const void* value, size_t size) {
   
   data_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:fbase.raft.impl.pb.Entry.data)
+  // @@protoc_insertion_point(field_set_pointer:sharkstore.raft.impl.pb.Entry.data)
 }
 ::std::string* Entry::mutable_data() {
   
-  // @@protoc_insertion_point(field_mutable:fbase.raft.impl.pb.Entry.data)
+  // @@protoc_insertion_point(field_mutable:sharkstore.raft.impl.pb.Entry.data)
   return data_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 ::std::string* Entry::release_data() {
-  // @@protoc_insertion_point(field_release:fbase.raft.impl.pb.Entry.data)
+  // @@protoc_insertion_point(field_release:sharkstore.raft.impl.pb.Entry.data)
   
   return data_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -1738,7 +1702,7 @@ void Entry::set_allocated_data(::std::string* data) {
     
   }
   data_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), data);
-  // @@protoc_insertion_point(field_set_allocated:fbase.raft.impl.pb.Entry.data)
+  // @@protoc_insertion_point(field_set_allocated:sharkstore.raft.impl.pb.Entry.data)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -1755,7 +1719,7 @@ HeartbeatContext::HeartbeatContext()
     protobuf_raft_2eproto::InitDefaults();
   }
   SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.HeartbeatContext)
+  // @@protoc_insertion_point(constructor:sharkstore.raft.impl.pb.HeartbeatContext)
 }
 HeartbeatContext::HeartbeatContext(const HeartbeatContext& from)
   : ::google::protobuf::Message(),
@@ -1763,7 +1727,7 @@ HeartbeatContext::HeartbeatContext(const HeartbeatContext& from)
       ids_(from.ids_),
       _cached_size_(0) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.HeartbeatContext)
+  // @@protoc_insertion_point(copy_constructor:sharkstore.raft.impl.pb.HeartbeatContext)
 }
 
 void HeartbeatContext::SharedCtor() {
@@ -1771,7 +1735,7 @@ void HeartbeatContext::SharedCtor() {
 }
 
 HeartbeatContext::~HeartbeatContext() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.HeartbeatContext)
+  // @@protoc_insertion_point(destructor:sharkstore.raft.impl.pb.HeartbeatContext)
   SharedDtor();
 }
 
@@ -1802,7 +1766,7 @@ HeartbeatContext* HeartbeatContext::New(::google::protobuf::Arena* arena) const 
 }
 
 void HeartbeatContext::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.HeartbeatContext)
+// @@protoc_insertion_point(message_clear_start:sharkstore.raft.impl.pb.HeartbeatContext)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -1815,7 +1779,7 @@ bool HeartbeatContext::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.HeartbeatContext)
+  // @@protoc_insertion_point(parse_start:sharkstore.raft.impl.pb.HeartbeatContext)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
@@ -1852,17 +1816,17 @@ bool HeartbeatContext::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.HeartbeatContext)
+  // @@protoc_insertion_point(parse_success:sharkstore.raft.impl.pb.HeartbeatContext)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.HeartbeatContext)
+  // @@protoc_insertion_point(parse_failure:sharkstore.raft.impl.pb.HeartbeatContext)
   return false;
 #undef DO_
 }
 
 void HeartbeatContext::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.HeartbeatContext)
+  // @@protoc_insertion_point(serialize_start:sharkstore.raft.impl.pb.HeartbeatContext)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -1881,13 +1845,13 @@ void HeartbeatContext::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.HeartbeatContext)
+  // @@protoc_insertion_point(serialize_end:sharkstore.raft.impl.pb.HeartbeatContext)
 }
 
 ::google::protobuf::uint8* HeartbeatContext::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.HeartbeatContext)
+  // @@protoc_insertion_point(serialize_to_array_start:sharkstore.raft.impl.pb.HeartbeatContext)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -1908,12 +1872,12 @@ void HeartbeatContext::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.HeartbeatContext)
+  // @@protoc_insertion_point(serialize_to_array_end:sharkstore.raft.impl.pb.HeartbeatContext)
   return target;
 }
 
 size_t HeartbeatContext::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.HeartbeatContext)
+// @@protoc_insertion_point(message_byte_size_start:sharkstore.raft.impl.pb.HeartbeatContext)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -1945,22 +1909,22 @@ size_t HeartbeatContext::ByteSizeLong() const {
 }
 
 void HeartbeatContext::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.HeartbeatContext)
+// @@protoc_insertion_point(generalized_merge_from_start:sharkstore.raft.impl.pb.HeartbeatContext)
   GOOGLE_DCHECK_NE(&from, this);
   const HeartbeatContext* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const HeartbeatContext>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.HeartbeatContext)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:sharkstore.raft.impl.pb.HeartbeatContext)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.HeartbeatContext)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:sharkstore.raft.impl.pb.HeartbeatContext)
     MergeFrom(*source);
   }
 }
 
 void HeartbeatContext::MergeFrom(const HeartbeatContext& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.HeartbeatContext)
+// @@protoc_insertion_point(class_specific_merge_from_start:sharkstore.raft.impl.pb.HeartbeatContext)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -1970,14 +1934,14 @@ void HeartbeatContext::MergeFrom(const HeartbeatContext& from) {
 }
 
 void HeartbeatContext::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.HeartbeatContext)
+// @@protoc_insertion_point(generalized_copy_from_start:sharkstore.raft.impl.pb.HeartbeatContext)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void HeartbeatContext::CopyFrom(const HeartbeatContext& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.HeartbeatContext)
+// @@protoc_insertion_point(class_specific_copy_from_start:sharkstore.raft.impl.pb.HeartbeatContext)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -2014,25 +1978,25 @@ void HeartbeatContext::clear_ids() {
   ids_.Clear();
 }
 ::google::protobuf::uint64 HeartbeatContext::ids(int index) const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.HeartbeatContext.ids)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.HeartbeatContext.ids)
   return ids_.Get(index);
 }
 void HeartbeatContext::set_ids(int index, ::google::protobuf::uint64 value) {
   ids_.Set(index, value);
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.HeartbeatContext.ids)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.HeartbeatContext.ids)
 }
 void HeartbeatContext::add_ids(::google::protobuf::uint64 value) {
   ids_.Add(value);
-  // @@protoc_insertion_point(field_add:fbase.raft.impl.pb.HeartbeatContext.ids)
+  // @@protoc_insertion_point(field_add:sharkstore.raft.impl.pb.HeartbeatContext.ids)
 }
 const ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >&
 HeartbeatContext::ids() const {
-  // @@protoc_insertion_point(field_list:fbase.raft.impl.pb.HeartbeatContext.ids)
+  // @@protoc_insertion_point(field_list:sharkstore.raft.impl.pb.HeartbeatContext.ids)
   return ids_;
 }
 ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >*
 HeartbeatContext::mutable_ids() {
-  // @@protoc_insertion_point(field_mutable_list:fbase.raft.impl.pb.HeartbeatContext.ids)
+  // @@protoc_insertion_point(field_mutable_list:sharkstore.raft.impl.pb.HeartbeatContext.ids)
   return &ids_;
 }
 
@@ -2053,7 +2017,7 @@ SnapshotMeta::SnapshotMeta()
     protobuf_raft_2eproto::InitDefaults();
   }
   SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.SnapshotMeta)
+  // @@protoc_insertion_point(constructor:sharkstore.raft.impl.pb.SnapshotMeta)
 }
 SnapshotMeta::SnapshotMeta(const SnapshotMeta& from)
   : ::google::protobuf::Message(),
@@ -2068,7 +2032,7 @@ SnapshotMeta::SnapshotMeta(const SnapshotMeta& from)
   ::memcpy(&index_, &from.index_,
     static_cast<size_t>(reinterpret_cast<char*>(&term_) -
     reinterpret_cast<char*>(&index_)) + sizeof(term_));
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.SnapshotMeta)
+  // @@protoc_insertion_point(copy_constructor:sharkstore.raft.impl.pb.SnapshotMeta)
 }
 
 void SnapshotMeta::SharedCtor() {
@@ -2080,7 +2044,7 @@ void SnapshotMeta::SharedCtor() {
 }
 
 SnapshotMeta::~SnapshotMeta() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.SnapshotMeta)
+  // @@protoc_insertion_point(destructor:sharkstore.raft.impl.pb.SnapshotMeta)
   SharedDtor();
 }
 
@@ -2112,7 +2076,7 @@ SnapshotMeta* SnapshotMeta::New(::google::protobuf::Arena* arena) const {
 }
 
 void SnapshotMeta::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.SnapshotMeta)
+// @@protoc_insertion_point(message_clear_start:sharkstore.raft.impl.pb.SnapshotMeta)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -2129,7 +2093,7 @@ bool SnapshotMeta::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.SnapshotMeta)
+  // @@protoc_insertion_point(parse_start:sharkstore.raft.impl.pb.SnapshotMeta)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
@@ -2163,7 +2127,7 @@ bool SnapshotMeta::MergePartialFromCodedStream(
         break;
       }
 
-      // repeated .fbase.raft.impl.pb.Peer peers = 3;
+      // repeated .sharkstore.raft.impl.pb.Peer peers = 3;
       case 3: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(26u /* 26 & 0xFF */)) {
@@ -2199,17 +2163,17 @@ bool SnapshotMeta::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.SnapshotMeta)
+  // @@protoc_insertion_point(parse_success:sharkstore.raft.impl.pb.SnapshotMeta)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.SnapshotMeta)
+  // @@protoc_insertion_point(parse_failure:sharkstore.raft.impl.pb.SnapshotMeta)
   return false;
 #undef DO_
 }
 
 void SnapshotMeta::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.SnapshotMeta)
+  // @@protoc_insertion_point(serialize_start:sharkstore.raft.impl.pb.SnapshotMeta)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -2223,7 +2187,7 @@ void SnapshotMeta::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->term(), output);
   }
 
-  // repeated .fbase.raft.impl.pb.Peer peers = 3;
+  // repeated .sharkstore.raft.impl.pb.Peer peers = 3;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->peers_size()); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
@@ -2240,13 +2204,13 @@ void SnapshotMeta::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.SnapshotMeta)
+  // @@protoc_insertion_point(serialize_end:sharkstore.raft.impl.pb.SnapshotMeta)
 }
 
 ::google::protobuf::uint8* SnapshotMeta::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.SnapshotMeta)
+  // @@protoc_insertion_point(serialize_to_array_start:sharkstore.raft.impl.pb.SnapshotMeta)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -2260,7 +2224,7 @@ void SnapshotMeta::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->term(), target);
   }
 
-  // repeated .fbase.raft.impl.pb.Peer peers = 3;
+  // repeated .sharkstore.raft.impl.pb.Peer peers = 3;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->peers_size()); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
@@ -2279,12 +2243,12 @@ void SnapshotMeta::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.SnapshotMeta)
+  // @@protoc_insertion_point(serialize_to_array_end:sharkstore.raft.impl.pb.SnapshotMeta)
   return target;
 }
 
 size_t SnapshotMeta::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.SnapshotMeta)
+// @@protoc_insertion_point(message_byte_size_start:sharkstore.raft.impl.pb.SnapshotMeta)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -2292,7 +2256,7 @@ size_t SnapshotMeta::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  // repeated .fbase.raft.impl.pb.Peer peers = 3;
+  // repeated .sharkstore.raft.impl.pb.Peer peers = 3;
   {
     unsigned int count = static_cast<unsigned int>(this->peers_size());
     total_size += 1UL * count;
@@ -2332,22 +2296,22 @@ size_t SnapshotMeta::ByteSizeLong() const {
 }
 
 void SnapshotMeta::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.SnapshotMeta)
+// @@protoc_insertion_point(generalized_merge_from_start:sharkstore.raft.impl.pb.SnapshotMeta)
   GOOGLE_DCHECK_NE(&from, this);
   const SnapshotMeta* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const SnapshotMeta>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.SnapshotMeta)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:sharkstore.raft.impl.pb.SnapshotMeta)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.SnapshotMeta)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:sharkstore.raft.impl.pb.SnapshotMeta)
     MergeFrom(*source);
   }
 }
 
 void SnapshotMeta::MergeFrom(const SnapshotMeta& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.SnapshotMeta)
+// @@protoc_insertion_point(class_specific_merge_from_start:sharkstore.raft.impl.pb.SnapshotMeta)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -2367,14 +2331,14 @@ void SnapshotMeta::MergeFrom(const SnapshotMeta& from) {
 }
 
 void SnapshotMeta::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.SnapshotMeta)
+// @@protoc_insertion_point(generalized_copy_from_start:sharkstore.raft.impl.pb.SnapshotMeta)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void SnapshotMeta::CopyFrom(const SnapshotMeta& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.SnapshotMeta)
+// @@protoc_insertion_point(class_specific_copy_from_start:sharkstore.raft.impl.pb.SnapshotMeta)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -2411,13 +2375,13 @@ void SnapshotMeta::clear_index() {
   index_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 SnapshotMeta::index() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.SnapshotMeta.index)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.SnapshotMeta.index)
   return index_;
 }
 void SnapshotMeta::set_index(::google::protobuf::uint64 value) {
   
   index_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.SnapshotMeta.index)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.SnapshotMeta.index)
 }
 
 // uint64 term = 2;
@@ -2425,42 +2389,42 @@ void SnapshotMeta::clear_term() {
   term_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 SnapshotMeta::term() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.SnapshotMeta.term)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.SnapshotMeta.term)
   return term_;
 }
 void SnapshotMeta::set_term(::google::protobuf::uint64 value) {
   
   term_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.SnapshotMeta.term)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.SnapshotMeta.term)
 }
 
-// repeated .fbase.raft.impl.pb.Peer peers = 3;
+// repeated .sharkstore.raft.impl.pb.Peer peers = 3;
 int SnapshotMeta::peers_size() const {
   return peers_.size();
 }
 void SnapshotMeta::clear_peers() {
   peers_.Clear();
 }
-const ::fbase::raft::impl::pb::Peer& SnapshotMeta::peers(int index) const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.SnapshotMeta.peers)
+const ::sharkstore::raft::impl::pb::Peer& SnapshotMeta::peers(int index) const {
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.SnapshotMeta.peers)
   return peers_.Get(index);
 }
-::fbase::raft::impl::pb::Peer* SnapshotMeta::mutable_peers(int index) {
-  // @@protoc_insertion_point(field_mutable:fbase.raft.impl.pb.SnapshotMeta.peers)
+::sharkstore::raft::impl::pb::Peer* SnapshotMeta::mutable_peers(int index) {
+  // @@protoc_insertion_point(field_mutable:sharkstore.raft.impl.pb.SnapshotMeta.peers)
   return peers_.Mutable(index);
 }
-::fbase::raft::impl::pb::Peer* SnapshotMeta::add_peers() {
-  // @@protoc_insertion_point(field_add:fbase.raft.impl.pb.SnapshotMeta.peers)
+::sharkstore::raft::impl::pb::Peer* SnapshotMeta::add_peers() {
+  // @@protoc_insertion_point(field_add:sharkstore.raft.impl.pb.SnapshotMeta.peers)
   return peers_.Add();
 }
-::google::protobuf::RepeatedPtrField< ::fbase::raft::impl::pb::Peer >*
+::google::protobuf::RepeatedPtrField< ::sharkstore::raft::impl::pb::Peer >*
 SnapshotMeta::mutable_peers() {
-  // @@protoc_insertion_point(field_mutable_list:fbase.raft.impl.pb.SnapshotMeta.peers)
+  // @@protoc_insertion_point(field_mutable_list:sharkstore.raft.impl.pb.SnapshotMeta.peers)
   return &peers_;
 }
-const ::google::protobuf::RepeatedPtrField< ::fbase::raft::impl::pb::Peer >&
+const ::google::protobuf::RepeatedPtrField< ::sharkstore::raft::impl::pb::Peer >&
 SnapshotMeta::peers() const {
-  // @@protoc_insertion_point(field_list:fbase.raft.impl.pb.SnapshotMeta.peers)
+  // @@protoc_insertion_point(field_list:sharkstore.raft.impl.pb.SnapshotMeta.peers)
   return peers_;
 }
 
@@ -2469,41 +2433,41 @@ void SnapshotMeta::clear_context() {
   context_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 const ::std::string& SnapshotMeta::context() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.SnapshotMeta.context)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.SnapshotMeta.context)
   return context_.GetNoArena();
 }
 void SnapshotMeta::set_context(const ::std::string& value) {
   
   context_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.SnapshotMeta.context)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.SnapshotMeta.context)
 }
 #if LANG_CXX11
 void SnapshotMeta::set_context(::std::string&& value) {
   
   context_.SetNoArena(
     &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:fbase.raft.impl.pb.SnapshotMeta.context)
+  // @@protoc_insertion_point(field_set_rvalue:sharkstore.raft.impl.pb.SnapshotMeta.context)
 }
 #endif
 void SnapshotMeta::set_context(const char* value) {
   GOOGLE_DCHECK(value != NULL);
   
   context_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:fbase.raft.impl.pb.SnapshotMeta.context)
+  // @@protoc_insertion_point(field_set_char:sharkstore.raft.impl.pb.SnapshotMeta.context)
 }
 void SnapshotMeta::set_context(const void* value, size_t size) {
   
   context_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:fbase.raft.impl.pb.SnapshotMeta.context)
+  // @@protoc_insertion_point(field_set_pointer:sharkstore.raft.impl.pb.SnapshotMeta.context)
 }
 ::std::string* SnapshotMeta::mutable_context() {
   
-  // @@protoc_insertion_point(field_mutable:fbase.raft.impl.pb.SnapshotMeta.context)
+  // @@protoc_insertion_point(field_mutable:sharkstore.raft.impl.pb.SnapshotMeta.context)
   return context_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 ::std::string* SnapshotMeta::release_context() {
-  // @@protoc_insertion_point(field_release:fbase.raft.impl.pb.SnapshotMeta.context)
+  // @@protoc_insertion_point(field_release:sharkstore.raft.impl.pb.SnapshotMeta.context)
   
   return context_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -2514,7 +2478,7 @@ void SnapshotMeta::set_allocated_context(::std::string* context) {
     
   }
   context_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), context);
-  // @@protoc_insertion_point(field_set_allocated:fbase.raft.impl.pb.SnapshotMeta.context)
+  // @@protoc_insertion_point(field_set_allocated:sharkstore.raft.impl.pb.SnapshotMeta.context)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -2535,7 +2499,7 @@ Snapshot::Snapshot()
     protobuf_raft_2eproto::InitDefaults();
   }
   SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.Snapshot)
+  // @@protoc_insertion_point(constructor:sharkstore.raft.impl.pb.Snapshot)
 }
 Snapshot::Snapshot(const Snapshot& from)
   : ::google::protobuf::Message(),
@@ -2544,14 +2508,14 @@ Snapshot::Snapshot(const Snapshot& from)
       _cached_size_(0) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   if (from.has_meta()) {
-    meta_ = new ::fbase::raft::impl::pb::SnapshotMeta(*from.meta_);
+    meta_ = new ::sharkstore::raft::impl::pb::SnapshotMeta(*from.meta_);
   } else {
     meta_ = NULL;
   }
   ::memcpy(&uuid_, &from.uuid_,
     static_cast<size_t>(reinterpret_cast<char*>(&final_) -
     reinterpret_cast<char*>(&uuid_)) + sizeof(final_));
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.Snapshot)
+  // @@protoc_insertion_point(copy_constructor:sharkstore.raft.impl.pb.Snapshot)
 }
 
 void Snapshot::SharedCtor() {
@@ -2562,7 +2526,7 @@ void Snapshot::SharedCtor() {
 }
 
 Snapshot::~Snapshot() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.Snapshot)
+  // @@protoc_insertion_point(destructor:sharkstore.raft.impl.pb.Snapshot)
   SharedDtor();
 }
 
@@ -2594,7 +2558,7 @@ Snapshot* Snapshot::New(::google::protobuf::Arena* arena) const {
 }
 
 void Snapshot::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.Snapshot)
+// @@protoc_insertion_point(message_clear_start:sharkstore.raft.impl.pb.Snapshot)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -2614,7 +2578,7 @@ bool Snapshot::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.Snapshot)
+  // @@protoc_insertion_point(parse_start:sharkstore.raft.impl.pb.Snapshot)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
@@ -2634,7 +2598,7 @@ bool Snapshot::MergePartialFromCodedStream(
         break;
       }
 
-      // .fbase.raft.impl.pb.SnapshotMeta meta = 2;
+      // .sharkstore.raft.impl.pb.SnapshotMeta meta = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
@@ -2698,17 +2662,17 @@ bool Snapshot::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.Snapshot)
+  // @@protoc_insertion_point(parse_success:sharkstore.raft.impl.pb.Snapshot)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.Snapshot)
+  // @@protoc_insertion_point(parse_failure:sharkstore.raft.impl.pb.Snapshot)
   return false;
 #undef DO_
 }
 
 void Snapshot::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.Snapshot)
+  // @@protoc_insertion_point(serialize_start:sharkstore.raft.impl.pb.Snapshot)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -2717,7 +2681,7 @@ void Snapshot::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt64(1, this->uuid(), output);
   }
 
-  // .fbase.raft.impl.pb.SnapshotMeta meta = 2;
+  // .sharkstore.raft.impl.pb.SnapshotMeta meta = 2;
   if (this->has_meta()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
       2, *this->meta_, output);
@@ -2743,13 +2707,13 @@ void Snapshot::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.Snapshot)
+  // @@protoc_insertion_point(serialize_end:sharkstore.raft.impl.pb.Snapshot)
 }
 
 ::google::protobuf::uint8* Snapshot::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.Snapshot)
+  // @@protoc_insertion_point(serialize_to_array_start:sharkstore.raft.impl.pb.Snapshot)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -2758,7 +2722,7 @@ void Snapshot::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(1, this->uuid(), target);
   }
 
-  // .fbase.raft.impl.pb.SnapshotMeta meta = 2;
+  // .sharkstore.raft.impl.pb.SnapshotMeta meta = 2;
   if (this->has_meta()) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageNoVirtualToArray(
@@ -2785,12 +2749,12 @@ void Snapshot::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.Snapshot)
+  // @@protoc_insertion_point(serialize_to_array_end:sharkstore.raft.impl.pb.Snapshot)
   return target;
 }
 
 size_t Snapshot::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.Snapshot)
+// @@protoc_insertion_point(message_byte_size_start:sharkstore.raft.impl.pb.Snapshot)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -2806,7 +2770,7 @@ size_t Snapshot::ByteSizeLong() const {
       this->datas(i));
   }
 
-  // .fbase.raft.impl.pb.SnapshotMeta meta = 2;
+  // .sharkstore.raft.impl.pb.SnapshotMeta meta = 2;
   if (this->has_meta()) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
@@ -2840,22 +2804,22 @@ size_t Snapshot::ByteSizeLong() const {
 }
 
 void Snapshot::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.Snapshot)
+// @@protoc_insertion_point(generalized_merge_from_start:sharkstore.raft.impl.pb.Snapshot)
   GOOGLE_DCHECK_NE(&from, this);
   const Snapshot* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const Snapshot>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.Snapshot)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:sharkstore.raft.impl.pb.Snapshot)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.Snapshot)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:sharkstore.raft.impl.pb.Snapshot)
     MergeFrom(*source);
   }
 }
 
 void Snapshot::MergeFrom(const Snapshot& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.Snapshot)
+// @@protoc_insertion_point(class_specific_merge_from_start:sharkstore.raft.impl.pb.Snapshot)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -2863,7 +2827,7 @@ void Snapshot::MergeFrom(const Snapshot& from) {
 
   datas_.MergeFrom(from.datas_);
   if (from.has_meta()) {
-    mutable_meta()->::fbase::raft::impl::pb::SnapshotMeta::MergeFrom(from.meta());
+    mutable_meta()->::sharkstore::raft::impl::pb::SnapshotMeta::MergeFrom(from.meta());
   }
   if (from.uuid() != 0) {
     set_uuid(from.uuid());
@@ -2877,14 +2841,14 @@ void Snapshot::MergeFrom(const Snapshot& from) {
 }
 
 void Snapshot::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.Snapshot)
+// @@protoc_insertion_point(generalized_copy_from_start:sharkstore.raft.impl.pb.Snapshot)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void Snapshot::CopyFrom(const Snapshot& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.Snapshot)
+// @@protoc_insertion_point(class_specific_copy_from_start:sharkstore.raft.impl.pb.Snapshot)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -2922,16 +2886,16 @@ void Snapshot::clear_uuid() {
   uuid_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Snapshot::uuid() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Snapshot.uuid)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Snapshot.uuid)
   return uuid_;
 }
 void Snapshot::set_uuid(::google::protobuf::uint64 value) {
   
   uuid_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Snapshot.uuid)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Snapshot.uuid)
 }
 
-// .fbase.raft.impl.pb.SnapshotMeta meta = 2;
+// .sharkstore.raft.impl.pb.SnapshotMeta meta = 2;
 bool Snapshot::has_meta() const {
   return this != internal_default_instance() && meta_ != NULL;
 }
@@ -2939,28 +2903,28 @@ void Snapshot::clear_meta() {
   if (GetArenaNoVirtual() == NULL && meta_ != NULL) delete meta_;
   meta_ = NULL;
 }
-const ::fbase::raft::impl::pb::SnapshotMeta& Snapshot::meta() const {
-  const ::fbase::raft::impl::pb::SnapshotMeta* p = meta_;
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Snapshot.meta)
-  return p != NULL ? *p : *reinterpret_cast<const ::fbase::raft::impl::pb::SnapshotMeta*>(
-      &::fbase::raft::impl::pb::_SnapshotMeta_default_instance_);
+const ::sharkstore::raft::impl::pb::SnapshotMeta& Snapshot::meta() const {
+  const ::sharkstore::raft::impl::pb::SnapshotMeta* p = meta_;
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Snapshot.meta)
+  return p != NULL ? *p : *reinterpret_cast<const ::sharkstore::raft::impl::pb::SnapshotMeta*>(
+      &::sharkstore::raft::impl::pb::_SnapshotMeta_default_instance_);
 }
-::fbase::raft::impl::pb::SnapshotMeta* Snapshot::mutable_meta() {
+::sharkstore::raft::impl::pb::SnapshotMeta* Snapshot::mutable_meta() {
   
   if (meta_ == NULL) {
-    meta_ = new ::fbase::raft::impl::pb::SnapshotMeta;
+    meta_ = new ::sharkstore::raft::impl::pb::SnapshotMeta;
   }
-  // @@protoc_insertion_point(field_mutable:fbase.raft.impl.pb.Snapshot.meta)
+  // @@protoc_insertion_point(field_mutable:sharkstore.raft.impl.pb.Snapshot.meta)
   return meta_;
 }
-::fbase::raft::impl::pb::SnapshotMeta* Snapshot::release_meta() {
-  // @@protoc_insertion_point(field_release:fbase.raft.impl.pb.Snapshot.meta)
+::sharkstore::raft::impl::pb::SnapshotMeta* Snapshot::release_meta() {
+  // @@protoc_insertion_point(field_release:sharkstore.raft.impl.pb.Snapshot.meta)
   
-  ::fbase::raft::impl::pb::SnapshotMeta* temp = meta_;
+  ::sharkstore::raft::impl::pb::SnapshotMeta* temp = meta_;
   meta_ = NULL;
   return temp;
 }
-void Snapshot::set_allocated_meta(::fbase::raft::impl::pb::SnapshotMeta* meta) {
+void Snapshot::set_allocated_meta(::sharkstore::raft::impl::pb::SnapshotMeta* meta) {
   delete meta_;
   meta_ = meta;
   if (meta) {
@@ -2968,7 +2932,7 @@ void Snapshot::set_allocated_meta(::fbase::raft::impl::pb::SnapshotMeta* meta) {
   } else {
     
   }
-  // @@protoc_insertion_point(field_set_allocated:fbase.raft.impl.pb.Snapshot.meta)
+  // @@protoc_insertion_point(field_set_allocated:sharkstore.raft.impl.pb.Snapshot.meta)
 }
 
 // repeated bytes datas = 3;
@@ -2979,64 +2943,64 @@ void Snapshot::clear_datas() {
   datas_.Clear();
 }
 const ::std::string& Snapshot::datas(int index) const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Snapshot.datas)
   return datas_.Get(index);
 }
 ::std::string* Snapshot::mutable_datas(int index) {
-  // @@protoc_insertion_point(field_mutable:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_mutable:sharkstore.raft.impl.pb.Snapshot.datas)
   return datas_.Mutable(index);
 }
 void Snapshot::set_datas(int index, const ::std::string& value) {
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Snapshot.datas)
   datas_.Mutable(index)->assign(value);
 }
 #if LANG_CXX11
 void Snapshot::set_datas(int index, ::std::string&& value) {
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Snapshot.datas)
   datas_.Mutable(index)->assign(std::move(value));
 }
 #endif
 void Snapshot::set_datas(int index, const char* value) {
   GOOGLE_DCHECK(value != NULL);
   datas_.Mutable(index)->assign(value);
-  // @@protoc_insertion_point(field_set_char:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_set_char:sharkstore.raft.impl.pb.Snapshot.datas)
 }
 void Snapshot::set_datas(int index, const void* value, size_t size) {
   datas_.Mutable(index)->assign(
     reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_set_pointer:sharkstore.raft.impl.pb.Snapshot.datas)
 }
 ::std::string* Snapshot::add_datas() {
-  // @@protoc_insertion_point(field_add_mutable:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_add_mutable:sharkstore.raft.impl.pb.Snapshot.datas)
   return datas_.Add();
 }
 void Snapshot::add_datas(const ::std::string& value) {
   datas_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_add:sharkstore.raft.impl.pb.Snapshot.datas)
 }
 #if LANG_CXX11
 void Snapshot::add_datas(::std::string&& value) {
   datas_.Add(std::move(value));
-  // @@protoc_insertion_point(field_add:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_add:sharkstore.raft.impl.pb.Snapshot.datas)
 }
 #endif
 void Snapshot::add_datas(const char* value) {
   GOOGLE_DCHECK(value != NULL);
   datas_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add_char:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_add_char:sharkstore.raft.impl.pb.Snapshot.datas)
 }
 void Snapshot::add_datas(const void* value, size_t size) {
   datas_.Add()->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_add_pointer:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_add_pointer:sharkstore.raft.impl.pb.Snapshot.datas)
 }
 const ::google::protobuf::RepeatedPtrField< ::std::string>&
 Snapshot::datas() const {
-  // @@protoc_insertion_point(field_list:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_list:sharkstore.raft.impl.pb.Snapshot.datas)
   return datas_;
 }
 ::google::protobuf::RepeatedPtrField< ::std::string>*
 Snapshot::mutable_datas() {
-  // @@protoc_insertion_point(field_mutable_list:fbase.raft.impl.pb.Snapshot.datas)
+  // @@protoc_insertion_point(field_mutable_list:sharkstore.raft.impl.pb.Snapshot.datas)
   return &datas_;
 }
 
@@ -3045,13 +3009,13 @@ void Snapshot::clear_final() {
   final_ = false;
 }
 bool Snapshot::final() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Snapshot.final)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Snapshot.final)
   return final_;
 }
 void Snapshot::set_final(bool value) {
   
   final_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Snapshot.final)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Snapshot.final)
 }
 
 // int64 seq = 5;
@@ -3059,13 +3023,13 @@ void Snapshot::clear_seq() {
   seq_ = GOOGLE_LONGLONG(0);
 }
 ::google::protobuf::int64 Snapshot::seq() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Snapshot.seq)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Snapshot.seq)
   return seq_;
 }
 void Snapshot::set_seq(::google::protobuf::int64 value) {
   
   seq_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Snapshot.seq)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Snapshot.seq)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -3094,7 +3058,7 @@ Message::Message()
     protobuf_raft_2eproto::InitDefaults();
   }
   SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.Message)
+  // @@protoc_insertion_point(constructor:sharkstore.raft.impl.pb.Message)
 }
 Message::Message(const Message& from)
   : ::google::protobuf::Message(),
@@ -3103,19 +3067,19 @@ Message::Message(const Message& from)
       _cached_size_(0) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   if (from.has_hb_ctx()) {
-    hb_ctx_ = new ::fbase::raft::impl::pb::HeartbeatContext(*from.hb_ctx_);
+    hb_ctx_ = new ::sharkstore::raft::impl::pb::HeartbeatContext(*from.hb_ctx_);
   } else {
     hb_ctx_ = NULL;
   }
   if (from.has_snapshot()) {
-    snapshot_ = new ::fbase::raft::impl::pb::Snapshot(*from.snapshot_);
+    snapshot_ = new ::sharkstore::raft::impl::pb::Snapshot(*from.snapshot_);
   } else {
     snapshot_ = NULL;
   }
   ::memcpy(&id_, &from.id_,
     static_cast<size_t>(reinterpret_cast<char*>(&reject_hint_) -
     reinterpret_cast<char*>(&id_)) + sizeof(reject_hint_));
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.Message)
+  // @@protoc_insertion_point(copy_constructor:sharkstore.raft.impl.pb.Message)
 }
 
 void Message::SharedCtor() {
@@ -3126,7 +3090,7 @@ void Message::SharedCtor() {
 }
 
 Message::~Message() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.Message)
+  // @@protoc_insertion_point(destructor:sharkstore.raft.impl.pb.Message)
   SharedDtor();
 }
 
@@ -3159,7 +3123,7 @@ Message* Message::New(::google::protobuf::Arena* arena) const {
 }
 
 void Message::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.Message)
+// @@protoc_insertion_point(message_clear_start:sharkstore.raft.impl.pb.Message)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -3183,13 +3147,13 @@ bool Message::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.Message)
+  // @@protoc_insertion_point(parse_start:sharkstore.raft.impl.pb.Message)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // .fbase.raft.impl.pb.MessageType type = 1;
+      // .sharkstore.raft.impl.pb.MessageType type = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
@@ -3197,7 +3161,7 @@ bool Message::MergePartialFromCodedStream(
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          set_type(static_cast< ::fbase::raft::impl::pb::MessageType >(value));
+          set_type(static_cast< ::sharkstore::raft::impl::pb::MessageType >(value));
         } else {
           goto handle_unusual;
         }
@@ -3302,7 +3266,7 @@ bool Message::MergePartialFromCodedStream(
         break;
       }
 
-      // repeated .fbase.raft.impl.pb.Entry entries = 10;
+      // repeated .sharkstore.raft.impl.pb.Entry entries = 10;
       case 10: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(82u /* 82 & 0xFF */)) {
@@ -3342,7 +3306,7 @@ bool Message::MergePartialFromCodedStream(
         break;
       }
 
-      // .fbase.raft.impl.pb.HeartbeatContext hb_ctx = 14;
+      // .sharkstore.raft.impl.pb.HeartbeatContext hb_ctx = 14;
       case 14: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(114u /* 114 & 0xFF */)) {
@@ -3354,7 +3318,7 @@ bool Message::MergePartialFromCodedStream(
         break;
       }
 
-      // .fbase.raft.impl.pb.Snapshot snapshot = 15;
+      // .sharkstore.raft.impl.pb.Snapshot snapshot = 15;
       case 15: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(122u /* 122 & 0xFF */)) {
@@ -3378,21 +3342,21 @@ bool Message::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.Message)
+  // @@protoc_insertion_point(parse_success:sharkstore.raft.impl.pb.Message)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.Message)
+  // @@protoc_insertion_point(parse_failure:sharkstore.raft.impl.pb.Message)
   return false;
 #undef DO_
 }
 
 void Message::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.Message)
+  // @@protoc_insertion_point(serialize_start:sharkstore.raft.impl.pb.Message)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .fbase.raft.impl.pb.MessageType type = 1;
+  // .sharkstore.raft.impl.pb.MessageType type = 1;
   if (this->type() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       1, this->type(), output);
@@ -3433,7 +3397,7 @@ void Message::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt64(9, this->log_index(), output);
   }
 
-  // repeated .fbase.raft.impl.pb.Entry entries = 10;
+  // repeated .sharkstore.raft.impl.pb.Entry entries = 10;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->entries_size()); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
@@ -3450,13 +3414,13 @@ void Message::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt64(13, this->reject_hint(), output);
   }
 
-  // .fbase.raft.impl.pb.HeartbeatContext hb_ctx = 14;
+  // .sharkstore.raft.impl.pb.HeartbeatContext hb_ctx = 14;
   if (this->has_hb_ctx()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
       14, *this->hb_ctx_, output);
   }
 
-  // .fbase.raft.impl.pb.Snapshot snapshot = 15;
+  // .sharkstore.raft.impl.pb.Snapshot snapshot = 15;
   if (this->has_snapshot()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
       15, *this->snapshot_, output);
@@ -3466,17 +3430,17 @@ void Message::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.Message)
+  // @@protoc_insertion_point(serialize_end:sharkstore.raft.impl.pb.Message)
 }
 
 ::google::protobuf::uint8* Message::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.Message)
+  // @@protoc_insertion_point(serialize_to_array_start:sharkstore.raft.impl.pb.Message)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .fbase.raft.impl.pb.MessageType type = 1;
+  // .sharkstore.raft.impl.pb.MessageType type = 1;
   if (this->type() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       1, this->type(), target);
@@ -3517,7 +3481,7 @@ void Message::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(9, this->log_index(), target);
   }
 
-  // repeated .fbase.raft.impl.pb.Entry entries = 10;
+  // repeated .sharkstore.raft.impl.pb.Entry entries = 10;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->entries_size()); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
@@ -3535,14 +3499,14 @@ void Message::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(13, this->reject_hint(), target);
   }
 
-  // .fbase.raft.impl.pb.HeartbeatContext hb_ctx = 14;
+  // .sharkstore.raft.impl.pb.HeartbeatContext hb_ctx = 14;
   if (this->has_hb_ctx()) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageNoVirtualToArray(
         14, *this->hb_ctx_, deterministic, target);
   }
 
-  // .fbase.raft.impl.pb.Snapshot snapshot = 15;
+  // .sharkstore.raft.impl.pb.Snapshot snapshot = 15;
   if (this->has_snapshot()) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageNoVirtualToArray(
@@ -3553,12 +3517,12 @@ void Message::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.Message)
+  // @@protoc_insertion_point(serialize_to_array_end:sharkstore.raft.impl.pb.Message)
   return target;
 }
 
 size_t Message::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.Message)
+// @@protoc_insertion_point(message_byte_size_start:sharkstore.raft.impl.pb.Message)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -3566,7 +3530,7 @@ size_t Message::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  // repeated .fbase.raft.impl.pb.Entry entries = 10;
+  // repeated .sharkstore.raft.impl.pb.Entry entries = 10;
   {
     unsigned int count = static_cast<unsigned int>(this->entries_size());
     total_size += 1UL * count;
@@ -3577,14 +3541,14 @@ size_t Message::ByteSizeLong() const {
     }
   }
 
-  // .fbase.raft.impl.pb.HeartbeatContext hb_ctx = 14;
+  // .sharkstore.raft.impl.pb.HeartbeatContext hb_ctx = 14;
   if (this->has_hb_ctx()) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
         *this->hb_ctx_);
   }
 
-  // .fbase.raft.impl.pb.Snapshot snapshot = 15;
+  // .sharkstore.raft.impl.pb.Snapshot snapshot = 15;
   if (this->has_snapshot()) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
@@ -3626,7 +3590,7 @@ size_t Message::ByteSizeLong() const {
         this->commit());
   }
 
-  // .fbase.raft.impl.pb.MessageType type = 1;
+  // .sharkstore.raft.impl.pb.MessageType type = 1;
   if (this->type() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::EnumSize(this->type());
@@ -3666,22 +3630,22 @@ size_t Message::ByteSizeLong() const {
 }
 
 void Message::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.Message)
+// @@protoc_insertion_point(generalized_merge_from_start:sharkstore.raft.impl.pb.Message)
   GOOGLE_DCHECK_NE(&from, this);
   const Message* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const Message>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.Message)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:sharkstore.raft.impl.pb.Message)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.Message)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:sharkstore.raft.impl.pb.Message)
     MergeFrom(*source);
   }
 }
 
 void Message::MergeFrom(const Message& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.Message)
+// @@protoc_insertion_point(class_specific_merge_from_start:sharkstore.raft.impl.pb.Message)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -3689,10 +3653,10 @@ void Message::MergeFrom(const Message& from) {
 
   entries_.MergeFrom(from.entries_);
   if (from.has_hb_ctx()) {
-    mutable_hb_ctx()->::fbase::raft::impl::pb::HeartbeatContext::MergeFrom(from.hb_ctx());
+    mutable_hb_ctx()->::sharkstore::raft::impl::pb::HeartbeatContext::MergeFrom(from.hb_ctx());
   }
   if (from.has_snapshot()) {
-    mutable_snapshot()->::fbase::raft::impl::pb::Snapshot::MergeFrom(from.snapshot());
+    mutable_snapshot()->::sharkstore::raft::impl::pb::Snapshot::MergeFrom(from.snapshot());
   }
   if (from.id() != 0) {
     set_id(from.id());
@@ -3727,14 +3691,14 @@ void Message::MergeFrom(const Message& from) {
 }
 
 void Message::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.Message)
+// @@protoc_insertion_point(generalized_copy_from_start:sharkstore.raft.impl.pb.Message)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void Message::CopyFrom(const Message& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.Message)
+// @@protoc_insertion_point(class_specific_copy_from_start:sharkstore.raft.impl.pb.Message)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -3775,18 +3739,18 @@ void Message::InternalSwap(Message* other) {
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
 // Message
 
-// .fbase.raft.impl.pb.MessageType type = 1;
+// .sharkstore.raft.impl.pb.MessageType type = 1;
 void Message::clear_type() {
   type_ = 0;
 }
-::fbase::raft::impl::pb::MessageType Message::type() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.type)
-  return static_cast< ::fbase::raft::impl::pb::MessageType >(type_);
+::sharkstore::raft::impl::pb::MessageType Message::type() const {
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.type)
+  return static_cast< ::sharkstore::raft::impl::pb::MessageType >(type_);
 }
-void Message::set_type(::fbase::raft::impl::pb::MessageType value) {
+void Message::set_type(::sharkstore::raft::impl::pb::MessageType value) {
   
   type_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Message.type)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Message.type)
 }
 
 // uint64 id = 2;
@@ -3794,13 +3758,13 @@ void Message::clear_id() {
   id_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Message::id() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.id)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.id)
   return id_;
 }
 void Message::set_id(::google::protobuf::uint64 value) {
   
   id_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Message.id)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Message.id)
 }
 
 // uint64 from = 3;
@@ -3808,13 +3772,13 @@ void Message::clear_from() {
   from_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Message::from() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.from)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.from)
   return from_;
 }
 void Message::set_from(::google::protobuf::uint64 value) {
   
   from_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Message.from)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Message.from)
 }
 
 // uint64 to = 4;
@@ -3822,13 +3786,13 @@ void Message::clear_to() {
   to_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Message::to() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.to)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.to)
   return to_;
 }
 void Message::set_to(::google::protobuf::uint64 value) {
   
   to_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Message.to)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Message.to)
 }
 
 // uint64 term = 5;
@@ -3836,13 +3800,13 @@ void Message::clear_term() {
   term_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Message::term() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.term)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.term)
   return term_;
 }
 void Message::set_term(::google::protobuf::uint64 value) {
   
   term_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Message.term)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Message.term)
 }
 
 // uint64 commit = 6;
@@ -3850,13 +3814,13 @@ void Message::clear_commit() {
   commit_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Message::commit() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.commit)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.commit)
   return commit_;
 }
 void Message::set_commit(::google::protobuf::uint64 value) {
   
   commit_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Message.commit)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Message.commit)
 }
 
 // uint64 log_term = 8;
@@ -3864,13 +3828,13 @@ void Message::clear_log_term() {
   log_term_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Message::log_term() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.log_term)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.log_term)
   return log_term_;
 }
 void Message::set_log_term(::google::protobuf::uint64 value) {
   
   log_term_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Message.log_term)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Message.log_term)
 }
 
 // uint64 log_index = 9;
@@ -3878,42 +3842,42 @@ void Message::clear_log_index() {
   log_index_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Message::log_index() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.log_index)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.log_index)
   return log_index_;
 }
 void Message::set_log_index(::google::protobuf::uint64 value) {
   
   log_index_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Message.log_index)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Message.log_index)
 }
 
-// repeated .fbase.raft.impl.pb.Entry entries = 10;
+// repeated .sharkstore.raft.impl.pb.Entry entries = 10;
 int Message::entries_size() const {
   return entries_.size();
 }
 void Message::clear_entries() {
   entries_.Clear();
 }
-const ::fbase::raft::impl::pb::Entry& Message::entries(int index) const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.entries)
+const ::sharkstore::raft::impl::pb::Entry& Message::entries(int index) const {
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.entries)
   return entries_.Get(index);
 }
-::fbase::raft::impl::pb::Entry* Message::mutable_entries(int index) {
-  // @@protoc_insertion_point(field_mutable:fbase.raft.impl.pb.Message.entries)
+::sharkstore::raft::impl::pb::Entry* Message::mutable_entries(int index) {
+  // @@protoc_insertion_point(field_mutable:sharkstore.raft.impl.pb.Message.entries)
   return entries_.Mutable(index);
 }
-::fbase::raft::impl::pb::Entry* Message::add_entries() {
-  // @@protoc_insertion_point(field_add:fbase.raft.impl.pb.Message.entries)
+::sharkstore::raft::impl::pb::Entry* Message::add_entries() {
+  // @@protoc_insertion_point(field_add:sharkstore.raft.impl.pb.Message.entries)
   return entries_.Add();
 }
-::google::protobuf::RepeatedPtrField< ::fbase::raft::impl::pb::Entry >*
+::google::protobuf::RepeatedPtrField< ::sharkstore::raft::impl::pb::Entry >*
 Message::mutable_entries() {
-  // @@protoc_insertion_point(field_mutable_list:fbase.raft.impl.pb.Message.entries)
+  // @@protoc_insertion_point(field_mutable_list:sharkstore.raft.impl.pb.Message.entries)
   return &entries_;
 }
-const ::google::protobuf::RepeatedPtrField< ::fbase::raft::impl::pb::Entry >&
+const ::google::protobuf::RepeatedPtrField< ::sharkstore::raft::impl::pb::Entry >&
 Message::entries() const {
-  // @@protoc_insertion_point(field_list:fbase.raft.impl.pb.Message.entries)
+  // @@protoc_insertion_point(field_list:sharkstore.raft.impl.pb.Message.entries)
   return entries_;
 }
 
@@ -3922,13 +3886,13 @@ void Message::clear_reject() {
   reject_ = false;
 }
 bool Message::reject() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.reject)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.reject)
   return reject_;
 }
 void Message::set_reject(bool value) {
   
   reject_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Message.reject)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Message.reject)
 }
 
 // uint64 reject_hint = 13;
@@ -3936,16 +3900,16 @@ void Message::clear_reject_hint() {
   reject_hint_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 Message::reject_hint() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.reject_hint)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.reject_hint)
   return reject_hint_;
 }
 void Message::set_reject_hint(::google::protobuf::uint64 value) {
   
   reject_hint_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.Message.reject_hint)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.Message.reject_hint)
 }
 
-// .fbase.raft.impl.pb.HeartbeatContext hb_ctx = 14;
+// .sharkstore.raft.impl.pb.HeartbeatContext hb_ctx = 14;
 bool Message::has_hb_ctx() const {
   return this != internal_default_instance() && hb_ctx_ != NULL;
 }
@@ -3953,28 +3917,28 @@ void Message::clear_hb_ctx() {
   if (GetArenaNoVirtual() == NULL && hb_ctx_ != NULL) delete hb_ctx_;
   hb_ctx_ = NULL;
 }
-const ::fbase::raft::impl::pb::HeartbeatContext& Message::hb_ctx() const {
-  const ::fbase::raft::impl::pb::HeartbeatContext* p = hb_ctx_;
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.hb_ctx)
-  return p != NULL ? *p : *reinterpret_cast<const ::fbase::raft::impl::pb::HeartbeatContext*>(
-      &::fbase::raft::impl::pb::_HeartbeatContext_default_instance_);
+const ::sharkstore::raft::impl::pb::HeartbeatContext& Message::hb_ctx() const {
+  const ::sharkstore::raft::impl::pb::HeartbeatContext* p = hb_ctx_;
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.hb_ctx)
+  return p != NULL ? *p : *reinterpret_cast<const ::sharkstore::raft::impl::pb::HeartbeatContext*>(
+      &::sharkstore::raft::impl::pb::_HeartbeatContext_default_instance_);
 }
-::fbase::raft::impl::pb::HeartbeatContext* Message::mutable_hb_ctx() {
+::sharkstore::raft::impl::pb::HeartbeatContext* Message::mutable_hb_ctx() {
   
   if (hb_ctx_ == NULL) {
-    hb_ctx_ = new ::fbase::raft::impl::pb::HeartbeatContext;
+    hb_ctx_ = new ::sharkstore::raft::impl::pb::HeartbeatContext;
   }
-  // @@protoc_insertion_point(field_mutable:fbase.raft.impl.pb.Message.hb_ctx)
+  // @@protoc_insertion_point(field_mutable:sharkstore.raft.impl.pb.Message.hb_ctx)
   return hb_ctx_;
 }
-::fbase::raft::impl::pb::HeartbeatContext* Message::release_hb_ctx() {
-  // @@protoc_insertion_point(field_release:fbase.raft.impl.pb.Message.hb_ctx)
+::sharkstore::raft::impl::pb::HeartbeatContext* Message::release_hb_ctx() {
+  // @@protoc_insertion_point(field_release:sharkstore.raft.impl.pb.Message.hb_ctx)
   
-  ::fbase::raft::impl::pb::HeartbeatContext* temp = hb_ctx_;
+  ::sharkstore::raft::impl::pb::HeartbeatContext* temp = hb_ctx_;
   hb_ctx_ = NULL;
   return temp;
 }
-void Message::set_allocated_hb_ctx(::fbase::raft::impl::pb::HeartbeatContext* hb_ctx) {
+void Message::set_allocated_hb_ctx(::sharkstore::raft::impl::pb::HeartbeatContext* hb_ctx) {
   delete hb_ctx_;
   hb_ctx_ = hb_ctx;
   if (hb_ctx) {
@@ -3982,10 +3946,10 @@ void Message::set_allocated_hb_ctx(::fbase::raft::impl::pb::HeartbeatContext* hb
   } else {
     
   }
-  // @@protoc_insertion_point(field_set_allocated:fbase.raft.impl.pb.Message.hb_ctx)
+  // @@protoc_insertion_point(field_set_allocated:sharkstore.raft.impl.pb.Message.hb_ctx)
 }
 
-// .fbase.raft.impl.pb.Snapshot snapshot = 15;
+// .sharkstore.raft.impl.pb.Snapshot snapshot = 15;
 bool Message::has_snapshot() const {
   return this != internal_default_instance() && snapshot_ != NULL;
 }
@@ -3993,28 +3957,28 @@ void Message::clear_snapshot() {
   if (GetArenaNoVirtual() == NULL && snapshot_ != NULL) delete snapshot_;
   snapshot_ = NULL;
 }
-const ::fbase::raft::impl::pb::Snapshot& Message::snapshot() const {
-  const ::fbase::raft::impl::pb::Snapshot* p = snapshot_;
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.Message.snapshot)
-  return p != NULL ? *p : *reinterpret_cast<const ::fbase::raft::impl::pb::Snapshot*>(
-      &::fbase::raft::impl::pb::_Snapshot_default_instance_);
+const ::sharkstore::raft::impl::pb::Snapshot& Message::snapshot() const {
+  const ::sharkstore::raft::impl::pb::Snapshot* p = snapshot_;
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.Message.snapshot)
+  return p != NULL ? *p : *reinterpret_cast<const ::sharkstore::raft::impl::pb::Snapshot*>(
+      &::sharkstore::raft::impl::pb::_Snapshot_default_instance_);
 }
-::fbase::raft::impl::pb::Snapshot* Message::mutable_snapshot() {
+::sharkstore::raft::impl::pb::Snapshot* Message::mutable_snapshot() {
   
   if (snapshot_ == NULL) {
-    snapshot_ = new ::fbase::raft::impl::pb::Snapshot;
+    snapshot_ = new ::sharkstore::raft::impl::pb::Snapshot;
   }
-  // @@protoc_insertion_point(field_mutable:fbase.raft.impl.pb.Message.snapshot)
+  // @@protoc_insertion_point(field_mutable:sharkstore.raft.impl.pb.Message.snapshot)
   return snapshot_;
 }
-::fbase::raft::impl::pb::Snapshot* Message::release_snapshot() {
-  // @@protoc_insertion_point(field_release:fbase.raft.impl.pb.Message.snapshot)
+::sharkstore::raft::impl::pb::Snapshot* Message::release_snapshot() {
+  // @@protoc_insertion_point(field_release:sharkstore.raft.impl.pb.Message.snapshot)
   
-  ::fbase::raft::impl::pb::Snapshot* temp = snapshot_;
+  ::sharkstore::raft::impl::pb::Snapshot* temp = snapshot_;
   snapshot_ = NULL;
   return temp;
 }
-void Message::set_allocated_snapshot(::fbase::raft::impl::pb::Snapshot* snapshot) {
+void Message::set_allocated_snapshot(::sharkstore::raft::impl::pb::Snapshot* snapshot) {
   delete snapshot_;
   snapshot_ = snapshot;
   if (snapshot) {
@@ -4022,493 +3986,8 @@ void Message::set_allocated_snapshot(::fbase::raft::impl::pb::Snapshot* snapshot
   } else {
     
   }
-  // @@protoc_insertion_point(field_set_allocated:fbase.raft.impl.pb.Message.snapshot)
+  // @@protoc_insertion_point(field_set_allocated:sharkstore.raft.impl.pb.Message.snapshot)
 }
-
-#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
-
-// ===================================================================
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int RaftMessageRequest::kMsgFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
-
-RaftMessageRequest::RaftMessageRequest()
-  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
-    protobuf_raft_2eproto::InitDefaults();
-  }
-  SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.RaftMessageRequest)
-}
-RaftMessageRequest::RaftMessageRequest(const RaftMessageRequest& from)
-  : ::google::protobuf::Message(),
-      _internal_metadata_(NULL),
-      _cached_size_(0) {
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
-  if (from.has_msg()) {
-    msg_ = new ::fbase::raft::impl::pb::Message(*from.msg_);
-  } else {
-    msg_ = NULL;
-  }
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.RaftMessageRequest)
-}
-
-void RaftMessageRequest::SharedCtor() {
-  msg_ = NULL;
-  _cached_size_ = 0;
-}
-
-RaftMessageRequest::~RaftMessageRequest() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.RaftMessageRequest)
-  SharedDtor();
-}
-
-void RaftMessageRequest::SharedDtor() {
-  if (this != internal_default_instance()) delete msg_;
-}
-
-void RaftMessageRequest::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-}
-const ::google::protobuf::Descriptor* RaftMessageRequest::descriptor() {
-  protobuf_raft_2eproto::protobuf_AssignDescriptorsOnce();
-  return protobuf_raft_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
-}
-
-const RaftMessageRequest& RaftMessageRequest::default_instance() {
-  protobuf_raft_2eproto::InitDefaults();
-  return *internal_default_instance();
-}
-
-RaftMessageRequest* RaftMessageRequest::New(::google::protobuf::Arena* arena) const {
-  RaftMessageRequest* n = new RaftMessageRequest;
-  if (arena != NULL) {
-    arena->Own(n);
-  }
-  return n;
-}
-
-void RaftMessageRequest::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.RaftMessageRequest)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  if (GetArenaNoVirtual() == NULL && msg_ != NULL) {
-    delete msg_;
-  }
-  msg_ = NULL;
-  _internal_metadata_.Clear();
-}
-
-bool RaftMessageRequest::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.RaftMessageRequest)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // .fbase.raft.impl.pb.Message msg = 1;
-      case 1: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-               input, mutable_msg()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::google::protobuf::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.RaftMessageRequest)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.RaftMessageRequest)
-  return false;
-#undef DO_
-}
-
-void RaftMessageRequest::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.RaftMessageRequest)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // .fbase.raft.impl.pb.Message msg = 1;
-  if (this->has_msg()) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      1, *this->msg_, output);
-  }
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
-  }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.RaftMessageRequest)
-}
-
-::google::protobuf::uint8* RaftMessageRequest::InternalSerializeWithCachedSizesToArray(
-    bool deterministic, ::google::protobuf::uint8* target) const {
-  (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.RaftMessageRequest)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // .fbase.raft.impl.pb.Message msg = 1;
-  if (this->has_msg()) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      InternalWriteMessageNoVirtualToArray(
-        1, *this->msg_, deterministic, target);
-  }
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.RaftMessageRequest)
-  return target;
-}
-
-size_t RaftMessageRequest::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.RaftMessageRequest)
-  size_t total_size = 0;
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    total_size +=
-      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
-  }
-  // .fbase.raft.impl.pb.Message msg = 1;
-  if (this->has_msg()) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-        *this->msg_);
-  }
-
-  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = cached_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-  return total_size;
-}
-
-void RaftMessageRequest::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.RaftMessageRequest)
-  GOOGLE_DCHECK_NE(&from, this);
-  const RaftMessageRequest* source =
-      ::google::protobuf::internal::DynamicCastToGenerated<const RaftMessageRequest>(
-          &from);
-  if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.RaftMessageRequest)
-    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
-  } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.RaftMessageRequest)
-    MergeFrom(*source);
-  }
-}
-
-void RaftMessageRequest::MergeFrom(const RaftMessageRequest& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.RaftMessageRequest)
-  GOOGLE_DCHECK_NE(&from, this);
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if (from.has_msg()) {
-    mutable_msg()->::fbase::raft::impl::pb::Message::MergeFrom(from.msg());
-  }
-}
-
-void RaftMessageRequest::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.RaftMessageRequest)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-void RaftMessageRequest::CopyFrom(const RaftMessageRequest& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.RaftMessageRequest)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool RaftMessageRequest::IsInitialized() const {
-  return true;
-}
-
-void RaftMessageRequest::Swap(RaftMessageRequest* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
-void RaftMessageRequest::InternalSwap(RaftMessageRequest* other) {
-  using std::swap;
-  swap(msg_, other->msg_);
-  _internal_metadata_.Swap(&other->_internal_metadata_);
-  swap(_cached_size_, other->_cached_size_);
-}
-
-::google::protobuf::Metadata RaftMessageRequest::GetMetadata() const {
-  protobuf_raft_2eproto::protobuf_AssignDescriptorsOnce();
-  return protobuf_raft_2eproto::file_level_metadata[kIndexInFileMessages];
-}
-
-#if PROTOBUF_INLINE_NOT_IN_HEADERS
-// RaftMessageRequest
-
-// .fbase.raft.impl.pb.Message msg = 1;
-bool RaftMessageRequest::has_msg() const {
-  return this != internal_default_instance() && msg_ != NULL;
-}
-void RaftMessageRequest::clear_msg() {
-  if (GetArenaNoVirtual() == NULL && msg_ != NULL) delete msg_;
-  msg_ = NULL;
-}
-const ::fbase::raft::impl::pb::Message& RaftMessageRequest::msg() const {
-  const ::fbase::raft::impl::pb::Message* p = msg_;
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.RaftMessageRequest.msg)
-  return p != NULL ? *p : *reinterpret_cast<const ::fbase::raft::impl::pb::Message*>(
-      &::fbase::raft::impl::pb::_Message_default_instance_);
-}
-::fbase::raft::impl::pb::Message* RaftMessageRequest::mutable_msg() {
-  
-  if (msg_ == NULL) {
-    msg_ = new ::fbase::raft::impl::pb::Message;
-  }
-  // @@protoc_insertion_point(field_mutable:fbase.raft.impl.pb.RaftMessageRequest.msg)
-  return msg_;
-}
-::fbase::raft::impl::pb::Message* RaftMessageRequest::release_msg() {
-  // @@protoc_insertion_point(field_release:fbase.raft.impl.pb.RaftMessageRequest.msg)
-  
-  ::fbase::raft::impl::pb::Message* temp = msg_;
-  msg_ = NULL;
-  return temp;
-}
-void RaftMessageRequest::set_allocated_msg(::fbase::raft::impl::pb::Message* msg) {
-  delete msg_;
-  msg_ = msg;
-  if (msg) {
-    
-  } else {
-    
-  }
-  // @@protoc_insertion_point(field_set_allocated:fbase.raft.impl.pb.RaftMessageRequest.msg)
-}
-
-#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
-
-// ===================================================================
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
-
-RaftMessageResponse::RaftMessageResponse()
-  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
-    protobuf_raft_2eproto::InitDefaults();
-  }
-  SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.RaftMessageResponse)
-}
-RaftMessageResponse::RaftMessageResponse(const RaftMessageResponse& from)
-  : ::google::protobuf::Message(),
-      _internal_metadata_(NULL),
-      _cached_size_(0) {
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.RaftMessageResponse)
-}
-
-void RaftMessageResponse::SharedCtor() {
-  _cached_size_ = 0;
-}
-
-RaftMessageResponse::~RaftMessageResponse() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.RaftMessageResponse)
-  SharedDtor();
-}
-
-void RaftMessageResponse::SharedDtor() {
-}
-
-void RaftMessageResponse::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-}
-const ::google::protobuf::Descriptor* RaftMessageResponse::descriptor() {
-  protobuf_raft_2eproto::protobuf_AssignDescriptorsOnce();
-  return protobuf_raft_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
-}
-
-const RaftMessageResponse& RaftMessageResponse::default_instance() {
-  protobuf_raft_2eproto::InitDefaults();
-  return *internal_default_instance();
-}
-
-RaftMessageResponse* RaftMessageResponse::New(::google::protobuf::Arena* arena) const {
-  RaftMessageResponse* n = new RaftMessageResponse;
-  if (arena != NULL) {
-    arena->Own(n);
-  }
-  return n;
-}
-
-void RaftMessageResponse::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.RaftMessageResponse)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  _internal_metadata_.Clear();
-}
-
-bool RaftMessageResponse::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.RaftMessageResponse)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-  handle_unusual:
-    if (tag == 0) {
-      goto success;
-    }
-    DO_(::google::protobuf::internal::WireFormat::SkipField(
-          input, tag, _internal_metadata_.mutable_unknown_fields()));
-  }
-success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.RaftMessageResponse)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.RaftMessageResponse)
-  return false;
-#undef DO_
-}
-
-void RaftMessageResponse::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.RaftMessageResponse)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
-  }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.RaftMessageResponse)
-}
-
-::google::protobuf::uint8* RaftMessageResponse::InternalSerializeWithCachedSizesToArray(
-    bool deterministic, ::google::protobuf::uint8* target) const {
-  (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.RaftMessageResponse)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.RaftMessageResponse)
-  return target;
-}
-
-size_t RaftMessageResponse::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.RaftMessageResponse)
-  size_t total_size = 0;
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    total_size +=
-      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
-  }
-  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = cached_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-  return total_size;
-}
-
-void RaftMessageResponse::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.RaftMessageResponse)
-  GOOGLE_DCHECK_NE(&from, this);
-  const RaftMessageResponse* source =
-      ::google::protobuf::internal::DynamicCastToGenerated<const RaftMessageResponse>(
-          &from);
-  if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.RaftMessageResponse)
-    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
-  } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.RaftMessageResponse)
-    MergeFrom(*source);
-  }
-}
-
-void RaftMessageResponse::MergeFrom(const RaftMessageResponse& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.RaftMessageResponse)
-  GOOGLE_DCHECK_NE(&from, this);
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-}
-
-void RaftMessageResponse::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.RaftMessageResponse)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-void RaftMessageResponse::CopyFrom(const RaftMessageResponse& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.RaftMessageResponse)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool RaftMessageResponse::IsInitialized() const {
-  return true;
-}
-
-void RaftMessageResponse::Swap(RaftMessageResponse* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
-void RaftMessageResponse::InternalSwap(RaftMessageResponse* other) {
-  using std::swap;
-  _internal_metadata_.Swap(&other->_internal_metadata_);
-  swap(_cached_size_, other->_cached_size_);
-}
-
-::google::protobuf::Metadata RaftMessageResponse::GetMetadata() const {
-  protobuf_raft_2eproto::protobuf_AssignDescriptorsOnce();
-  return protobuf_raft_2eproto::file_level_metadata[kIndexInFileMessages];
-}
-
-#if PROTOBUF_INLINE_NOT_IN_HEADERS
-// RaftMessageResponse
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
 
@@ -4526,7 +4005,7 @@ HardState::HardState()
     protobuf_raft_2eproto::InitDefaults();
   }
   SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.HardState)
+  // @@protoc_insertion_point(constructor:sharkstore.raft.impl.pb.HardState)
 }
 HardState::HardState(const HardState& from)
   : ::google::protobuf::Message(),
@@ -4536,7 +4015,7 @@ HardState::HardState(const HardState& from)
   ::memcpy(&term_, &from.term_,
     static_cast<size_t>(reinterpret_cast<char*>(&vote_) -
     reinterpret_cast<char*>(&term_)) + sizeof(vote_));
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.HardState)
+  // @@protoc_insertion_point(copy_constructor:sharkstore.raft.impl.pb.HardState)
 }
 
 void HardState::SharedCtor() {
@@ -4547,7 +4026,7 @@ void HardState::SharedCtor() {
 }
 
 HardState::~HardState() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.HardState)
+  // @@protoc_insertion_point(destructor:sharkstore.raft.impl.pb.HardState)
   SharedDtor();
 }
 
@@ -4578,7 +4057,7 @@ HardState* HardState::New(::google::protobuf::Arena* arena) const {
 }
 
 void HardState::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.HardState)
+// @@protoc_insertion_point(message_clear_start:sharkstore.raft.impl.pb.HardState)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -4593,7 +4072,7 @@ bool HardState::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.HardState)
+  // @@protoc_insertion_point(parse_start:sharkstore.raft.impl.pb.HardState)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
@@ -4653,17 +4132,17 @@ bool HardState::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.HardState)
+  // @@protoc_insertion_point(parse_success:sharkstore.raft.impl.pb.HardState)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.HardState)
+  // @@protoc_insertion_point(parse_failure:sharkstore.raft.impl.pb.HardState)
   return false;
 #undef DO_
 }
 
 void HardState::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.HardState)
+  // @@protoc_insertion_point(serialize_start:sharkstore.raft.impl.pb.HardState)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -4686,13 +4165,13 @@ void HardState::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.HardState)
+  // @@protoc_insertion_point(serialize_end:sharkstore.raft.impl.pb.HardState)
 }
 
 ::google::protobuf::uint8* HardState::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.HardState)
+  // @@protoc_insertion_point(serialize_to_array_start:sharkstore.raft.impl.pb.HardState)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -4715,12 +4194,12 @@ void HardState::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.HardState)
+  // @@protoc_insertion_point(serialize_to_array_end:sharkstore.raft.impl.pb.HardState)
   return target;
 }
 
 size_t HardState::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.HardState)
+// @@protoc_insertion_point(message_byte_size_start:sharkstore.raft.impl.pb.HardState)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -4757,22 +4236,22 @@ size_t HardState::ByteSizeLong() const {
 }
 
 void HardState::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.HardState)
+// @@protoc_insertion_point(generalized_merge_from_start:sharkstore.raft.impl.pb.HardState)
   GOOGLE_DCHECK_NE(&from, this);
   const HardState* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const HardState>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.HardState)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:sharkstore.raft.impl.pb.HardState)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.HardState)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:sharkstore.raft.impl.pb.HardState)
     MergeFrom(*source);
   }
 }
 
 void HardState::MergeFrom(const HardState& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.HardState)
+// @@protoc_insertion_point(class_specific_merge_from_start:sharkstore.raft.impl.pb.HardState)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -4790,14 +4269,14 @@ void HardState::MergeFrom(const HardState& from) {
 }
 
 void HardState::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.HardState)
+// @@protoc_insertion_point(generalized_copy_from_start:sharkstore.raft.impl.pb.HardState)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void HardState::CopyFrom(const HardState& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.HardState)
+// @@protoc_insertion_point(class_specific_copy_from_start:sharkstore.raft.impl.pb.HardState)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -4833,13 +4312,13 @@ void HardState::clear_term() {
   term_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 HardState::term() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.HardState.term)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.HardState.term)
   return term_;
 }
 void HardState::set_term(::google::protobuf::uint64 value) {
   
   term_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.HardState.term)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.HardState.term)
 }
 
 // uint64 commit = 2;
@@ -4847,13 +4326,13 @@ void HardState::clear_commit() {
   commit_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 HardState::commit() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.HardState.commit)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.HardState.commit)
   return commit_;
 }
 void HardState::set_commit(::google::protobuf::uint64 value) {
   
   commit_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.HardState.commit)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.HardState.commit)
 }
 
 // uint64 vote = 3;
@@ -4861,13 +4340,13 @@ void HardState::clear_vote() {
   vote_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 HardState::vote() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.HardState.vote)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.HardState.vote)
   return vote_;
 }
 void HardState::set_vote(::google::protobuf::uint64 value) {
   
   vote_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.HardState.vote)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.HardState.vote)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -4885,7 +4364,7 @@ TruncateMeta::TruncateMeta()
     protobuf_raft_2eproto::InitDefaults();
   }
   SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.TruncateMeta)
+  // @@protoc_insertion_point(constructor:sharkstore.raft.impl.pb.TruncateMeta)
 }
 TruncateMeta::TruncateMeta(const TruncateMeta& from)
   : ::google::protobuf::Message(),
@@ -4895,7 +4374,7 @@ TruncateMeta::TruncateMeta(const TruncateMeta& from)
   ::memcpy(&index_, &from.index_,
     static_cast<size_t>(reinterpret_cast<char*>(&term_) -
     reinterpret_cast<char*>(&index_)) + sizeof(term_));
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.TruncateMeta)
+  // @@protoc_insertion_point(copy_constructor:sharkstore.raft.impl.pb.TruncateMeta)
 }
 
 void TruncateMeta::SharedCtor() {
@@ -4906,7 +4385,7 @@ void TruncateMeta::SharedCtor() {
 }
 
 TruncateMeta::~TruncateMeta() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.TruncateMeta)
+  // @@protoc_insertion_point(destructor:sharkstore.raft.impl.pb.TruncateMeta)
   SharedDtor();
 }
 
@@ -4937,7 +4416,7 @@ TruncateMeta* TruncateMeta::New(::google::protobuf::Arena* arena) const {
 }
 
 void TruncateMeta::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.TruncateMeta)
+// @@protoc_insertion_point(message_clear_start:sharkstore.raft.impl.pb.TruncateMeta)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -4952,7 +4431,7 @@ bool TruncateMeta::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.TruncateMeta)
+  // @@protoc_insertion_point(parse_start:sharkstore.raft.impl.pb.TruncateMeta)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
@@ -4998,17 +4477,17 @@ bool TruncateMeta::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.TruncateMeta)
+  // @@protoc_insertion_point(parse_success:sharkstore.raft.impl.pb.TruncateMeta)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.TruncateMeta)
+  // @@protoc_insertion_point(parse_failure:sharkstore.raft.impl.pb.TruncateMeta)
   return false;
 #undef DO_
 }
 
 void TruncateMeta::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.TruncateMeta)
+  // @@protoc_insertion_point(serialize_start:sharkstore.raft.impl.pb.TruncateMeta)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -5026,13 +4505,13 @@ void TruncateMeta::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.TruncateMeta)
+  // @@protoc_insertion_point(serialize_end:sharkstore.raft.impl.pb.TruncateMeta)
 }
 
 ::google::protobuf::uint8* TruncateMeta::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.TruncateMeta)
+  // @@protoc_insertion_point(serialize_to_array_start:sharkstore.raft.impl.pb.TruncateMeta)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -5050,12 +4529,12 @@ void TruncateMeta::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.TruncateMeta)
+  // @@protoc_insertion_point(serialize_to_array_end:sharkstore.raft.impl.pb.TruncateMeta)
   return target;
 }
 
 size_t TruncateMeta::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.TruncateMeta)
+// @@protoc_insertion_point(message_byte_size_start:sharkstore.raft.impl.pb.TruncateMeta)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -5085,22 +4564,22 @@ size_t TruncateMeta::ByteSizeLong() const {
 }
 
 void TruncateMeta::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.TruncateMeta)
+// @@protoc_insertion_point(generalized_merge_from_start:sharkstore.raft.impl.pb.TruncateMeta)
   GOOGLE_DCHECK_NE(&from, this);
   const TruncateMeta* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const TruncateMeta>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.TruncateMeta)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:sharkstore.raft.impl.pb.TruncateMeta)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.TruncateMeta)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:sharkstore.raft.impl.pb.TruncateMeta)
     MergeFrom(*source);
   }
 }
 
 void TruncateMeta::MergeFrom(const TruncateMeta& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.TruncateMeta)
+// @@protoc_insertion_point(class_specific_merge_from_start:sharkstore.raft.impl.pb.TruncateMeta)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -5115,14 +4594,14 @@ void TruncateMeta::MergeFrom(const TruncateMeta& from) {
 }
 
 void TruncateMeta::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.TruncateMeta)
+// @@protoc_insertion_point(generalized_copy_from_start:sharkstore.raft.impl.pb.TruncateMeta)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void TruncateMeta::CopyFrom(const TruncateMeta& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.TruncateMeta)
+// @@protoc_insertion_point(class_specific_copy_from_start:sharkstore.raft.impl.pb.TruncateMeta)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -5157,13 +4636,13 @@ void TruncateMeta::clear_index() {
   index_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 TruncateMeta::index() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.TruncateMeta.index)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.TruncateMeta.index)
   return index_;
 }
 void TruncateMeta::set_index(::google::protobuf::uint64 value) {
   
   index_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.TruncateMeta.index)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.TruncateMeta.index)
 }
 
 // uint64 term = 2;
@@ -5171,13 +4650,13 @@ void TruncateMeta::clear_term() {
   term_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 TruncateMeta::term() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.TruncateMeta.term)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.TruncateMeta.term)
   return term_;
 }
 void TruncateMeta::set_term(::google::protobuf::uint64 value) {
   
   term_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.TruncateMeta.term)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.TruncateMeta.term)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -5196,7 +4675,7 @@ IndexItem::IndexItem()
     protobuf_raft_2eproto::InitDefaults();
   }
   SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.IndexItem)
+  // @@protoc_insertion_point(constructor:sharkstore.raft.impl.pb.IndexItem)
 }
 IndexItem::IndexItem(const IndexItem& from)
   : ::google::protobuf::Message(),
@@ -5206,7 +4685,7 @@ IndexItem::IndexItem(const IndexItem& from)
   ::memcpy(&index_, &from.index_,
     static_cast<size_t>(reinterpret_cast<char*>(&offset_) -
     reinterpret_cast<char*>(&index_)) + sizeof(offset_));
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.IndexItem)
+  // @@protoc_insertion_point(copy_constructor:sharkstore.raft.impl.pb.IndexItem)
 }
 
 void IndexItem::SharedCtor() {
@@ -5217,7 +4696,7 @@ void IndexItem::SharedCtor() {
 }
 
 IndexItem::~IndexItem() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.IndexItem)
+  // @@protoc_insertion_point(destructor:sharkstore.raft.impl.pb.IndexItem)
   SharedDtor();
 }
 
@@ -5248,7 +4727,7 @@ IndexItem* IndexItem::New(::google::protobuf::Arena* arena) const {
 }
 
 void IndexItem::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.IndexItem)
+// @@protoc_insertion_point(message_clear_start:sharkstore.raft.impl.pb.IndexItem)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -5263,7 +4742,7 @@ bool IndexItem::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.IndexItem)
+  // @@protoc_insertion_point(parse_start:sharkstore.raft.impl.pb.IndexItem)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
@@ -5323,17 +4802,17 @@ bool IndexItem::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.IndexItem)
+  // @@protoc_insertion_point(parse_success:sharkstore.raft.impl.pb.IndexItem)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.IndexItem)
+  // @@protoc_insertion_point(parse_failure:sharkstore.raft.impl.pb.IndexItem)
   return false;
 #undef DO_
 }
 
 void IndexItem::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.IndexItem)
+  // @@protoc_insertion_point(serialize_start:sharkstore.raft.impl.pb.IndexItem)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -5356,13 +4835,13 @@ void IndexItem::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.IndexItem)
+  // @@protoc_insertion_point(serialize_end:sharkstore.raft.impl.pb.IndexItem)
 }
 
 ::google::protobuf::uint8* IndexItem::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.IndexItem)
+  // @@protoc_insertion_point(serialize_to_array_start:sharkstore.raft.impl.pb.IndexItem)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -5385,12 +4864,12 @@ void IndexItem::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.IndexItem)
+  // @@protoc_insertion_point(serialize_to_array_end:sharkstore.raft.impl.pb.IndexItem)
   return target;
 }
 
 size_t IndexItem::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.IndexItem)
+// @@protoc_insertion_point(message_byte_size_start:sharkstore.raft.impl.pb.IndexItem)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -5427,22 +4906,22 @@ size_t IndexItem::ByteSizeLong() const {
 }
 
 void IndexItem::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.IndexItem)
+// @@protoc_insertion_point(generalized_merge_from_start:sharkstore.raft.impl.pb.IndexItem)
   GOOGLE_DCHECK_NE(&from, this);
   const IndexItem* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const IndexItem>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.IndexItem)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:sharkstore.raft.impl.pb.IndexItem)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.IndexItem)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:sharkstore.raft.impl.pb.IndexItem)
     MergeFrom(*source);
   }
 }
 
 void IndexItem::MergeFrom(const IndexItem& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.IndexItem)
+// @@protoc_insertion_point(class_specific_merge_from_start:sharkstore.raft.impl.pb.IndexItem)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -5460,14 +4939,14 @@ void IndexItem::MergeFrom(const IndexItem& from) {
 }
 
 void IndexItem::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.IndexItem)
+// @@protoc_insertion_point(generalized_copy_from_start:sharkstore.raft.impl.pb.IndexItem)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void IndexItem::CopyFrom(const IndexItem& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.IndexItem)
+// @@protoc_insertion_point(class_specific_copy_from_start:sharkstore.raft.impl.pb.IndexItem)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -5503,13 +4982,13 @@ void IndexItem::clear_index() {
   index_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 IndexItem::index() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.IndexItem.index)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.IndexItem.index)
   return index_;
 }
 void IndexItem::set_index(::google::protobuf::uint64 value) {
   
   index_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.IndexItem.index)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.IndexItem.index)
 }
 
 // uint64 term = 2;
@@ -5517,13 +4996,13 @@ void IndexItem::clear_term() {
   term_ = GOOGLE_ULONGLONG(0);
 }
 ::google::protobuf::uint64 IndexItem::term() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.IndexItem.term)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.IndexItem.term)
   return term_;
 }
 void IndexItem::set_term(::google::protobuf::uint64 value) {
   
   term_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.IndexItem.term)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.IndexItem.term)
 }
 
 // uint32 offset = 3;
@@ -5531,13 +5010,13 @@ void IndexItem::clear_offset() {
   offset_ = 0u;
 }
 ::google::protobuf::uint32 IndexItem::offset() const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.IndexItem.offset)
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.IndexItem.offset)
   return offset_;
 }
 void IndexItem::set_offset(::google::protobuf::uint32 value) {
   
   offset_ = value;
-  // @@protoc_insertion_point(field_set:fbase.raft.impl.pb.IndexItem.offset)
+  // @@protoc_insertion_point(field_set:sharkstore.raft.impl.pb.IndexItem.offset)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -5554,7 +5033,7 @@ LogIndex::LogIndex()
     protobuf_raft_2eproto::InitDefaults();
   }
   SharedCtor();
-  // @@protoc_insertion_point(constructor:fbase.raft.impl.pb.LogIndex)
+  // @@protoc_insertion_point(constructor:sharkstore.raft.impl.pb.LogIndex)
 }
 LogIndex::LogIndex(const LogIndex& from)
   : ::google::protobuf::Message(),
@@ -5562,7 +5041,7 @@ LogIndex::LogIndex(const LogIndex& from)
       items_(from.items_),
       _cached_size_(0) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:fbase.raft.impl.pb.LogIndex)
+  // @@protoc_insertion_point(copy_constructor:sharkstore.raft.impl.pb.LogIndex)
 }
 
 void LogIndex::SharedCtor() {
@@ -5570,7 +5049,7 @@ void LogIndex::SharedCtor() {
 }
 
 LogIndex::~LogIndex() {
-  // @@protoc_insertion_point(destructor:fbase.raft.impl.pb.LogIndex)
+  // @@protoc_insertion_point(destructor:sharkstore.raft.impl.pb.LogIndex)
   SharedDtor();
 }
 
@@ -5601,7 +5080,7 @@ LogIndex* LogIndex::New(::google::protobuf::Arena* arena) const {
 }
 
 void LogIndex::Clear() {
-// @@protoc_insertion_point(message_clear_start:fbase.raft.impl.pb.LogIndex)
+// @@protoc_insertion_point(message_clear_start:sharkstore.raft.impl.pb.LogIndex)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -5614,13 +5093,13 @@ bool LogIndex::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:fbase.raft.impl.pb.LogIndex)
+  // @@protoc_insertion_point(parse_start:sharkstore.raft.impl.pb.LogIndex)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated .fbase.raft.impl.pb.IndexItem items = 1;
+      // repeated .sharkstore.raft.impl.pb.IndexItem items = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
@@ -5644,21 +5123,21 @@ bool LogIndex::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:fbase.raft.impl.pb.LogIndex)
+  // @@protoc_insertion_point(parse_success:sharkstore.raft.impl.pb.LogIndex)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:fbase.raft.impl.pb.LogIndex)
+  // @@protoc_insertion_point(parse_failure:sharkstore.raft.impl.pb.LogIndex)
   return false;
 #undef DO_
 }
 
 void LogIndex::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:fbase.raft.impl.pb.LogIndex)
+  // @@protoc_insertion_point(serialize_start:sharkstore.raft.impl.pb.LogIndex)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated .fbase.raft.impl.pb.IndexItem items = 1;
+  // repeated .sharkstore.raft.impl.pb.IndexItem items = 1;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->items_size()); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
@@ -5669,17 +5148,17 @@ void LogIndex::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:fbase.raft.impl.pb.LogIndex)
+  // @@protoc_insertion_point(serialize_end:sharkstore.raft.impl.pb.LogIndex)
 }
 
 ::google::protobuf::uint8* LogIndex::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:fbase.raft.impl.pb.LogIndex)
+  // @@protoc_insertion_point(serialize_to_array_start:sharkstore.raft.impl.pb.LogIndex)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated .fbase.raft.impl.pb.IndexItem items = 1;
+  // repeated .sharkstore.raft.impl.pb.IndexItem items = 1;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->items_size()); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
@@ -5691,12 +5170,12 @@ void LogIndex::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:fbase.raft.impl.pb.LogIndex)
+  // @@protoc_insertion_point(serialize_to_array_end:sharkstore.raft.impl.pb.LogIndex)
   return target;
 }
 
 size_t LogIndex::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:fbase.raft.impl.pb.LogIndex)
+// @@protoc_insertion_point(message_byte_size_start:sharkstore.raft.impl.pb.LogIndex)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -5704,7 +5183,7 @@ size_t LogIndex::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  // repeated .fbase.raft.impl.pb.IndexItem items = 1;
+  // repeated .sharkstore.raft.impl.pb.IndexItem items = 1;
   {
     unsigned int count = static_cast<unsigned int>(this->items_size());
     total_size += 1UL * count;
@@ -5723,22 +5202,22 @@ size_t LogIndex::ByteSizeLong() const {
 }
 
 void LogIndex::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:fbase.raft.impl.pb.LogIndex)
+// @@protoc_insertion_point(generalized_merge_from_start:sharkstore.raft.impl.pb.LogIndex)
   GOOGLE_DCHECK_NE(&from, this);
   const LogIndex* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const LogIndex>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:fbase.raft.impl.pb.LogIndex)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:sharkstore.raft.impl.pb.LogIndex)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:fbase.raft.impl.pb.LogIndex)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:sharkstore.raft.impl.pb.LogIndex)
     MergeFrom(*source);
   }
 }
 
 void LogIndex::MergeFrom(const LogIndex& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:fbase.raft.impl.pb.LogIndex)
+// @@protoc_insertion_point(class_specific_merge_from_start:sharkstore.raft.impl.pb.LogIndex)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -5748,14 +5227,14 @@ void LogIndex::MergeFrom(const LogIndex& from) {
 }
 
 void LogIndex::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:fbase.raft.impl.pb.LogIndex)
+// @@protoc_insertion_point(generalized_copy_from_start:sharkstore.raft.impl.pb.LogIndex)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void LogIndex::CopyFrom(const LogIndex& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:fbase.raft.impl.pb.LogIndex)
+// @@protoc_insertion_point(class_specific_copy_from_start:sharkstore.raft.impl.pb.LogIndex)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -5784,33 +5263,33 @@ void LogIndex::InternalSwap(LogIndex* other) {
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
 // LogIndex
 
-// repeated .fbase.raft.impl.pb.IndexItem items = 1;
+// repeated .sharkstore.raft.impl.pb.IndexItem items = 1;
 int LogIndex::items_size() const {
   return items_.size();
 }
 void LogIndex::clear_items() {
   items_.Clear();
 }
-const ::fbase::raft::impl::pb::IndexItem& LogIndex::items(int index) const {
-  // @@protoc_insertion_point(field_get:fbase.raft.impl.pb.LogIndex.items)
+const ::sharkstore::raft::impl::pb::IndexItem& LogIndex::items(int index) const {
+  // @@protoc_insertion_point(field_get:sharkstore.raft.impl.pb.LogIndex.items)
   return items_.Get(index);
 }
-::fbase::raft::impl::pb::IndexItem* LogIndex::mutable_items(int index) {
-  // @@protoc_insertion_point(field_mutable:fbase.raft.impl.pb.LogIndex.items)
+::sharkstore::raft::impl::pb::IndexItem* LogIndex::mutable_items(int index) {
+  // @@protoc_insertion_point(field_mutable:sharkstore.raft.impl.pb.LogIndex.items)
   return items_.Mutable(index);
 }
-::fbase::raft::impl::pb::IndexItem* LogIndex::add_items() {
-  // @@protoc_insertion_point(field_add:fbase.raft.impl.pb.LogIndex.items)
+::sharkstore::raft::impl::pb::IndexItem* LogIndex::add_items() {
+  // @@protoc_insertion_point(field_add:sharkstore.raft.impl.pb.LogIndex.items)
   return items_.Add();
 }
-::google::protobuf::RepeatedPtrField< ::fbase::raft::impl::pb::IndexItem >*
+::google::protobuf::RepeatedPtrField< ::sharkstore::raft::impl::pb::IndexItem >*
 LogIndex::mutable_items() {
-  // @@protoc_insertion_point(field_mutable_list:fbase.raft.impl.pb.LogIndex.items)
+  // @@protoc_insertion_point(field_mutable_list:sharkstore.raft.impl.pb.LogIndex.items)
   return &items_;
 }
-const ::google::protobuf::RepeatedPtrField< ::fbase::raft::impl::pb::IndexItem >&
+const ::google::protobuf::RepeatedPtrField< ::sharkstore::raft::impl::pb::IndexItem >&
 LogIndex::items() const {
-  // @@protoc_insertion_point(field_list:fbase.raft.impl.pb.LogIndex.items)
+  // @@protoc_insertion_point(field_list:sharkstore.raft.impl.pb.LogIndex.items)
   return items_;
 }
 
@@ -5821,6 +5300,6 @@ LogIndex::items() const {
 }  // namespace pb
 }  // namespace impl
 }  // namespace raft
-}  // namespace fbase
+}  // namespace sharkstore
 
 // @@protoc_insertion_point(global_scope)

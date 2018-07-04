@@ -17,7 +17,7 @@
 
 run_status_t g_status;
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace server {
 
@@ -101,7 +101,7 @@ std::string RunStatus::GetMetric() {
         metric += "Host: ";
         metric += ds_config.metric_config.ip_addr;
         metric += ":" + std::to_string(ds_config.metric_config.port);
-        metric += "\r\nUser-Agent: fbase-ds-client/1.1\r\n\r\n";
+        metric += "\r\nUser-Agent: sharkstore-ds-client/1.1\r\n\r\n";
 
         metric_info_ = std::move(metric);
     }
@@ -204,4 +204,4 @@ void RunStatus::printDBMetric() {
 
 }  // namespace server
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

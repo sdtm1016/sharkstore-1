@@ -10,8 +10,8 @@ int main(int argc, char* argv[]) {
 
 namespace {
 
-using namespace fbase::dataserver;
-using namespace fbase::dataserver::storage;
+using namespace sharkstore::dataserver;
+using namespace sharkstore::dataserver::storage;
 
 TEST(FieldVal, Types) {
     {

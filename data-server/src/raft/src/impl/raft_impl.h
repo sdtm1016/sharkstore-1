@@ -4,17 +4,18 @@ _Pragma("once");
 #include "raft/options.h"
 #include "raft/raft.h"
 
-#include "raft.grpc.pb.h"
+#include "bulletin_board.h"
 #include "raft_context.h"
-#include "raft_snapshot.h"
 #include "raft_types.h"
+#include "ready.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
 class RaftFsm;
-class BulletinBoard;
+struct SnapContext;
+struct SnapResult;
 
 class RaftImpl : public Raft, public std::enable_shared_from_this<RaftImpl> {
 public:
@@ -25,23 +26,25 @@ public:
     RaftImpl(const RaftImpl&) = delete;
     RaftImpl& operator=(const RaftImpl&) = delete;
 
-    bool IsStopped() override { return stopped_; }
+    void Stop();
+    bool IsStopped() const override { return stopped_; }
 
-    void GetLeaderTerm(uint64_t* leader, uint64_t* term) override;
-    bool IsLeader() override;
     Status TryToLeader() override;
 
     Status Submit(std::string& cmd) override;
     Status ChangeMemeber(const ConfChange& conf) override;
 
-    void GetPeers(std::vector<Peer>* peers) override;
-    void GetDownPeers(std::vector<DownPeer>* peers) override;
-    void GetPeedingPeers(std::vector<uint64_t>* peers) override;
-    void GetStatus(RaftStatus* status) override;
+    bool IsLeader() const override { return sops_.node_id == bulletin_board_.Leader(); }
+
+    void GetLeaderTerm(uint64_t* leader, uint64_t* term) const override {
+        bulletin_board_.LeaderTerm(leader, term);
+    }
+
+    void GetStatus(RaftStatus* status) const override { bulletin_board_.Status(status); }
+
+    void GetPeers(std::vector<Peer>* peers) const { bulletin_board_.Peers(peers); }
 
     void Truncate(uint64_t index) override;
-
-    void Stop();
 
     // 备份raft日志
     Status BackupLog();
@@ -50,23 +53,28 @@ public:
     Status Destroy();
 
 public:
-    const RaftOptions& Options() const { return ops_; }
+    void RecvMsg(MessagePtr msg);
+    void Tick(MessagePtr msg);
+    void Step(MessagePtr msg);
 
-    void RecvMsg(MessagePtr& msg);
-    void Step(MessagePtr& msg);
-
-    void ReportSnapshotStatus(const MessagePtr& header,
-                              const SnapshotStatus& s);
+    void ReportSnapSendResult(const SnapContext& ctx, const SnapResult& result);
+    void ReportSnapApplyResult(const SnapContext& ctx, const SnapResult& result);
 
 private:
+    void initPublish();
+
     void post(const std::function<void()>& f);
     bool tryPost(const std::function<void()>& f);
 
-    void maybeChange(uint64_t prev_leader, uint64_t prev_term);
-    void persist(uint64_t prev_term, uint64_t prev_commit, uint64_t prev_vote);
-    void apply(bool* conf_changed);
     void smApply(const EntryPtr& e);
-    void send();
+
+    void sendMessages();
+    void sendSnapshot();
+    void applySnapshot();
+
+    void persist();
+    void apply();
+    void publish();
 
     void truncate(uint64_t index);
 
@@ -75,13 +83,18 @@ private:
     const RaftOptions ops_;
     const RaftContext ctx_;
 
-    std::atomic<bool> stopped_;
+    std::atomic<bool> stopped_ = {false};
 
-    RaftFsm* fsm_ = nullptr;
-    BulletinBoard* bulletin_board_ = nullptr;
-    time_t last_update_status_ = 0;  // 定时更新RaftStatus
+    BulletinBoard bulletin_board_;
+
+    std::unique_ptr<RaftFsm> fsm_;
+
+    Ready ready_;
+    pb::HardState prev_hard_state_;
+    bool conf_changed_ = false;
+    std::atomic<uint64_t> tick_count_ = {0};
 };
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

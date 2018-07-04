@@ -8,17 +8,17 @@ import (
 
 var (
 	// 单位是秒
-	DefaultDownTimeLimit      time.Duration = 60 * time.Second
-	MaxDownReplicaTimeLimit   time.Duration = 5 * 60 * time.Second
-	DefaultDsHearbeatInterval time.Duration = 10 * time.Second
-	DefaultDsRecoveryInterim  time.Duration = 5 * 60 * time.Second
+	DefaultDownTimeLimit      = 60 * time.Second
+	MaxDownReplicaTimeLimit   = 5 * 60 * time.Second
+	DefaultDsHearbeatInterval = 10 * time.Second
+	DefaultDsRecoveryInterim  = 5 * 60 * time.Second
 
 	DefaultTimeFormat = "2006-01-02 15:04:05"
 	// 大于一个调度周期+一个心跳周期，预留冗余
-	DefaultChangeLeaderTaskTimeout time.Duration = time.Second * time.Duration(30)
-	DefaultRangeDeleteTaskTimeout  time.Duration = time.Second * time.Duration(30)
-	DefaultRangeAddPeerTaskTimeout time.Duration = time.Second * time.Duration(300)
-	DefaultRangeDelPeerTaskTimeout time.Duration = time.Second * time.Duration(30)
+	DefaultChangeLeaderTaskTimeout = time.Second * time.Duration(30)
+	DefaultRangeDeleteTaskTimeout  = time.Second * time.Duration(30)
+	DefaultRangeAddPeerTaskTimeout = time.Second * time.Duration(300)
+	DefaultRangeDelPeerTaskTimeout = time.Second * time.Duration(30)
 )
 
 func (node *Node) require() bool {
@@ -36,8 +36,15 @@ func (node *Node) require() bool {
 
 func (rng *Range) require(cluster *Cluster) bool {
 	//todo 完善range的state
-	if rng.State == metapb.RangeState_R_Remove || rng.State == metapb.RangeState_R_Abnormal {
+	if rng.State == metapb.RangeState_R_Remove ||
+		rng.State == metapb.RangeState_R_Abnormal ||
+		rng.State == metapb.RangeState_R_Init {
 		log.Debug("range state is abnormal, cannot be scheduled")
+		return false
+	}
+
+	//没有table，就不调度
+	if _, ok := cluster.FindTableById(rng.GetTableId()); !ok {
 		return false
 	}
 	if len(rng.GetPeers()) != cluster.opt.GetMaxReplicas() {

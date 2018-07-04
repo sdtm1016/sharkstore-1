@@ -36,7 +36,7 @@
 sf_socket_thread_config_t config;
 sf_socket_status_t status = {0};
 
-using namespace fbase::dataserver::common;
+using namespace sharkstore::dataserver::common;
 
 SocketSession *socket_session = new SocketSessionImpl;
 SocketServer socket_server;

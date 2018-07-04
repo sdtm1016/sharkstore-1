@@ -1,40 +1,39 @@
-#ifndef FBASE_BASE_STATUS_H_
-#define FBASE_BASE_STATUS_H_
+_Pragma("once");
 
 #include <string>
 #include <utility>
 
-namespace fbase {
+namespace sharkstore {
 
 class Status {
 public:
     enum Code {
-        kOk                     = 0,
-        kNotFound               = 1,
-        kCorruption             = 2,
-        kNotSupported           = 3,
-        kInvalidArgument        = 4,
-        kIOError                = 5,
-        kShutdownInProgress     = 6,
-        kTimedOut               = 7,
-        kAborted                = 8,
-        kBusy                   = 9,
-        kExpired                = 10,
-        kDuplicate              = 11,
-        kCompacted              = 12,
-        kEndofFile              = 13,
+        kOk = 0,
+        kNotFound = 1,
+        kCorruption = 2,
+        kNotSupported = 3,
+        kInvalidArgument = 4,
+        kIOError = 5,
+        kShutdownInProgress = 6,
+        kTimedOut = 7,
+        kAborted = 8,
+        kBusy = 9,
+        kExpired = 10,
+        kDuplicate = 11,
+        kCompacted = 12,
+        kEndofFile = 13,
 
-        kNoLeader               = 14,
-        kNotLeader              = 15,
-        kStaleEpoch             = 16,
-        kExisted                = 17,
-        kNoMem                  = 18,
-        kStaleRange             = 19,
-        kInvalid                = 20,
-        kResourceExhaust        = 21,
-        kNoLeftSpace            = 22,
+        kNoLeader = 14,
+        kNotLeader = 15,
+        kStaleEpoch = 16,
+        kExisted = 17,
+        kNoMem = 18,
+        kStaleRange = 19,
+        kInvalid = 20,
+        kResourceExhaust = 21,
+        kNoLeftSpace = 22,
 
-        kUnknown                = 255,
+        kUnknown = 255,
     };
 
     Status() : code_(kOk), state_(nullptr) {}
@@ -96,6 +95,4 @@ inline Status& Status::operator=(Status&& s) noexcept {
 inline bool Status::operator==(const Status& s) const { return code_ == s.code_; }
 inline bool Status::operator!=(const Status& s) const { return !(*this == s); }
 
-} /* namespace fbase */
-
-#endif /* end of include guard: FBASE_BASE_STATUS_H_ */
+} /* namespace sharkstore */

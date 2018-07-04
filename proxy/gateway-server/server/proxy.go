@@ -35,23 +35,23 @@ func NewProxy(msAddrs []string, config *Config) *Proxy {
 		return nil
 	}
 	var taskQueues []chan Task
-	for i := 0; i < int(config.MaxWorkNum); i++ {
-		queue := make(chan Task, config.MaxTaskQueueLen)
+	for i := 0; i < int(config.Performance.MaxWorkNum); i++ {
+		queue := make(chan Task, config.Performance.MaxTaskQueueLen)
 		taskQueues = append(taskQueues, queue)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	proxy := &Proxy{
 		router: router,
 		msCli:  msCli,
-		dsCli:  dsClient.NewRPCClient(config.GrpcPoolSize),
+		dsCli:  dsClient.NewRPCClient(config.Performance.GrpcPoolSize),
 		//metric:  metrics.NewMetricMeter("gateway", new(Report)),
 		clock:       hlc.NewClock(hlc.UnixNano, 0),
 		config:      config,
 		ctx:         ctx,
 		cancel:      cancel,
-		maxWorkNum: config.MaxWorkNum,
+		maxWorkNum: config.Performance.MaxWorkNum,
 		taskQueues: taskQueues,
-		workRecover: make(chan int, config.MaxWorkNum),
+		workRecover: make(chan int, config.Performance.MaxWorkNum),
 	}
 
 	for i, queue := range taskQueues {

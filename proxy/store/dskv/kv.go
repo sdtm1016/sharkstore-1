@@ -70,6 +70,13 @@ func (p *KvProxy) send(bo *Backoffer, _ctx *Context, req *Request) (resp *Respon
 			goto Err
 		}
 		resp.UnlockForceResp = _resp
+	case Type_LockScan:
+		_resp, _err := p.Cli.LockScan(ctx, addr, req.GetLockScanReq())
+		if _err != nil {
+			err = _err
+			goto Err
+		}
+		resp.LockScanResp = _resp
 	case Type_RawPut:
 		_resp, _err := p.Cli.RawPut(ctx, addr, req.GetRawPutReq())
 		if _err != nil {
@@ -221,6 +228,9 @@ func (p *KvProxy) prepare(location *KeyLocation, req *Request) (time.Duration, *
 		timeout = client.ReadTimeoutShort
 	case Type_UnlockForce:
 		header = req.UnlockForceReq.GetHeader()
+		timeout = client.ReadTimeoutShort
+	case Type_LockScan:
+		header = req.LockScanReq.GetHeader()
 		timeout = client.ReadTimeoutShort
 
 	case Type_KvSet:
@@ -381,6 +391,8 @@ func (p *KvProxy) doRangeError(bo *Backoffer, rangeErr *errorpb.Error, ctx *Cont
 		if notLeader.GetLeader() == nil {
 			err = bo.Backoff(boRangeMiss, fmt.Errorf("no leader: %v, range: %d", notLeader, ctx.VID.Id))
 			if err != nil {
+				//可能gateway没有拿到最新的拓扑
+				p.RangeCache.DropRegion(ctx.VID)
 				return false, err
 			}
 		} else {

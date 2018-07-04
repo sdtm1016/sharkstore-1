@@ -1,11 +1,10 @@
-#ifndef FBASE_DATASERVER_RANGE_SNAPSHOT_H_
-#define FBASE_DATASERVER_RANGE_SNAPSHOT_H_
+_Pragma("once");
 
 #include "proto/gen/raft_cmdpb.pb.h"
 #include "raft/snapshot.h"
 #include "storage/iterator.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace range {
 
@@ -28,6 +27,4 @@ private:
 
 } /* namespace range */
 } /* namespace dataserver */
-} /* namespace fbase */
-
-#endif /* end of include guard: FBASE_DATASERVER_RANGE_SNAPSHOT_H_ */
+} /* namespace sharkstore */

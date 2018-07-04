@@ -3,7 +3,7 @@
 #include <assert.h>
 #include "common/ds_encoding.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -118,4 +118,4 @@ void EncodeFieldValue(std::string* buf, FieldValue* v) {
 
 } /* namespace storage */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

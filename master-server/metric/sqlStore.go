@@ -77,6 +77,8 @@ var (
 	DbMetaSQL = `insert into db_meta (cluster_id, db_name, table_num, range_size, update_time) values (%d,"%s",%d,%d,%d)`
 	TableMetaSQL = `insert into table_meta (cluster_id, db_name, table_name, range_count, range_size, update_time) values (%d,"%s","%s",%d,%d,%d)`
 	TaskMetaSQL = `insert into task_meta (cluster_id, finish_time, used_time, state, describe, update_time) values (%d,%d,%d,"%s","%s",%d)`
+
+	RangeStatsSQL = `insert into range_stats (cluster_id, addr, range_id, bytes_written, bytes_read, keys_written, keys_read, approximate_size, update_time) values (%d,"%s",%d,%d,%d,%d,%d,%d,%d)`
 )
 
 var metricMap map[string]string
@@ -96,6 +98,7 @@ func init() {
 	metricMap["db_meta"] = DbMetaSQL
 	metricMap["table_meta"] = TableMetaSQL
 	metricMap["task_meta"] = TaskMetaSQL
+	metricMap["range_stats"] = RangeStatsSQL
 }
 
 type SqlStore struct {
@@ -143,18 +146,58 @@ func (s *SqlStore) work() {
 		    if !ok {
 			    continue
 		    }
-			format, args, err := prepare(msg)
-		    if err != nil {
-			    log.Warn("prepare message failed, err[%v]", err)
-			    fmt.Println("prepare message failed!!!!")
-			    continue
-		    }
-			err = s.push(format, args...)
+			if err := s.push(msg); err != nil {
+				log.Warn("push message to sql store failed, err[%v]", err)
+			}
+		}
+	}
+}
+
+func (s *SqlStore) push(msg *Message)  error {
+	items := msg.Items
+	switch reflect.TypeOf(items).Kind() {
+	case reflect.Slice:
+		values := items.([]interface{})
+		num := len(values)
+		if num == 0 {
+			return errors.New("empty items")
+		}
+		for _, value := range values{
+			item := value.(map[string]interface{})
+			num := len(item)
+			if num == 0 {
+				return errors.New("empty items")
+			}
+			format, args, err := prepare(msg.Subsystem, item)
+			if err != nil {
+				log.Warn("prepare message failed, err[%v]", err)
+				continue
+			}
+			err = s.insert(format, args...)
 			if err != nil {
 				log.Warn("push message failed, err[%v]", err)
 			}
 		}
+	case reflect.Map:
+		value := items.(map[string]interface{})
+		num := len(value)
+		if num == 0 {
+			return errors.New("empty items")
+		}
+		format, args, err := prepare(msg.Subsystem, value)
+		if err != nil {
+			log.Warn("prepare message failed, err[%v]", err)
+			return err
+		}
+		err = s.insert(format, args...)
+		if err != nil {
+			log.Warn("push message failed, err[%v]", err)
+			return err
+		}
+	default:
+		return errors.New("not support")
 	}
+	return nil
 }
 
 
@@ -219,7 +262,7 @@ func (s *SqlStore) ping() error {
 }
 
 // 串行执行，因此不需要锁
-func (s *SqlStore) push(format string, args ...interface{}) error {
+func (s *SqlStore) insert(format string, args ...interface{}) error {
 	SQL := fmt.Sprintf(format, args...)
 	log.Debug("sql %s", SQL)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -242,22 +285,18 @@ func (s *SqlStore) Put(message *Message) error {
 	return nil
 }
 
-func prepare(msg *Message) (format string, args []interface{}, err error){
+func prepare(tableName string, data map[string]interface{}) (format string, args []interface{}, err error){
 	var ok bool
-	_, ok = metricMap[msg.Subsystem]
+	_, ok = metricMap[tableName]
 	if !ok {
-		err = fmt.Errorf("invalid metric item[%s]", msg.Subsystem)
+		err = fmt.Errorf("invalid metric item[%s]", tableName)
 		return
 	}
 
 	var items, values string
 	count := 0
-	num := len(msg.Items)
-	if num == 0 {
-		err = errors.New("empty items")
-		return
-	}
-	for item, value := range msg.Items {
+	num := len(data)
+	for item, value := range data {
 		count++
 		if count < num {
 			items += fmt.Sprintf(`%s,`, item)
@@ -296,6 +335,6 @@ func prepare(msg *Message) (format string, args []interface{}, err error){
 		}
 		args = append(args, value)
 	}
-	format = fmt.Sprintf(`insert into %s (%s) values (%s)`, msg.Subsystem, items, values)
+	format = fmt.Sprintf(`insert into %s (%s) values (%s)`, tableName, items, values)
 	return
 }

@@ -8,7 +8,7 @@ _Pragma("once");
 
 #include "../raft_types.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace transport {
@@ -41,10 +41,10 @@ private:
     std::atomic<int64_t> msg_id_;
 
     std::unordered_map<uint64_t, int64_t> sessions_;
-    mutable fbase::shared_mutex mu_;
+    mutable sharkstore::shared_mutex mu_;
 };
 
 } /* namespace transport */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

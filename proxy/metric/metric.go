@@ -1,29 +1,29 @@
 package metric
 
 import (
-	"time"
-	"sync/atomic"
-	"net/http"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
+	"net/http"
 	"net/url"
-	"fmt"
-	"strings"
-	"strconv"
-	"os/exec"
 	"os"
-	"syscall"
+	"os/exec"
 	"runtime"
+	"strconv"
+	"strings"
 	"sync"
+	"sync/atomic"
+	"time"
 
-	"util/metrics"
-	"util/log"
-	"model/pkg/statspb"
-	"github.com/gogo/protobuf/proto"
 	"encoding/json"
+	"model/pkg/statspb"
+	"util/log"
+	"util/metrics"
+
+	"github.com/gogo/protobuf/proto"
 )
 
 var GsMetric *Metric
@@ -31,7 +31,7 @@ var GsMetric *Metric
 type SlowLog struct {
 	maxSlowLogNum uint64
 	currentIndex  uint64
-	slowLog   []*statspb.SlowLog
+	slowLog       []*statspb.SlowLog
 }
 
 type Metric struct {
@@ -40,13 +40,13 @@ type Metric struct {
 	metricAddr string
 	cli        *http.Client
 	//proxy level
-	proxyMeter      *metrics.MetricMeter
+	proxyMeter *metrics.MetricMeter
 	//store level
-	storeMeter      *metrics.MetricMeter
+	storeMeter    *metrics.MetricMeter
 	maxSlowLogNum uint64
 
-	lock         sync.Mutex
-	slowLogger   *SlowLog
+	lock       sync.Mutex
+	slowLogger *SlowLog
 
 	connectCount int64
 
@@ -54,29 +54,62 @@ type Metric struct {
 }
 
 func NewMetric(clusterId uint64, host, addr string, maxSlowLogNum uint64) *Metric {
-	cli := &http.Client{
-		Transport: &http.Transport{
-			Dial: func(network, addr string) (net.Conn, error) {
-				return net.DialTimeout(network, addr, time.Second)
-			},
-			ResponseHeaderTimeout: time.Second,
-		},
-	}
 	metric := &Metric{
 		clusterId: clusterId,
 		host: host,
 		metricAddr: addr,
-		cli: cli,
 		maxSlowLogNum: maxSlowLogNum,
 		slowLogger: &SlowLog{
 			maxSlowLogNum: maxSlowLogNum,
-			slowLog: make([]*statspb.SlowLog, 0, maxSlowLogNum),
+			slowLog:       make([]*statspb.SlowLog, 0, maxSlowLogNum),
 		},
+	}
+	if addr != "" {
+		metric.cli = &http.Client{
+			Transport: &http.Transport{
+				Dial: func(network, addr string) (net.Conn, error) {
+					return net.DialTimeout(network, addr, time.Second)
+				},
+				ResponseHeaderTimeout: time.Second,
+			},
+		}
 	}
 	metric.proxyMeter = metrics.NewMetricMeter("GS-Proxy", time.Second * 60, metric)
 	metric.storeMeter = metrics.NewMetricMeter("GS-Store", time.Second * 60, metric)
+  
 	go metric.Run()
 	return metric
+}
+
+func UpdateMetric(addr string) error {
+	if GsMetric == nil {
+		return errors.New("wait init")
+	}
+	if GsMetric.metricAddr == addr {
+		log.Info("metric server is running on the same config")
+		return nil
+	}
+	if addr != "" {
+		GsMetric.cli = &http.Client{
+			Transport: &http.Transport{
+				Dial: func(network, addr string) (net.Conn, error) {
+					return net.DialTimeout(network, addr, time.Second)
+				},
+				ResponseHeaderTimeout: time.Second,
+			},
+		}
+	} else {
+		GsMetric.cli = nil
+	}
+	GsMetric.metricAddr = addr
+	return nil
+}
+
+func (m *Metric) GetMetricAddress() string  {
+	if m == nil {
+		return ""
+	}
+	return m.metricAddr
 }
 
 func (m *Metric) Run() {
@@ -88,8 +121,8 @@ func (m *Metric) Run() {
 			m.lock.Lock()
 			slowLogger := m.slowLogger
 			m.slowLogger = &SlowLog{
-			    maxSlowLogNum: m.maxSlowLogNum,
-			    slowLog: make([]*statspb.SlowLog, 0, m.maxSlowLogNum),
+				maxSlowLogNum: m.maxSlowLogNum,
+				slowLog:       make([]*statspb.SlowLog, 0, m.maxSlowLogNum),
 			}
 			m.lock.Unlock()
 			stats := &statspb.SlowLogStats{}
@@ -114,14 +147,14 @@ func (m *Metric) ProxyApiMetric(method string, ack bool, delay time.Duration) {
 	if m == nil {
 		return
 	}
-	m.proxyMeter.AddApiWithDelay(method, ack,  delay)
+	m.proxyMeter.AddApiWithDelay(method, ack, delay)
 }
 
 func (m *Metric) StoreApiMetric(method string, ack bool, delay time.Duration) {
 	if m == nil {
 		return
 	}
-	m.storeMeter.AddApiWithDelay(method, ack,  delay)
+	m.storeMeter.AddApiWithDelay(method, ack, delay)
 }
 
 func (m *Metric) SlowLogMetric(slowLog string, delay time.Duration) {
@@ -135,12 +168,12 @@ func (m *Metric) SlowLogMetric(slowLog string, delay time.Duration) {
 	if uint64(len(slowLogger.slowLog)) < slowLogger.maxSlowLogNum {
 		slowLogger.slowLog = append(slowLogger.slowLog, &statspb.SlowLog{
 			SlowLog: slowLog,
-			Lats: delay.Seconds(),
+			Lats:    delay.Seconds(),
 		})
 	} else {
-		slowLogger.slowLog[index % slowLogger.maxSlowLogNum] = &statspb.SlowLog{
+		slowLogger.slowLog[index%slowLogger.maxSlowLogNum] = &statspb.SlowLog{
 			SlowLog: slowLog,
-			Lats: delay.Seconds(),
+			Lats:    delay.Seconds(),
 		}
 	}
 
@@ -155,6 +188,12 @@ func (m *Metric) AddConnectCount(delta int64) {
 }
 
 func (m *Metric) SendMetric(url string, message proto.Message) error {
+	if m == nil {
+		return nil
+	}
+	if m.cli == nil {
+		return nil
+	}
 	data, err := json.Marshal(message)
 	if err != nil {
 		return err
@@ -259,18 +298,18 @@ func cpuRate() (float64, error) {
 	find := false
 	for {
 		line, err := out.ReadString('\n')
-		if err!=nil {
-			break;
+		if err != nil {
+			break
 		}
 		tokens := strings.Split(line, " ")
 		ft := make([]string, 0)
-		for _, t := range(tokens) {
-			if t!="" && t!="\t" {
+		for _, t := range tokens {
+			if t != "" && t != "\t" {
 				ft = append(ft, t)
 			}
 		}
 		_pid, err := strconv.Atoi(ft[1])
-		if err!=nil {
+		if err != nil {
 			continue
 		}
 		if pid == _pid {
@@ -286,22 +325,6 @@ func cpuRate() (float64, error) {
 		return rate, errors.New("not found process!!!!")
 	}
 	return rate, nil
-}
-
-func memInfo() (total uint64, used uint64, err error) {
-	memStat := new(runtime.MemStats)
-	runtime.ReadMemStats(memStat)
-	used = memStat.Alloc
-
-	//系统占用,仅linux/mac下有效
-	//system memory usage
-	sysInfo := new(syscall.Sysinfo_t)
-	err = syscall.Sysinfo(sysInfo)
-	if err != nil {
-		return
-	}
-	total = sysInfo.Totalram * uint64(syscall.Getpagesize())
-	return
 }
 
 func fdInfo() (num uint32, err error) {

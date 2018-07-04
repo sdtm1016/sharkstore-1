@@ -4,7 +4,7 @@
 #include "common/ds_proto.h"
 #include "frame/sf_logger.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace transport {
@@ -61,7 +61,7 @@ void FastClient::SendMessage(MessagePtr &msg) {
 
 int64_t FastClient::getSession(uint64_t to) {
     {
-        fbase::shared_lock<fbase::shared_mutex> locker(mu_);
+        sharkstore::shared_lock<sharkstore::shared_mutex> locker(mu_);
         auto it = sessions_.find(to);
         if (it != sessions_.end()) {
             return it->second;
@@ -83,7 +83,7 @@ int64_t FastClient::getSession(uint64_t to) {
         return 0;
     }
 
-    std::unique_lock<fbase::shared_mutex> locker(mu_);
+    std::unique_lock<sharkstore::shared_mutex> locker(mu_);
     auto it = sessions_.find(to);
     if (it != sessions_.end()) {
         return it->second;
@@ -100,7 +100,7 @@ int64_t FastClient::getSession(uint64_t to) {
 }
 
 void FastClient::removeSession(uint64_t to) {
-    std::unique_lock<fbase::shared_mutex> locker(mu_);
+    std::unique_lock<sharkstore::shared_mutex> locker(mu_);
     sessions_.erase(to);
 }
 
@@ -139,4 +139,4 @@ void FastClient::send(int64_t sid, MessagePtr &msg) {
 } /* namespace transport */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

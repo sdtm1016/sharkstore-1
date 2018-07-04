@@ -3,7 +3,7 @@
 #include "frame/sf_util.h"
 #include "frame/sf_logger.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace common {
 
@@ -328,4 +328,4 @@ int SocketClient::RecvDone(ProtoMessage *req) {
 
 }  // namespace common
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

@@ -5,7 +5,7 @@
 #include "frame/sf_socket_session.h"
 #include "frame/sf_util.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace common {
 
@@ -71,4 +71,4 @@ sf_session_entry_t * SocketBase::lookup_session_entry(int64_t session_id) {
 
 }  // namespace common
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

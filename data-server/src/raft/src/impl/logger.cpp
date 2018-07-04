@@ -3,7 +3,7 @@
 #include <cstdarg>
 #include <iostream>
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
@@ -52,4 +52,4 @@ void StdLogger::Error(const char* file, int line, const char* format, ...) {
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

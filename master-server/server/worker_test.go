@@ -14,13 +14,48 @@ import (
 
 var wg sync.WaitGroup  //定义一个同步等待的组
 
+func TestAdjust_Interval(t *testing.T) {
+	interval := 5 * defaultWorkerInterval
+	adjustThreshold := maxFloat64(60, float64(Min_leader_adjust_num))
+	if 100 > adjustThreshold {
+		interval = maxDuration(time.Duration(float64(interval)*scheduleIntervalFactor), minScheduleInterval)
+	} else {
+		interval = 5 * defaultWorkerInterval
+	}
+
+	t.Logf("fist adjust, interval: %v", interval)
+
+	adjustThreshold = maxFloat64(60, float64(Min_leader_adjust_num))
+	if 100 > adjustThreshold {
+		interval = maxDuration(time.Duration(float64(interval)*scheduleIntervalFactor), minScheduleInterval)
+	} else {
+		interval = 5 * defaultWorkerInterval
+	}
+
+	t.Logf("second adjust, interval: %v", interval)
+
+	for i := 0; i< 100; i++ {
+		interval = maxDuration(time.Duration(float64(interval)*scheduleIntervalFactor), minScheduleInterval)
+		t.Logf("adjust, interval: %v", interval)
+	}
+
+	adjustThreshold = maxFloat64(60, float64(Min_leader_adjust_num))
+	if 50 > adjustThreshold {
+		interval = maxDuration(time.Duration(float64(interval)*scheduleIntervalFactor), minScheduleInterval)
+	} else {
+		interval = 5 * defaultWorkerInterval
+	}
+
+	t.Logf("thred recover, interval: %v", interval)
+}
+
 func TestBalanceLeader(t *testing.T) {
 	mockCluster := MockCluster(t)
 	defer closeCluster(mockCluster)
 	addRangeForLeaderBalance(mockCluster, 100, t)
 	fmt.Println(fmt.Sprintf("current range size: [%v]", len(mockCluster.GetAllRanges())))
 	mockCluster.AddBalanceLeaderWorker()
-	for i := 0 ; i< 7; i++ {
+	for i := 0; i < 7; i++ {
 		NodeBalanceCondition(i, mockCluster, t)
 		time.Sleep(time.Minute)
 	}
@@ -28,14 +63,13 @@ func TestBalanceLeader(t *testing.T) {
 	wg.Wait()
 }
 
-
 func TestBalanceRangeNum(t *testing.T) {
 	mockCluster := MockCluster(t)
 	defer closeCluster(mockCluster)
 	addRangeForRangeBalance(mockCluster, 100, t)
 	fmt.Println(fmt.Sprintf("current range size: [%v]", len(mockCluster.GetAllRanges())))
 	mockCluster.AddBalanceRangeWorker()
-	for i := 0 ; i< 7; i++ {
+	for i := 0; i < 7; i++ {
 		NodeBalanceCondition(i, mockCluster, t)
 		time.Sleep(time.Minute)
 	}
@@ -50,7 +84,7 @@ func TestBalanceRangeOps(t *testing.T) {
 	addRangeForRangeBalance(mockCluster, 100, t)
 	fmt.Println(fmt.Sprintf("current range size: [%v]", len(mockCluster.GetAllRanges())))
 	mockCluster.AddBalanceNodeOpsWorker()
-	for i := 0 ; i< 8; i++ {
+	for i := 0; i < 8; i++ {
 		NodeBalanceCondition(i, mockCluster, t)
 		time.Sleep(time.Minute)
 	}
@@ -58,14 +92,14 @@ func TestBalanceRangeOps(t *testing.T) {
 	wg.Wait()
 }
 
-func MockCluster(t *testing.T)  *Cluster{
+func MockCluster(t *testing.T) *Cluster {
 	mockCluster := newLocalCluster(newMockIDAllocator())
 	addNodes(mockCluster)
 	fmt.Println(fmt.Sprintf("current node size : %v", len(mockCluster.GetAllNode())))
 	return mockCluster
 }
 
-func NodeBalanceCondition(expr int, c *Cluster, t *testing.T)  {
+func NodeBalanceCondition(expr int, c *Cluster, t *testing.T) {
 	switch expr {
 	case 1:
 		//update node state
@@ -89,7 +123,7 @@ func NodeBalanceCondition(expr int, c *Cluster, t *testing.T)  {
 		return
 	case 4:
 		//cache
-		for i:=0 ; i< 100; i++ {
+		for i := 0; i < 100; i++ {
 			c.hbManager.dealIngNodes.set(5)
 			time.Sleep(time.Second)
 		}
@@ -98,7 +132,7 @@ func NodeBalanceCondition(expr int, c *Cluster, t *testing.T)  {
 		//range state
 		i := 0
 		for _, rng := range c.GetAllRanges() {
-			if i % 6 == 0 {
+			if i%6 == 0 {
 				rng.State = metapb.RangeState_R_Offline
 			}
 			i++
@@ -114,7 +148,7 @@ func NodeBalanceCondition(expr int, c *Cluster, t *testing.T)  {
 		// range ops
 		i := 0
 		for _, rng := range c.GetAllRanges() {
-			if i % 5 == 0 {
+			if i%5 == 0 {
 				rng.BytesWritten = 100000000
 				rng.opsStat.Hit(rng.BytesWritten)
 			}
@@ -143,7 +177,7 @@ func addRangeForLeaderBalance(cluster *Cluster, rangeSize int, t *testing.T) {
 	}
 	for _, node := range cluster.GetAllNode() {
 		var leaderNodeNum uint32
-		for _, rng := range node.GetAllRanges(){
+		for _, rng := range node.GetAllRanges() {
 			if rng.GetLeader().GetNodeId() == node.GetId() {
 				leaderNodeNum++
 			}
@@ -165,8 +199,8 @@ func addRangeForRangeBalance(cluster *Cluster, rangeSize int, t *testing.T) {
 			continue
 		}
 		rngM := &metapb.Range{
-			Id: rangeId,
-			Peers:  addPeersRandom(cluster),
+			Id:      rangeId,
+			Peers:   addPeersRandom(cluster),
 			TableId: tableId,
 		}
 		rng := NewRange(rngM, nil)
@@ -175,7 +209,7 @@ func addRangeForRangeBalance(cluster *Cluster, rangeSize int, t *testing.T) {
 	for _, node := range cluster.GetAllNode() {
 		node.stats.RangeCount = uint32(len(node.GetAllRanges()))
 		var leaderNodeNum uint32
-		for _, rng := range node.GetAllRanges(){
+		for _, rng := range node.GetAllRanges() {
 			if rng.GetLeader().GetNodeId() == node.GetId() {
 				leaderNodeNum++
 			}
@@ -203,7 +237,7 @@ func addPeersBalance(cluster *Cluster, rng *Range, t *testing.T) {
 	}
 }
 
-func addPeersRandom(cluster *Cluster) []*metapb.Peer{
+func addPeersRandom(cluster *Cluster) []*metapb.Peer {
 	var peers []*metapb.Peer
 	nodes := cluster.GetAllNode()
 	for index := 0; index < cluster.opt.GetMaxReplicas(); index++ {

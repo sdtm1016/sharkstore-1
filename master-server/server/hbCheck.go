@@ -3,10 +3,17 @@ package server
 import (
 	"time"
 
+	"model/pkg/alarmpb"
 	"model/pkg/metapb"
 	"util/log"
 
+	"fmt"
+	"util/deepcopy"
+
 	"golang.org/x/net/context"
+	"util/alarm"
+	"strings"
+	"strconv"
 )
 
 type RegionHbCheckWorker struct {
@@ -43,12 +50,37 @@ func (hb *RegionHbCheckWorker) Work(cluster *Cluster) {
 
 			//12个周期leader无心跳
 			if time.Since(r.LastHbTimeTS) > cluster.opt.GetMaxRangeDownTime() {
+				var desc string
 				if leader == nil {
 					log.Error("must bug !!!  range[%d:%d] no leader, no heartbeat, lastHeartbeat :[%v]",
 						table.GetId(), r.GetId(), r.LastHbTimeTS)
+
+					desc = fmt.Sprintf("cluster[%v] table[%v] range[%v] no heartbeat, no leader, lastheartbeat:[%v]",
+						cluster.GetClusterId(), table.GetId(), r.GetId(), r.LastHbTimeTS)
 				} else {
 					log.Error("range[%d:%d] no heartbeat, leader is [%d], lastHeartbeat:[%v]",
 						table.GetId(), r.GetId(), leader.GetNodeId(), r.LastHbTimeTS)
+
+					desc = fmt.Sprintf("cluster[%v] table[%v] range[%v] no heartbeat, leader node[id %v, addr %v], lastheartbeat:[%v]",
+						cluster.GetClusterId(), table.GetId(), r.GetId(), leader.GetNodeId(), cluster.FindNodeById(leader.GetNodeId()).GetServerAddr(), r.LastHbTimeTS)
+				}
+
+				ip := strings.Split(cluster.FindNodeById(leader.GetNodeId()).GetServerAddr(), ":")[0]
+				port, _ := strconv.ParseInt(strings.Split(cluster.FindNodeById(leader.GetNodeId()).GetServerAddr(), ":")[1], 10, 64)
+				info := make(map[string]interface{})
+				info["ip"] = ip
+				info["port"] = port
+				info["spaceId"] = cluster.GetClusterId()
+				info["range_no_heartbeat"] = 1
+				info["tableId"] = table.GetId()
+				info["rangeId"] = r.GetId()
+				info["nodeId"] = leader.GetNodeId()
+				sample := alarm.NewSample(ip, int(port), int(cluster.GetClusterId()), info)
+				if err := cluster.alarmCli.RangeNoHeartbeatAlarm(int64(cluster.clusterId), &alarmpb.RangeNoHeartbeatAlarm{
+					Range:             deepcopy.Iface(r.Range).(*metapb.Range),
+					LastHeartbeatTime: r.LastHbTimeTS.String(),
+				}, desc, []*alarm.Sample{sample}); err != nil {
+					log.Error("range no leader alarm failed: %v", err)
 				}
 
 				r.State = metapb.RangeState_R_Abnormal
@@ -61,9 +93,7 @@ func (hb *RegionHbCheckWorker) Work(cluster *Cluster) {
 				}
 
 			} else { //leader上报心跳正常
-				quorum := len(r.Peers)/2 + 1
-				// 好的节点不足quorum
-				if len(r.Peers)-len(r.DownPeers) < quorum {
+				if isQuorumDown(r) {
 					r.State = metapb.RangeState_R_Abnormal
 					cluster.unhealthyRanges.Put(r.GetId(), r)
 
@@ -75,6 +105,10 @@ func (hb *RegionHbCheckWorker) Work(cluster *Cluster) {
 						table.GetId(), r.GetId(), leaderNodeID, r.GetDownPeers())
 
 					//TODO: alarm
+				} else {
+					if len(r.Peers) != cluster.opt.GetMaxReplicas() || len(r.GetDownPeers()) > 0 {
+						cluster.unstableRanges.Put(r.GetId(), r)
+					}
 				}
 			}
 		}
@@ -111,19 +145,4 @@ func retrieveNode(cluster *Cluster, r *Range) []uint64 {
 		}
 	}
 	return nodeIds
-}
-
-func compPeerAva(cluster *Cluster, r *Range) ([]*metapb.Peer, []*metapb.Peer) {
-	var peerAble []*metapb.Peer
-	var peerUnAble []*metapb.Peer
-	for _, p := range r.GetPeers() {
-		node := cluster.FindNodeById(p.GetNodeId())
-		//检查peer的状态
-		if node == nil || !node.IsLogin() {
-			peerUnAble = append(peerUnAble, p)
-		} else {
-			peerAble = append(peerAble, p)
-		}
-	}
-	return peerAble, peerUnAble
 }

@@ -5,7 +5,7 @@
 #include <thread>
 #include "server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace playground {
 
@@ -52,4 +52,4 @@ void TelnetService::do_accept() {
 
 } /* namespace playground */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

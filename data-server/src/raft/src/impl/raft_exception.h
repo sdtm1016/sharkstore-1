@@ -4,7 +4,7 @@ _Pragma("once");
 
 #include "base/status.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
@@ -19,4 +19,4 @@ public:
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `fbase_cluster` (
     `cluster_sign` varchar(64) NOT NULL,
     `auto_transfer` tinyint NOT NULL,
     `auto_failover` tinyint NOT NULL,
+    `auto_split` tinyint NOT NULL,
     `create_time` bigint(20) NOT NULL,
 	PRIMARY KEY (`id`)
 )
@@ -250,6 +251,24 @@ CREATE TABLE IF NOT EXISTS `fbase_lock_nsp` (
     `applyer`     varchar(64) NOT NULL,
     `create_time` bigint(20) NOT NULL,
 	  PRIMARY KEY (`namespace`, `cluster_id`)
+)
+
+CREATE TABLE IF NOT EXISTS `range_stats` (
+    `cluster_id`  bigint(20) NOT NULL,
+    `range_id`  bigint(20) NOT NULL,
+    `addr`  varchar(32) NOT NULL,
+    `bytes_written`     bigint(20) NOT NULL,
+    `bytes_read`     bigint(20) NOT NULL,
+    `keys_written`     bigint(20) NOT NULL,
+    `keys_read`     bigint(20) NOT NULL,
+    `approximate_size`     bigint(20) NOT NULL,
+    `update_time` bigint(20) NOT NULL,
+	  PRIMARY KEY (`cluster_id`, `range_id`)
+)
+
+CREATE TABLE IF NOT EXISTS `metric_server` (
+    `addr`  bigint(20) NOT NULL,
+	  PRIMARY KEY (`addr`)
 )
 
 #需要初始化fbase_role, fbase_privilege

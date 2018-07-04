@@ -2,7 +2,7 @@ _Pragma("once");
 
 #include <cstddef>
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace bench {
 
@@ -22,4 +22,4 @@ extern BenchConfig bench_config;
 
 } /* namespace bench */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

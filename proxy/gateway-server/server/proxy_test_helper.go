@@ -76,8 +76,10 @@ func newTestProxy(db *metapb.DataBase, table *metapb.Table, rng *metapb.Range) *
 		dsCli:   dsClient.NewRPCClient(),
 		router:  NewRouter(cli),
 		config: &Config{MaxLimit: DefaultMaxRawCount,
-			GrpcInitWinSize: 1024 * 1024 * 10,
-			GrpcPoolSize:    1,
+						Performance: PerformConfig{
+							GrpcInitWinSize: 1024 * 1024 * 10,
+							GrpcPoolSize:    1,
+						},
 		},
 		clock:      hlc.NewClock(hlc.UnixNano, 0),
 		ctx:        ctx,

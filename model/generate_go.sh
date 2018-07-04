@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
-. ./common.sh
+#. ./common.sh
 
 #check_protoc_version
 
 PROGRAM=$(basename "$0")
 
-#FBASEPATH=$HOME/FBASE-go
 FBASEPATH=$1
-#FBASEPATH=/home/yangyang183/work/go_workspace/fbase
-#FBASEPATH=$(readlink -e "$FBASEPATH")
 if [ "x"$FBASEPATH == "x" ]; then
     echo "Error : Please set parameter for 'fbase path'"
     exit 1

@@ -24,7 +24,7 @@ app.controller('myFbaseClusterInfo', function($rootScope, $scope, $http, $timeou
                  contentType:"application/x-www-form-urlencoded; charset=UTF-8",
                  dataType:"json",
                  data:{
-                 	"autoShardingUnable":space['auto_sharding'],
+                 	"autoSplitUnable":space['auto_split'],
                      "autoTransferUnable":space['auto_transfer'],
                      "autoFailoverUnable":space['auto_failover']
                  },

@@ -7,7 +7,7 @@
 #include "raft_exception.h"
 #include "server_impl.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
@@ -171,4 +171,4 @@ int WorkThread::size() const {
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

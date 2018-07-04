@@ -2,7 +2,7 @@ _Pragma("once");
 
 #include "raft/statemachine.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace playground {
 
@@ -25,7 +25,7 @@ public:
 
     Status ApplySnapshotStart(const std::string&) override;
     Status ApplySnapshotData(const std::vector<std::string>& data) override;
-    Status ApplySnapshotFinish() override;
+    virtual Status ApplySnapshotFinish(uint64_t index) override;
 
 private:
     uint64_t sum_{0};
@@ -38,14 +38,14 @@ public:
 
     ~PGSnapshot() {}
 
-    Status Next(std::string* data, bool* over) {
+    Status Next(std::string* data, bool* over) override  {
         data->assign(std::to_string(sum_));
         *over = count_ >= 10;
         ++count_;
         return Status::OK();
     }
 
-    Status Context(std::string*) { return Status::OK(); }
+    Status Context(std::string*) override { return Status::OK(); }
 
     uint64_t ApplyIndex() override { return applied_; }
 
@@ -59,4 +59,4 @@ private:
 
 } /* namespace playground */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

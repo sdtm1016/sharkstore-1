@@ -13,9 +13,9 @@
 #include "node.h"
 #include "raft/src/impl/logger.h"
 
-using namespace fbase;
-using namespace fbase::raft;
-using namespace fbase::raft::bench;
+using namespace sharkstore;
+using namespace sharkstore::raft;
+using namespace sharkstore::raft::bench;
 
 struct BenchContext {
     std::atomic<int64_t> counter;
@@ -46,13 +46,13 @@ void runBenchmark(BenchContext *ctx) {
     }
 }
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace bench {
 void start_fast_service(int argc, char *argv[]);
 }
 }  // namespace raft
-}  // namespace fbase
+}  // namespace sharkstore
 
 int main(int argc, char *argv[]) {
     // 不打印debug日志

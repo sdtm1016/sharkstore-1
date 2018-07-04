@@ -5,13 +5,14 @@ import (
 	"sync"
 	"golang.org/x/net/context"
 	"util/log"
+	"fmt"
 )
 
 const (
 	defaultWorkerInterval  =  time.Second
 	maxScheduleInterval       = time.Minute
-	minScheduleInterval       = time.Millisecond * 10
-	scheduleIntervalFactor    = 1.3
+	minScheduleInterval       = time.Millisecond * 20
+	scheduleIntervalFactor    = 0.8
 
 	writeStatLRUMaxLen            = 1000
 	regionHeartBeatReportInterval = 10
@@ -73,9 +74,9 @@ func (wm *WorkerManager) Run() {
 	wm.addWorker(NewCreateTableWorker(wm, time.Second))
 	wm.addWorker(NewRangeHbCheckWorker(wm, 2 * time.Minute))
 
-	wm.addWorker(NewBalanceNodeLeaderWorker(wm, 10 * defaultWorkerInterval))
-	wm.addWorker(NewBalanceNodeRangeWorker(wm, 10 * defaultWorkerInterval))
-	wm.addWorker(NewBalanceNodeOpsWorker(wm, 30 * defaultWorkerInterval))
+	wm.addWorker(NewBalanceNodeLeaderWorker(wm, 5 * defaultWorkerInterval))
+	wm.addWorker(NewBalanceNodeRangeWorker(wm, 2 * defaultWorkerInterval))
+	wm.addWorker(NewBalanceNodeOpsWorker(wm, defaultWorkerInterval))
 }
 
 func (wm *WorkerManager) Stop() {
@@ -105,10 +106,15 @@ func (wm *WorkerManager) runWorker(w Worker) {
 	defer timer.Stop()
 
 	for {
+		if !wm.isExistWorker(w.GetName()) {
+			return
+		}
+
 		select {
 		case <-wm.ctx.Done():
 			return
 		case <-timer.C:
+			log.Debug("add worker %s", w.GetName())
 			timer.Reset(w.GetInterval())
 		    if !w.AllowWork(wm.cluster) {
 		    	log.Debug("worker cannot exec, %v", w.GetName())
@@ -118,6 +124,15 @@ func (wm *WorkerManager) runWorker(w Worker) {
 		}
 	}
 }
+
+func (wm *WorkerManager) isExistWorker(name string) bool {
+	wm.lock.RLock()
+	defer wm.lock.RUnlock()
+
+	_, ok := wm.workers[name]
+	return ok
+}
+
 
 func (wm *WorkerManager) removeWorker(name string) error {
 	wm.lock.Lock()
@@ -133,11 +148,23 @@ func (wm *WorkerManager) removeWorker(name string) error {
 }
 
 func (wm *WorkerManager) GetAllWorker() []string  {
-	wm.lock.Lock()
-	defer wm.lock.Unlock()
+	wm.lock.RLock()
+	defer wm.lock.RUnlock()
 	var names []string
 	for name := range wm.workers {
 		names = append(names, name)
 	}
 	return names
+}
+
+
+func (wm *WorkerManager) GetWorker(workerName string) string  {
+	wm.lock.RLock()
+	defer wm.lock.RUnlock()
+	for name, w := range wm.workers {
+		if workerName == name {
+			return fmt.Sprintf("%s: 调度中, interval: %v", workerName, w.GetInterval())
+		}
+	}
+	return fmt.Sprintf("%s: 未被调度", workerName)
 }

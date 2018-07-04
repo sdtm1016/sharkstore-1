@@ -5,7 +5,7 @@ _Pragma("once");
 
 #include "transport.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace transport {
@@ -31,7 +31,6 @@ public:
 
 private:
     std::shared_ptr<NodeResolver> resolver_;
-    const size_t send_threads_num_ = 0;
     const size_t recv_threads_num_ = 0;
 
     FastServer* server_ = nullptr;
@@ -41,4 +40,4 @@ private:
 } /* namespace transport */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

@@ -65,6 +65,7 @@ v2.6.3
 wget https://github.com/gperftools/gperftools/releases/download/gperftools-2.6.3/gperftools-2.6.3.tar.gz
 tar xvf gperftools-2.6.3.tar.gz
 cd gperftools-2.6.3
+./autogen.sh
 ./configure
 make -j `nproc`
 sudo make install

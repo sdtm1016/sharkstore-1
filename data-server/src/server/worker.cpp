@@ -15,7 +15,7 @@
 #include "run_status.h"
 #include "server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace server {
 
@@ -209,4 +209,4 @@ void Worker::PrintQueueSize() {
 
 } /* namespace server */
 } /* namespace dataserver  */
-} /* namespace fbase */
+} /* namespace sharkstore */

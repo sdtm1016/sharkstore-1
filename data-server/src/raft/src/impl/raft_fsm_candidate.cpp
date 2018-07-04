@@ -4,7 +4,7 @@
 #include "logger.h"
 #include "raft_exception.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
@@ -14,9 +14,8 @@ void RaftFsm::becomeCandidate() {
             "[raft->becomeCandidate] invalid transition [leader -> candidate]");
     }
 
-    step_func_ =
-        std::bind(&RaftFsm::stepCandidate, this, std::placeholders::_1);
-    reset(term_ + 1, 0, false);
+    step_func_ = std::bind(&RaftFsm::stepCandidate, this, std::placeholders::_1);
+    reset(term_ + 1, false);
     tick_func_ = std::bind(&RaftFsm::tickElection, this);
     vote_for_ = node_id_;
     state_ = FsmState::kCandidate;
@@ -29,8 +28,7 @@ void RaftFsm::becomePreCandidate() {
         throw RaftException("invalid transition[leader -> pre-candidate]");
     }
 
-    step_func_ =
-        std::bind(&RaftFsm::stepCandidate, this, std::placeholders::_1);
+    step_func_ = std::bind(&RaftFsm::stepCandidate, this, std::placeholders::_1);
     tick_func_ = std::bind(&RaftFsm::tickElection, this);
     state_ = FsmState::kPreCandidate;
     votes_.clear();
@@ -41,8 +39,8 @@ void RaftFsm::becomePreCandidate() {
 void RaftFsm::stepCandidate(MessagePtr& msg) {
     switch (msg->type()) {
         case pb::LOCAL_MSG_PROP:
-            LOG_DEBUG("raft[%llu] no leader at term %llu; dropping proposal.",
-                      id_, term_);
+            LOG_DEBUG("raft[%llu] no leader at term %llu; dropping proposal.", id_,
+                      term_);
             return;
 
         case pb::APPEND_ENTRIES_REQUEST:
@@ -69,8 +67,7 @@ void RaftFsm::stepCandidate(MessagePtr& msg) {
 
             LOG_INFO("raft[%llu] %s [q:%d] has received %d votes and %d vote "
                      "rejections",
-                     id_, (pre ? "pre-campaign" : "campaign"), quorum(), grants,
-                     rejects);
+                     id_, (pre ? "pre-campaign" : "campaign"), quorum(), grants, rejects);
 
             if (grants == quorum()) {  // 收到大多数投票
                 if (pre) {
@@ -115,8 +112,7 @@ void RaftFsm::campaign(bool pre) {
 
         LOG_INFO("raft[%llu] %s: [logterm: %llu, index: %llu] sent vote "
                  "request to %llu at term %llu.",
-                 id_, (pre ? "pre-campaign" : "campaign"), lt, li, r.first,
-                 term_);
+                 id_, (pre ? "pre-campaign" : "campaign"), lt, li, r.first, term_);
 
         MessagePtr msg(new pb::Message);
         msg->set_type(pre ? pb::PRE_VOTE_REQUEST : pb::VOTE_REQUEST);
@@ -131,8 +127,8 @@ void RaftFsm::campaign(bool pre) {
 
 int RaftFsm::poll(bool pre, uint64_t node_id, bool vote) {
     LOG_INFO("raft[%llu] received %s %s from %llu at term %llu", id_,
-             (pre ? "pre-vote" : "vote"), (vote ? "granted" : "rejected"),
-             node_id, term_);
+             (pre ? "pre-vote" : "vote"), (vote ? "granted" : "rejected"), node_id,
+             term_);
 
     votes_.emplace(node_id, vote);
 
@@ -145,4 +141,4 @@ int RaftFsm::poll(bool pre, uint64_t node_id, bool vote) {
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

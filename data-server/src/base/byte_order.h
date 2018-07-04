@@ -1,5 +1,4 @@
-#ifndef FBASE_BASE_BYTE_ORDER_H_
-#define FBASE_BASE_BYTE_ORDER_H_
+_Pragma("once");
 
 #ifdef __linux__
 #include <endian.h>
@@ -45,5 +44,3 @@
 #else
 #error unsupported platform
 #endif
-
-#endif /* end of include guard: FBASE_BASE_BYTE_ORDER_H_ */

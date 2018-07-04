@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include "rapidjson/document.h"
 
-namespace fbase
+namespace sharkstore
 {
     namespace monitor
     {

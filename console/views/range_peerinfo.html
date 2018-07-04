@@ -33,7 +33,7 @@
             <th class="spaceName" style="text-align: center; vertical-align: middle;width: 15%">nodeId</th>
             <th class="spaceName" style="text-align: center; vertical-align: middle;width: 15%">nodeAddress</th>
             <th class="spaceName" style="text-align: center; vertical-align: middle;width: 15%">nodeState</th>
-            <th class="operate" style="text-align: center; vertical-align: middle;width: 19%">操作</th>
+            <th class="operate" style="text-align: center; vertical-align: middle;width: 19%" ng-show="{[{.flag}]}">操作</th>
         </tr>
         </thead>
         <tbody>
@@ -45,7 +45,7 @@
             <td style="vertical-align:middle; text-align:center;">{{peer.node_id}}</td>
             <td style="vertical-align:middle; text-align:center;">{{peer.node_address}}</td>
             <td style="vertical-align:middle; text-align:center;">{{peer.node_state}}</td>
-            <td style="vertical-align:middle; text-align:center;" class="range-btns">
+            <td style="vertical-align:middle; text-align:center;" class="range-btns" ng-show="{[{.flag}]}">
                 <!--<a class="btn btn-primary btn-rounded" ng-click="updateRange(peer.id)">更新meta(其它GC)</a> -->
                 <a class="btn btn-primary btn-rounded" ng-click="replaceRange(peer.id)">range替换(老rangeGC)</a>
             </td>

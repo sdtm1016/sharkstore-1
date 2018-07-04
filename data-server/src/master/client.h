@@ -11,11 +11,11 @@ _Pragma("once");
 #include "connection.h"
 #include "task_handler.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace master {
 
-class AsyncCallResult;
+struct AsyncCallResult;
 
 // Client 管理同MasterServer之间的RPC请求
 // 所有请求如果当前没有leader，会先获取一次leader，如果获取失败则本次请求失败
@@ -100,4 +100,4 @@ private:
 
 }  // namespace master
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

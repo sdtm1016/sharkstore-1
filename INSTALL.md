@@ -96,43 +96,48 @@ touch sharkstore/bin/ms/ms.conf
 > max-replicas = 1<br>
 > location-labels = []<br>
 
-## 配置gateway
+## 配置gateway：
 在sharkstore/bin/gw目录中创建如下配置gw.conf<br>
 
 ```
 touch sharkstore/bin/gw/gw.conf
 ```
 
-> mysql.maxclients = 10000<br>
-> mysql.port = 4360<br>
-> mysql.user = test<br>
-> mysql.password = 123456<br>
-> mysql.charset = utf8<br>
-> log.dir = ./log<br>
-> log.module = gateway<br>
-> log.level = debug<br>
-> master.addrs =["127.0.0.1:38887"]<br>
-> master.token = test<br>
-> #max limit num<br>
-> max.record.limit=1000<br>
-> max.work.num = 100<br>
-> max.taskqueue.len = 10000<br>
-> #ms<br>
-> insert.slowlog=200<br>
-> select.slowlog=500<br>
-> 
-> metrics.flag = true<br>
-> 
-> grpc.pool.size = 10<br>
-> grpc.win.size = 131072<br>
->                                                    
-> #metric<br>                                            
-> metric.addr =<br> 
->                                                    
-> #cluster<br>                                           
-> cluster.id = 1 <br>                                   
-> lock.rpc.port=18090<br>
-> http.port=18080<br>
+> #GS Configuration.
+> http-port = 18080<br>
+> lock-port = 18090<br>
+> mysql-port = 4360<br>
+> max-clients = 10000<br>
+> max-record-limit = 10000<br>
+> user = "test"<br>
+> password = "123456"<br>
+> charset = "utf8"<br>
+
+> [performance]<br>
+> max-work-num = 100<br>
+> #task queue size<br>
+> max-task-queue-len = 10000<br>
+> #keep connect size for each ds<br>
+> grpc-pool-size = 10<br>
+> #128 KB<br>
+> grpc-win-size = 131072<br>
+> slow-insert = "20ms"<br>
+> slow-select = "100ms"<br>
+> slow-delete = "20ms"<br>
+
+> [cluster]<br>
+> id = 1<br>
+> address = ["127.0.0.1:38887"]<br>
+> token = "test"<br>
+
+> [log]<br>
+> dir = "./log"<br>
+> module = "gateway"<br>
+> level = "debug"<br>
+
+> [metric]<br>
+> interval = "15s"<br>
+> address = ""<br>
 
 ## 配置console
 在sharkstore/bin/cs目录中创建如下配置cs.conf<br>

@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "base/util.h"
-#include "raft/src/impl/storage/storage_disk.h"
 #include "proto/gen/raft_cmdpb.pb.h"
+#include "raft/src/impl/storage/storage_disk.h"
 #include "test_util.h"
 
 int main(int argc, char* argv[]) {
@@ -12,14 +12,14 @@ int main(int argc, char* argv[]) {
 
 namespace {
 
-using namespace fbase::raft::impl;
-using namespace fbase::raft::impl::storage;
-using namespace fbase::raft::impl::testutil;
+using namespace sharkstore::raft::impl;
+using namespace sharkstore::raft::impl::storage;
+using namespace sharkstore::raft::impl::testutil;
 
 class StorageTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        char path[] = "/tmp/fbase_raft_storage_test_XXXXXX";
+        char path[] = "/tmp/sharkstore_raft_storage_test_XXXXXX";
         char* tmp = mkdtemp(path);
         ASSERT_TRUE(tmp != NULL);
         tmp_dir_ = tmp;
@@ -68,7 +68,7 @@ protected:
 TEST_F(StorageTest, LogEntry) {
     uint64_t lo = 1, hi = 100;
     std::vector<EntryPtr> to_writes;
-    RandEntries(lo, hi, 256, &to_writes);
+    RandomEntries(lo, hi, 256, &to_writes);
     auto s = storage_->StoreEntries(to_writes);
     ASSERT_TRUE(s.ok()) << s.ToString();
 
@@ -168,11 +168,11 @@ TEST_F(StorageTest, LogEntry) {
 TEST_F(StorageTest, Conflict) {
     uint64_t lo = 1, hi = 100;
     std::vector<EntryPtr> to_writes;
-    RandEntries(lo, hi, 256, &to_writes);
+    RandomEntries(lo, hi, 256, &to_writes);
     auto s = storage_->StoreEntries(to_writes);
     ASSERT_TRUE(s.ok()) << s.ToString();
 
-    auto entry = RandEntry(50, 256);
+    auto entry = RandomEntry(50, 256);
     s = storage_->StoreEntries(std::vector<EntryPtr>{entry});
     ASSERT_TRUE(s.ok()) << s.ToString();
 
@@ -198,13 +198,13 @@ TEST_F(StorageTest, Conflict) {
 TEST_F(StorageTest, Snapshot) {
     uint64_t lo = 1, hi = 100;
     std::vector<EntryPtr> to_writes;
-    RandEntries(lo, hi, 256, &to_writes);
+    RandomEntries(lo, hi, 256, &to_writes);
     auto s = storage_->StoreEntries(to_writes);
     ASSERT_TRUE(s.ok()) << s.ToString();
 
     pb::SnapshotMeta meta;
-    meta.set_index(fbase::randomInt() + 100);
-    meta.set_term(fbase::randomInt());
+    meta.set_index(sharkstore::randomInt() + 100);
+    meta.set_term(sharkstore::randomInt());
     s = storage_->ApplySnapshot(meta);
     ASSERT_TRUE(s.ok()) << s.ToString();
 
@@ -226,7 +226,7 @@ TEST_F(StorageTest, Snapshot) {
     ASSERT_EQ(term, meta.term());
     ASSERT_FALSE(compacted);
 
-    auto e = RandEntry(meta.index() + 1);
+    auto e = RandomEntry(meta.index() + 1);
     s = storage_->StoreEntries(std::vector<EntryPtr>{e});
     ASSERT_TRUE(s.ok()) << s.ToString();
     std::vector<EntryPtr> ents;
@@ -242,13 +242,13 @@ TEST_F(StorageTest, KeepCount) {
     SetKeepSize(3);
     uint64_t lo = 1, hi = 100;
     std::vector<EntryPtr> to_writes;
-    RandEntries(lo, hi, 256, &to_writes);
+    RandomEntries(lo, hi, 256, &to_writes);
     auto s = storage_->StoreEntries(to_writes);
     storage_->AppliedTo(99);
     ASSERT_TRUE(s.ok()) << s.ToString();
 
     auto count = storage_->FilesCount();
-    auto e = RandEntry(100);
+    auto e = RandomEntry(100);
     s = storage_->StoreEntries(std::vector<EntryPtr>{e});
     auto count2 = storage_->FilesCount();
 
@@ -279,11 +279,11 @@ TEST_F(StorageTest, KeepCount) {
     ASSERT_TRUE(s.ok()) << s.ToString();
 }
 
-#ifndef NDEBUG // debug模式下才开启
+#ifndef NDEBUG  // debug模式下才开启
 TEST_F(StorageTest, Corrupt1) {
     uint64_t lo = 1, hi = 100;
     std::vector<EntryPtr> to_writes;
-    RandEntries(lo, hi, 256, &to_writes);
+    RandomEntries(lo, hi, 256, &to_writes);
     auto s = storage_->StoreEntries(to_writes);
     ASSERT_TRUE(s.ok()) << s.ToString();
 
@@ -318,7 +318,7 @@ TEST_F(StorageTest, Corrupt1) {
     ASSERT_TRUE(s.ok()) << s.ToString();
 
     // 再写再读
-    RandEntries(hi, hi + 10, 256, &to_writes);
+    RandomEntries(hi, hi + 10, 256, &to_writes);
     s = storage_->StoreEntries(
         std::vector<EntryPtr>(to_writes.begin() + hi - 1, to_writes.end()));
     ASSERT_TRUE(s.ok()) << s.ToString();
@@ -335,7 +335,7 @@ TEST_F(StorageTest, Corrupt1) {
 TEST_F(StorageTest, Corrupt2) {
     uint64_t lo = 1, hi = 100;
     std::vector<EntryPtr> to_writes;
-    RandEntries(lo, hi, 256, &to_writes);
+    RandomEntries(lo, hi, 256, &to_writes);
     auto s = storage_->StoreEntries(to_writes);
     ASSERT_TRUE(s.ok()) << s.ToString();
 
@@ -366,7 +366,7 @@ TEST_F(StorageTest, Corrupt2) {
     ASSERT_TRUE(s.ok()) << s.ToString();
 
     // 再写再读
-    RandEntries(hi, hi + 10, 256, &to_writes);
+    RandomEntries(hi, hi + 10, 256, &to_writes);
     s = storage_->StoreEntries(
         std::vector<EntryPtr>(to_writes.begin() + hi - 1, to_writes.end()));
     ASSERT_TRUE(s.ok()) << s.ToString();
@@ -411,11 +411,10 @@ TEST_F(StorageTest, Corrupt2) {
 //     std::cout << "36: 42570:" << term << std::endl;
 
 //     std::vector<EntryPtr> ents1;
-//     s = s1->Entries(1, 42579, std::numeric_limits<uint64_t>::max(), &ents1, &is_compacted);
+//     s = s1->Entries(1, 42579, std::numeric_limits<uint64_t>::max(), &ents1,
+//     &is_compacted);
 //     ASSERT_TRUE(s.ok()) << s.ToString();
 //     ASSERT_EQ(ents1.size(), 42578);
-
-
 
 //     s = s2->FirstIndex(&first_index);
 //     ASSERT_TRUE(s.ok()) << s.ToString();
@@ -429,32 +428,39 @@ TEST_F(StorageTest, Corrupt2) {
 //     std::cout << "67: 42570:" << term << std::endl;
 
 //     std::vector<EntryPtr> ents2;
-//     s = s2->Entries(1, 42579, std::numeric_limits<uint64_t>::max(), &ents2, &is_compacted);
+//     s = s2->Entries(1, 42579, std::numeric_limits<uint64_t>::max(), &ents2,
+//     &is_compacted);
 //     ASSERT_TRUE(s.ok()) << s.ToString();
 //     ASSERT_EQ(ents2.size(), 42578);
 
 //     // for (size_t i = 0; i < 42579; ++i) {
 //     //     ASSERT_EQ(ents1[i]->index(), i+1) << "wrong s1 index at " << i;
 //     //     ASSERT_EQ(ents2[i]->index(), i+1) << "wrong s2 index at " << i;
-//     //     EXPECT_EQ(ents1[i]->data(), ents2[i]->data()) << "unequal data(" << ents1[i]->data() << ", " << ents2[i]->data() << ") at " << i;
-//     //     EXPECT_EQ(ents1[i]->term(), ents2[i]->term()) << "unequal term (" << ents1[i]->term() << ", " << ents2[i]->term() << ") at " << i;
+//     //     EXPECT_EQ(ents1[i]->data(), ents2[i]->data()) << "unequal data(" <<
+//     ents1[i]->data() << ", " << ents2[i]->data() << ") at " << i;
+//     //     EXPECT_EQ(ents1[i]->term(), ents2[i]->term()) << "unequal term (" <<
+//     ents1[i]->term() << ", " << ents2[i]->term() << ") at " << i;
 //     // }
 //     for (size_t i = 42500; i < 42578; ++i) {
-//         std::cout << i+1 << ": " << ents1[i]->term() << "-" << ents2[i]->term() << "," 
+//         std::cout << i+1 << ": " << ents1[i]->term() << "-" << ents2[i]->term() << ","
 //             << ents1[i]->type()  << "-" << ents2[i]->type() << std::endl;
 //         raft_cmdpb::Command cmd1;
 //         ASSERT_TRUE(cmd1.ParseFromString(ents1[i]->data()));
-//         std::cout << "cmd1 node: " << cmd1.cmd_id().node_id() << ", seq: " <<  cmd1.cmd_id().seq() << ", type: " << 
-//             CmdType_Name(cmd1.cmd_type()) << ", size: " << ents1[i]->data().size() << std::endl;
+//         std::cout << "cmd1 node: " << cmd1.cmd_id().node_id() << ", seq: " <<
+//         cmd1.cmd_id().seq() << ", type: " <<
+//             CmdType_Name(cmd1.cmd_type()) << ", size: " << ents1[i]->data().size() <<
+//             std::endl;
 
 //         raft_cmdpb::Command cmd2;
 //         ASSERT_TRUE(cmd2.ParseFromString(ents2[i]->data()));
-//         std::cout << "cmd2 node: " << cmd2.cmd_id().node_id() << ", seq: " <<  cmd2.cmd_id().seq() << ", type: " << 
-//             CmdType_Name(cmd2.cmd_type()) << ", size: " << ents2[i]->data().size() << std::endl;
+//         std::cout << "cmd2 node: " << cmd2.cmd_id().node_id() << ", seq: " <<
+//         cmd2.cmd_id().seq() << ", type: " <<
+//             CmdType_Name(cmd2.cmd_type()) << ", size: " << ents2[i]->data().size() <<
+//             std::endl;
 //     }
 // }
 
-//TEST(Recover, TEST) {
+// TEST(Recover, TEST) {
 //    DiskStorage::Options ops;
 //    ops.allow_corrupt_startup = false;
 //    auto s1 =

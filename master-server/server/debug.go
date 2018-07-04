@@ -1,32 +1,31 @@
 package server
 
 import (
-	"time"
 	"net/http"
 	"strconv"
+	"time"
 
 	"model/pkg/metapb"
 	"model/pkg/mspb"
-	"util/log"
 	"model/pkg/taskpb"
 	"util/deepcopy"
+	"util/log"
 )
 
 type NodeDebug struct {
 	*metapb.Node
-	Ranges []*Range 	`json:"ranges"`
-	LastHbTime   time.Time 		`json:"last_hb_time"`
-	LastSchTime  time.Time 		`json:"last_sch_time"`
-	LastOpt      *taskpb.Task 	`json:"last_opt"`
+	Ranges      []*Range     `json:"ranges"`
+	LastHbTime  time.Time    `json:"last_hb_time"`
+	LastSchTime time.Time    `json:"last_sch_time"`
+	LastOpt     *taskpb.Task `json:"last_opt"`
 }
 
 type RangeDebug struct {
 	*metapb.Range
-	Leader       *metapb.Peer 	    `json:"leader,omitempty"`
-	DownPeers    []*mspb.PeerStats 	`json:"down_peers,omitempty"`
-	PendingPeers []*metapb.Peer 	`json:"pending_peers,omitempty"`
-	LastHbTime   time.Time 		    `json:"last_hb_time,omitempty"`
-	Task         *taskpb.Task	    `json:"task,omitempty"`
+	Leader      *metapb.Peer       `json:"leader,omitempty"`
+	PeersStatus []*mspb.PeerStatus `json:"peers_status,omitempty"`
+	LastHbTime  time.Time          `json:"last_hb_time,omitempty"`
+	Task        *taskpb.Task       `json:"task,omitempty"`
 }
 
 func (service *Server) handleDebugNodeInfo(w http.ResponseWriter, r *http.Request) {
@@ -64,11 +63,10 @@ func (service *Server) handleDebugRangeInfo(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	reply.Data = &RangeDebug{
-		Range:        deepcopy.Iface(rng.Range).(*metapb.Range),
-		Leader:       deepcopy.Iface(rng.Leader).(*metapb.Peer),
-		DownPeers:    deepcopy.Iface(rng.DownPeers).([]*mspb.PeerStats),
-		PendingPeers: deepcopy.Iface(rng.PendingPeers).([]*metapb.Peer),
-		LastHbTime:   rng.LastHbTimeTS,
+		Range:       deepcopy.Iface(rng.Range).(*metapb.Range),
+		Leader:      deepcopy.Iface(rng.Leader).(*metapb.Peer),
+		PeersStatus: rng.PeersStatus,
+		LastHbTime:  rng.LastHbTimeTS,
 	}
 }
 

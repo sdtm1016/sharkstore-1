@@ -1,3 +1,4 @@
+/src/server/version_gen.h
 /build
 /Makefile
 /.cproject

@@ -6,7 +6,7 @@
 #include "address.h"
 #include "config.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace bench {
 
@@ -14,14 +14,13 @@ Node::Node(uint64_t node_id, std::shared_ptr<NodeAddress> addrs)
     : node_id_(node_id), addr_mgr_(addrs) {
     RaftServerOptions ops;
     ops.node_id = node_id_;
-    ops.listen_port = addr_mgr_->GetListenPort(node_id_);
-    ops.use_inprocess_transport = false;
     ops.apply_threads_num = bench_config.apply_thread_num;
     ops.consensus_threads_num = bench_config.raft_thread_num;
-    ops.transport_send_threads = 4;
-    ops.transport_recv_threads = 4;
     ops.election_tick = 2;
-    ops.resolver = std::static_pointer_cast<NodeResolver>(addr_mgr_);
+    ops.transport_options.listen_port = addr_mgr_->GetListenPort(node_id_);
+    ops.transport_options.use_inprocess_transport = false;
+    ops.transport_options.resolver =
+        std::static_pointer_cast<NodeResolver>(addr_mgr_);
     raft_server_ = CreateRaftServer(ops);
     auto s = raft_server_->Start();
     if (!s.ok()) {
@@ -34,7 +33,8 @@ Node::~Node() {}
 
 void Node::Start() {
     for (uint64_t i = 1; i <= bench_config.range_num; ++i) {
-        auto rng = std::make_shared<Range>(i, node_id_, raft_server_.get(), addr_mgr_);
+        auto rng =
+            std::make_shared<Range>(i, node_id_, raft_server_.get(), addr_mgr_);
         rng->Start();
         ranges_.emplace(i, rng);
     }
@@ -52,4 +52,4 @@ std::shared_ptr<Range> Node::GetRange(uint64_t i) {
 
 } /* namespace bench */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

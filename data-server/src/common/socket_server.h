@@ -7,7 +7,7 @@
 
 #include "socket_base.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace common {
 
@@ -28,5 +28,5 @@ public:
 
 }  // namespace common
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore
 #endif  // FBASE_DATASERVER_COMMON_SOCKET_SERVER_H_

@@ -4,7 +4,7 @@ _Pragma("once");
 #include <string>
 #include "raft/logger.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
@@ -46,4 +46,4 @@ extern Logger* g_logger;
 
 }  // namespace impl
 }  // namespace raft
-}  // namespace fbase
+}  // namespace sharkstore

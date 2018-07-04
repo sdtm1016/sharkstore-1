@@ -9,7 +9,7 @@ _Pragma("once");
 #include "base/shared_mutex.h"
 #include "transport.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace transport {
@@ -25,8 +25,7 @@ public:
 
     void SendMessage(MessagePtr& msg) override;
 
-    Status GetConnection(uint64_t to,
-                         std::shared_ptr<Connection>* conn) override;
+    Status GetConnection(uint64_t to, std::shared_ptr<Connection>* conn) override;
 
 private:
     void recvRoutine();
@@ -40,7 +39,7 @@ private:
             return Status::OK();
         }
 
-        Status Close() { return Status::OK(); }
+        Status Close() override { return Status::OK(); }
 
     private:
         InProcessTransport* t_ = nullptr;
@@ -73,7 +72,7 @@ private:
 
     private:
         std::map<uint64_t, std::shared_ptr<MailBox>> mail_boxes_;
-        mutable fbase::shared_mutex mu_;
+        mutable sharkstore::shared_mutex mu_;
     };
 
 private:
@@ -83,7 +82,7 @@ private:
     const uint64_t node_id_;
     MessageHandler handler_;
 
-    std::atomic<bool> running_;
+    std::atomic<bool> running_ = {true};
     std::shared_ptr<MailBox> mail_box_;
     std::unique_ptr<std::thread> pull_thr_;
 };
@@ -91,4 +90,4 @@ private:
 } /* namespace transport */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

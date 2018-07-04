@@ -3,7 +3,7 @@
 #include <sstream>
 #include "raft_exception.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
@@ -11,7 +11,7 @@ UnstableLog::UnstableLog(uint64_t offset) : offset_(offset) {}
 
 UnstableLog::~UnstableLog() {}
 
-bool UnstableLog::maybeLastIndex(uint64_t* last_index) {
+bool UnstableLog::maybeLastIndex(uint64_t* last_index) const {
     if (!entries_.empty()) {
         *last_index = offset_ + entries_.size() - 1;
         return true;
@@ -19,7 +19,7 @@ bool UnstableLog::maybeLastIndex(uint64_t* last_index) {
     return false;
 }
 
-bool UnstableLog::maybeTerm(uint64_t index, uint64_t* term) {
+bool UnstableLog::maybeTerm(uint64_t index, uint64_t* term) const {
     if (index < offset_) {
         return false;
     }
@@ -70,17 +70,17 @@ void UnstableLog::truncateAndAppend(const std::vector<EntryPtr>& ents) {
     }
 }
 
-void UnstableLog::slice(uint64_t lo, uint64_t hi, std::vector<EntryPtr>* ents) {
+void UnstableLog::slice(uint64_t lo, uint64_t hi, std::vector<EntryPtr>* ents) const {
     mustCheckOutOfBounds(lo, hi);
     std::copy(entries_.begin() + (lo - offset_), entries_.begin() + (hi - offset_),
               std::back_inserter(*ents));
 }
 
-void UnstableLog::entries(std::vector<EntryPtr>* ents) {
+void UnstableLog::entries(std::vector<EntryPtr>* ents) const {
     std::copy(entries_.begin(), entries_.end(), std::back_inserter(*ents));
 }
 
-void UnstableLog::mustCheckOutOfBounds(uint64_t lo, uint64_t hi) {
+void UnstableLog::mustCheckOutOfBounds(uint64_t lo, uint64_t hi) const {
     if (lo > hi) {
         std::ostringstream ss;
         ss << "invalid unstable.slice:"
@@ -99,4 +99,4 @@ void UnstableLog::mustCheckOutOfBounds(uint64_t lo, uint64_t hi) {
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

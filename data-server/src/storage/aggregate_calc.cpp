@@ -1,7 +1,7 @@
 #include "aggregate_calc.h"
 #include "field_value.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -144,4 +144,4 @@ std::unique_ptr<FieldValue> SumCalculator::Result() {
 
 } /* namespace storage */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

@@ -25,6 +25,7 @@ type KvClient interface {
 	LockUpdate(ctx context.Context, addr string, req *kvrpcpb.DsLockUpdateRequest) (*kvrpcpb.DsLockUpdateResponse, error)
 	Unlock(ctx context.Context, addr string, req *kvrpcpb.DsUnlockRequest) (*kvrpcpb.DsUnlockResponse, error)
 	UnlockForce(ctx context.Context, addr string, req *kvrpcpb.DsUnlockForceRequest) (*kvrpcpb.DsUnlockForceResponse, error)
+	LockScan(ctx context.Context, addr string, req *kvrpcpb.DsLockScanRequest) (*kvrpcpb.DsLockScanResponse, error)
 
 	KvSet(ctx context.Context, addr string, req *kvrpcpb.DsKvSetRequest) (*kvrpcpb.DsKvSetResponse, error)
 	KvGet(ctx context.Context, addr string, req *kvrpcpb.DsKvGetRequest) (*kvrpcpb.DsKvGetResponse, error)
@@ -146,6 +147,14 @@ func (c *KvRpcClient) UnlockForce(ctx context.Context, addr string, req *kvrpcpb
 		return nil, err
 	}
 	resp, err := conn.UnlockForce(ctx, req)
+	return resp, err
+}
+func (c *KvRpcClient) LockScan(ctx context.Context, addr string, req *kvrpcpb.DsLockScanRequest) (*kvrpcpb.DsLockScanResponse, error) {
+	conn, err := c.getConn(addr)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := conn.LockScan(ctx, req)
 	return resp, err
 }
 

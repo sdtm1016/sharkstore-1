@@ -4,10 +4,11 @@
 #include <memory>
 #include <mutex>
 
-namespace fbase {
+namespace sharkstore {
 namespace monitor {
 
 class LinuxStatus;
+class MacStatus;
 class DataCacl;
 class EncodeData;
 class RangeData;
@@ -63,7 +64,14 @@ private:
     void GetTsStats(pid_t pid);
 
 private:
+#ifdef __linux__
     std::shared_ptr<LinuxStatus> statusPtr_ = nullptr;
+#elif defined(__APPLE__)
+    std::shared_ptr<MacStatus> statusPtr_ = nullptr;
+#else
+#error unsupport platform
+#endif
+
     std::shared_ptr<DataCacl> cacl_ = nullptr;
     std::shared_ptr<EncodeData> encode_ = nullptr;
     std::shared_ptr<RangeData> rd_ = nullptr;

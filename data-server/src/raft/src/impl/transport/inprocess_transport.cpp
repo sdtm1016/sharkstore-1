@@ -1,6 +1,6 @@
 #include "inprocess_transport.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace transport {
@@ -41,7 +41,7 @@ InProcessTransport::MsgHub::~MsgHub() {}
 
 std::shared_ptr<InProcessTransport::MailBox> InProcessTransport::MsgHub::regist(
     uint64_t node_id) {
-    std::unique_lock<fbase::shared_mutex> lock(mu_);
+    std::unique_lock<sharkstore::shared_mutex> lock(mu_);
 
     auto it = mail_boxes_.find(node_id);
     if (it != mail_boxes_.end()) {
@@ -54,13 +54,13 @@ std::shared_ptr<InProcessTransport::MailBox> InProcessTransport::MsgHub::regist(
 }
 
 void InProcessTransport::MsgHub::unregister(uint64_t node_id) {
-    std::unique_lock<fbase::shared_mutex> lock(mu_);
+    std::unique_lock<sharkstore::shared_mutex> lock(mu_);
     mail_boxes_.erase(node_id);
 }
 
 void InProcessTransport::MsgHub::send(const MessagePtr& msg) {
     std::shared_ptr<MailBox> box;
-    fbase::shared_lock<fbase::shared_mutex> lock(mu_);
+    sharkstore::shared_lock<sharkstore::shared_mutex> lock(mu_);
     auto it = mail_boxes_.find(msg->to());
     if (it != mail_boxes_.end()) {
         it->second->send(msg);
@@ -117,4 +117,4 @@ void InProcessTransport::recvRoutine() {
 } /* namespace transport */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

@@ -4,7 +4,7 @@ _Pragma("once");
 #include <string>
 #include "base/status.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace storage {
@@ -57,4 +57,4 @@ struct Record {
 } /* namespace storage */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

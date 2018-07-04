@@ -1,7 +1,7 @@
 #include "range.h"
 #include "server/range_server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace range {
 
@@ -500,6 +500,46 @@ Status Range::ApplyUnlockForce(const raft_cmdpb::Command &cmd) {
     }
     return ret;
 }
+
+void Range::LockScan(common::ProtoMessage *msg, kvrpcpb::DsLockScanRequest &req) {
+    FLOG_DEBUG("lock scan: %s", req.DebugString().c_str());
+    context_->run_status->PushTime(monitor::PrintTag::Qwait, get_micro_second() - msg->begin_time);
+
+    errorpb::Error *err = nullptr;
+    auto ds_resp = new kvrpcpb::DsLockScanResponse;
+    auto start = std::max(req.req().start(), meta_.start_key());
+    auto limit = std::min(req.req().limit(), meta_.end_key());
+    std::unique_ptr<storage::Iterator> iterator(store_->NewIterator(start, limit));
+
+    int max_count = checkMaxCount(static_cast<int64_t >(req.req().count()));
+    auto resp = ds_resp->mutable_resp();
+
+    uint64_t count = 0;
+    uint64_t total_size = 0;
+
+    for (int i = 0; iterator->Valid() && i < max_count; ++i) {
+        auto kv = resp->add_info();
+        FLOG_DEBUG("scan key: %s", iterator->key().c_str());
+        kv->set_key(std::move(iterator->key()));
+        kv->mutable_value()->ParseFromString(iterator->value());
+
+        count++;
+        total_size += iterator->key().length()+iterator->value().length();
+
+        iterator->Next();
+    }
+
+    if (resp->info_size() > 0) {
+        auto lastIdx = resp->info_size()-1;
+        auto lastInfo = resp->info(lastIdx);
+        resp->set_last_key(lastInfo.key());
+        FLOG_DEBUG("last key: %s", lastInfo.key().c_str());
+    }
+
+    context_->socket_session->SetResponseHeader(req.header(), ds_resp->mutable_header(), err);
+    context_->socket_session->Send(msg, ds_resp);
+}
+
 }  // namespace range
 }
 }

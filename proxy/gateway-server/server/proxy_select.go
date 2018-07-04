@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"bytes"
-	"proxy/gateway-server/mysql"
-	"proxy/gateway-server/sqlparser"
 	"model/pkg/kvrpcpb"
 	"model/pkg/timestamp"
 	"pkg-go/ds_client"
+	"proxy/gateway-server/mysql"
+	"proxy/gateway-server/sqlparser"
 	//"util"
-	"util/log"
 	"proxy/store/dskv"
+	"util/log"
 )
 
 func (p *Proxy) HandleSelect(db string, stmt *sqlparser.Select, args []interface{}) (*mysql.Result, error) {
@@ -131,11 +131,11 @@ func (p *Proxy) doSelect(t *Table, fieldList []*kvrpcpb.SelectField, matches []M
 			log.Debug("[select]pk key: [%v], scope: %v", key, scope)
 		}
 	}
-/** maybe repeat prefix 2017-12-22 dj
+	/** maybe repeat prefix 2017-12-22 dj
 	if key != nil {
 		key = append(util.EncodeStorePrefix(util.Store_Prefix_KV, t.GetId()), key...)
 	}
-*/
+	*/
 	// TODO: pool
 	now := p.clock.Now()
 	sreq := &kvrpcpb.SelectRequest{
@@ -159,16 +159,18 @@ func (p *Proxy) selectRemote(t *Table, req *kvrpcpb.SelectRequest) ([][]*Row, er
 	// single get
 	if len(req.Key) != 0 {
 		pbRows, err = p.singleSelectRemote(proxy, req, req.GetKey())
-		if err != nil {
-			return nil, err
-		}
 	} else {
-		// range select
-		pbRows, err = p.rangeSelectRemote(proxy, req)
-		if err != nil {
-			return nil, err
+		// 聚合函数，并行执行, 并且没有limit、offset逻辑
+		if len(req.FieldList) > 0 && req.FieldList[0].Typ == kvrpcpb.SelectField_AggreFunction {
+			pbRows, err = p.selectAggre(t, proxy, req)
+		} else { // 普通的范围查询
+			pbRows, err = p.rangeSelectRemote(proxy, req)
 		}
 	}
+	if err != nil {
+		return nil, err
+	}
+
 	return decodeRows(t, req.FieldList, pbRows)
 }
 
@@ -207,6 +209,7 @@ func (p *Proxy) rangeSelectRemote(kvproxy *dskv.KvProxy, sreq *kvrpcpb.SelectReq
 
 	start = scope.Start
 	end = scope.Limit
+	var rangeCount int
 	for {
 		if key == nil {
 			key = start
@@ -249,6 +252,7 @@ func (p *Proxy) rangeSelectRemote(kvproxy *dskv.KvProxy, sreq *kvrpcpb.SelectReq
 			log.Error("remote server return code: %v", resp.GetCode())
 			continue
 		}
+		rangeCount++
 
 		if log.GetFileLogger().IsEnableDebug() {
 			if len(resp.GetRows()) > 64 {
@@ -273,5 +277,10 @@ func (p *Proxy) rangeSelectRemote(kvproxy *dskv.KvProxy, sreq *kvrpcpb.SelectReq
 			count += uint64(len(rows))
 		}
 	}
+
+	if rangeCount >= 3 {
+		log.Warn("request to too much ranges(%d): req: %v", rangeCount, sreq)
+	}
+
 	return allRows, nil
 }

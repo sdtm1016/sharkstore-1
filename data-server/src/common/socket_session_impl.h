@@ -3,7 +3,7 @@
 
 #include "socket_session.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace common {
 
@@ -31,6 +31,6 @@ public:
 
 } //namespace common
 } //namespace dataserver
-} //namespace fbase
+} //namespace sharkstore
 
 #endif //__SOCKET_SESSION_IMPL_H__

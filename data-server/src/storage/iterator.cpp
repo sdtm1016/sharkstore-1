@@ -1,6 +1,6 @@
 #include "iterator.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -35,4 +35,4 @@ uint64_t Iterator::value_size() { return rit_->value().size(); }
 
 } /* namespace storage */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

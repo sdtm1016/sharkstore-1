@@ -3,7 +3,7 @@
 #include "common/ds_proto.h"
 #include "frame/sf_logger.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace transport {
@@ -75,4 +75,4 @@ void FastServer::sendDoneCallback(response_buff_t* task, int err) {
 } /* namespace transport */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

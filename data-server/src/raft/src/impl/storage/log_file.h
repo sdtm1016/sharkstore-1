@@ -8,7 +8,7 @@ _Pragma("once");
 #include "../raft_types.h"
 #include "log_index.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace storage {
@@ -35,8 +35,8 @@ public:
     int LogSize() const { return log_index_.Size(); }  // 日志条目个数
     uint64_t LastIndex() const { return log_index_.Last(); }
 
-    Status Get(uint64_t index, EntryPtr* e);
-    Status Term(uint64_t index, uint64_t* term);
+    Status Get(uint64_t index, EntryPtr* e) const;
+    Status Term(uint64_t index, uint64_t* term) const;
 
     Status Append(const EntryPtr& e);
     Status Flush();  // 一次写入的最后一条日志写完需要Flush
@@ -58,19 +58,19 @@ private:
     Status backup();
     Status recover(bool allow_corrupt);
 
-    Status readFooter(uint32_t* index_ofset);
+    Status readFooter(uint32_t* index_ofset) const;
     Status writeFooter(uint32_t index_offset);
-    Status readRecord(off_t offset, Record* rec, std::vector<char>* payload);
+    Status readRecord(off_t offset, Record* rec, std::vector<char>* payload) const;
     Status writeRecord(RecordType type, const ::google::protobuf::Message& msg);
 
 private:
-    const uint64_t seq_{0};    // 日志文件的序号
-    const uint64_t index_{0};  // 日志文件起始index
+    const uint64_t seq_ = 0;    // 日志文件的序号
+    const uint64_t index_ = 0;  // 日志文件起始index
     const std::string file_path_;
 
-    int fd_{-1};
-    off_t file_size_{0};
-    FILE* writer_{nullptr};
+    int fd_ = -1;
+    off_t file_size_ = 0;
+    FILE* writer_ = nullptr;
     std::vector<char> write_buf_;
 
     LogIndex log_index_;
@@ -79,4 +79,4 @@ private:
 } /* namespace storage */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

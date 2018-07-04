@@ -3,7 +3,7 @@
 #include <cassert>
 #include <sstream>
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -73,4 +73,4 @@ void Metric::CollectAll(MetricStat* stat) { g_metric.Collect(stat); }
 
 }  // namespace storage
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

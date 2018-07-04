@@ -5,7 +5,7 @@
 #include "config.h"
 #include "frame/sf_service.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace bench {
 
@@ -66,4 +66,4 @@ void start_fast_service(int argc, char *argv[]) {
 
 } /* namespace bench */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

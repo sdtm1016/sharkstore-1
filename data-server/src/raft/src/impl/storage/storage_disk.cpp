@@ -1,18 +1,18 @@
 #include "storage_disk.h"
 
-#include <algorithm>
 #include <assert.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <algorithm>
 #include <sstream>
 
 #include "../logger.h"
 #include "base/util.h"
 #include "log_file.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace storage {
@@ -84,7 +84,7 @@ Status DiskStorage::checkLogsValidate(const std::map<uint64_t, uint64_t>& logs) 
 
 Status DiskStorage::initDir() {
     assert(!path_.empty());
-    int ret = fbase::MakeDirAll(path_, 0755);
+    int ret = sharkstore::MakeDirAll(path_, 0755);
     if (ret < 0) {
         return Status(Status::kIOError, "init directory " + path_, strErrno(errno));
     }
@@ -183,7 +183,7 @@ Status DiskStorage::StoreHardState(const pb::HardState& hs) {
     return Status::OK();
 }
 
-Status DiskStorage::InitialState(pb::HardState* hs) {
+Status DiskStorage::InitialState(pb::HardState* hs) const {
     *hs = hard_state_;
     return Status::OK();
 }
@@ -218,14 +218,14 @@ Status DiskStorage::save(const EntryPtr& e) {
     return Status::OK();
 }
 
-LogFile* DiskStorage::locate(uint64_t index) {
+LogFile* DiskStorage::locate(uint64_t index) const {
     // TODO: binary search
     auto it = std::find_if(log_files_.rbegin(), log_files_.rend(),
                            [index](LogFile* f) { return f->Index() <= index; });
     return *it;
 }
 
-Status DiskStorage::load(uint64_t index, EntryPtr* e) {
+Status DiskStorage::load(uint64_t index, EntryPtr* e) const {
     return locate(index)->Get(index, e);
 }
 
@@ -253,10 +253,10 @@ Status DiskStorage::StoreEntries(const std::vector<EntryPtr>& entries) {
     for (size_t i = 1; i < entries.size(); ++i) {
         if (entries[i]->index() != entries[i - 1]->index() + 1) {
             return Status(Status::kInvalidArgument, "StoreEntries",
-                          std::string("discontinuous index between ")
-                          + std::to_string(entries[i]->index()) + " and " +
-                          std::to_string(entries[i - 1]->index())
-                          + " at " + std::to_string(i - 1));
+                          std::string("discontinuous index between ") +
+                              std::to_string(entries[i]->index()) + " and " +
+                              std::to_string(entries[i - 1]->index()) + " at " +
+                              std::to_string(i - 1));
         }
     }
 
@@ -286,7 +286,7 @@ Status DiskStorage::StoreEntries(const std::vector<EntryPtr>& entries) {
     return Status::OK();
 }
 
-Status DiskStorage::Term(uint64_t index, uint64_t* term, bool* is_compacted) {
+Status DiskStorage::Term(uint64_t index, uint64_t* term, bool* is_compacted) const {
     if (index < trunc_meta_.index()) {
         *term = 0;
         *is_compacted = true;
@@ -303,18 +303,18 @@ Status DiskStorage::Term(uint64_t index, uint64_t* term, bool* is_compacted) {
     }
 }
 
-Status DiskStorage::FirstIndex(uint64_t* index) {
+Status DiskStorage::FirstIndex(uint64_t* index) const {
     *index = trunc_meta_.index() + 1;
     return Status::OK();
 }
 
-Status DiskStorage::LastIndex(uint64_t* index) {
+Status DiskStorage::LastIndex(uint64_t* index) const {
     *index = std::max(last_index_, trunc_meta_.index());
     return Status::OK();
 }
 
 Status DiskStorage::Entries(uint64_t lo, uint64_t hi, uint64_t max_size,
-                            std::vector<EntryPtr>* entries, bool* is_compacted) {
+                            std::vector<EntryPtr>* entries, bool* is_compacted) const {
     if (lo <= trunc_meta_.index()) {
         *is_compacted = true;
         return Status::OK();
@@ -583,4 +583,4 @@ Status DiskStorage::CheckCorrupt() {
 } /* namespace storage */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

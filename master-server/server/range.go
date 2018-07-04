@@ -7,56 +7,62 @@ import (
 
 	"model/pkg/metapb"
 	"model/pkg/mspb"
-	"util/deepcopy"
 	"sync/atomic"
+	"util/deepcopy"
 )
+
+// DownPeer down peer
+type DownPeer struct {
+	Peer        *metapb.Peer
+	DownSeconds uint64
+}
 
 type Range struct {
 	lock sync.RWMutex
 	*metapb.Range
-	Leader        *metapb.Peer
-	DownPeers     []*mspb.PeerStats
-	PendingPeers  []*metapb.Peer
+	Leader      *metapb.Peer
+	Term        uint64
+	PeersStatus []*mspb.PeerStatus
 
 	BytesWritten uint64
 	BytesRead    uint64
 
 	KeysWritten uint64
 	KeysRead    uint64
-	opsStat RangeOpsStat
+	opsStat     RangeOpsStat
 	// Approximate range size.
 	ApproximateSize uint64
 
-	State         metapb.RangeState
+	State metapb.RangeState
 	Trace bool
 
-	LastHbTimeTS    time.Time
+	LastHbTimeTS time.Time
 }
 
 type RangeOpsStat struct {
 	writeOps [CacheSize]uint64
-	hit uint64
+	hit      uint64
 }
 
-func (opsStat *RangeOpsStat) Hit(v uint64){
-	hit := atomic.AddUint64(&(opsStat.hit),1)
+func (opsStat *RangeOpsStat) Hit(v uint64) {
+	hit := atomic.AddUint64(&(opsStat.hit), 1)
 	opsStat.writeOps[hit%CacheSize] = v
 }
 
-func (opsStat *RangeOpsStat) GetMax() uint64{
+func (opsStat *RangeOpsStat) GetMax() uint64 {
 	var max uint64 = 0
-	for i:=0 ; i<CacheSize ;i++ {
+	for i := 0; i < CacheSize; i++ {
 		v := opsStat.writeOps[i]
-		if  v > max {
+		if v > max {
 			max = v
 		}
 	}
 	return max
 }
 
-func (opsStat *RangeOpsStat) Clear() uint64{
+func (opsStat *RangeOpsStat) Clear() uint64 {
 	var max uint64 = 0
-	for i:=0 ; i<CacheSize ;i++ {
+	for i := 0; i < CacheSize; i++ {
 		opsStat.writeOps[i] = 0
 	}
 	return max
@@ -67,9 +73,10 @@ func NewRange(r *metapb.Range, leader *metapb.Peer) *Range {
 		leader = deepcopy.Iface(r.GetPeers()[0]).(*metapb.Peer)
 	}
 	region := &Range{
-		Range:  r,
-		Leader: leader,
+		Range:        r,
+		Leader:       leader,
 		LastHbTimeTS: time.Now(),
+		State: metapb.RangeState_R_Init,
 	}
 	return region
 }
@@ -111,38 +118,60 @@ func (r *Range) GetPeer(peerID uint64) *metapb.Peer {
 	return nil
 }
 
-// GetDownPeer return the down peers with specified peer id
-func (r *Range) GetDownPeer(peerID uint64) *metapb.Peer {
-	if r == nil {
+// GetStatus return peer's status
+func (r *Range) GetStatus(peerID uint64) *mspb.PeerStatus {
+	if r == nil || peerID == 0 {
 		return nil
 	}
-	for _, down := range r.DownPeers {
-		if down.GetPeer().GetId() == peerID {
-			return down.GetPeer()
+	for _, status := range r.PeersStatus {
+		if status.GetPeer().GetId() == peerID {
+			return status
 		}
 	}
 	return nil
 }
 
-func (r *Range) GetDownPeers() []*metapb.Peer {
+// GetDownPeer return the down peers with specified peer id
+func (r *Range) GetDownPeer(peerID uint64) *DownPeer {
 	if r == nil {
 		return nil
 	}
-	var peers []*metapb.Peer
-	for _, down := range r.DownPeers {
-		peers = append(peers, down.GetPeer())
+	for _, status := range r.PeersStatus {
+		if status.GetPeer().GetId() == peerID && status.DownSeconds > 0 {
+			return &DownPeer{
+				Peer:        status.GetPeer(),
+				DownSeconds: status.GetDownSeconds(),
+			}
+		}
 	}
-	return peers
+	return nil
+}
+
+func (r *Range) GetDownPeers() []*DownPeer {
+	if r == nil {
+		return nil
+	}
+	var downs []*DownPeer
+	for _, status := range r.PeersStatus {
+		if status.DownSeconds > 0 {
+			downs = append(downs, &DownPeer{
+				Peer:        status.GetPeer(),
+				DownSeconds: status.GetDownSeconds(),
+			})
+		}
+	}
+	return downs
 }
 
 // GetPendingPeer return the pending peer with specified peer id
+// TODO: check learner
 func (r *Range) GetPendingPeer(peerID uint64) *metapb.Peer {
 	if r == nil {
 		return nil
 	}
-	for _, peer := range r.PendingPeers {
-		if peer.GetId() == peerID {
-			return peer
+	for _, status := range r.PeersStatus {
+		if status.Snapshotting {
+			return status.GetPeer()
 		}
 	}
 	return nil
@@ -231,12 +260,18 @@ func (r *Range) GetRandomFollower() *metapb.Peer {
 	return nil
 }
 
-
+// GetPendingPeers return pending peers
 func (r *Range) GetPendingPeers() []*metapb.Peer {
 	if r == nil {
 		return nil
 	}
-	return r.PendingPeers
+	var peers []*metapb.Peer
+	for _, status := range r.PeersStatus {
+		if status.Snapshotting {
+			peers = append(peers, status.GetPeer())
+		}
+	}
+	return peers
 }
 
 func (r *Range) IsHealthy() bool {
@@ -254,29 +289,4 @@ func (r *Range) IsHealthy() bool {
 		return false
 	}
 	return true
-}
-
-func (r *Range) clone() *Range {
-	if r == nil {
-		return nil
-	}
-	return &Range{
-		Range:  deepcopy.Iface(r.Range).(*metapb.Range),
-		Leader:        r.Leader,
-		DownPeers:     r.DownPeers,
-		PendingPeers:  r.PendingPeers,
-
-		BytesWritten: r.BytesWritten,
-		BytesRead:    r.BytesRead,
-
-		KeysWritten: r.KeysWritten,
-		KeysRead:    r.KeysRead,
-		// Approximate range size.
-		ApproximateSize: r.ApproximateSize,
-
-		State:         r.State,
-		Trace:         r.Trace,
-
-		LastHbTimeTS:    r.LastHbTimeTS,
-	}
 }

@@ -1,8 +1,8 @@
 #include "io_context_pool.h"
 
-#include <iostream>
+#include "frame/sf_logger.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace net {
 
@@ -46,21 +46,18 @@ asio::io_context& IOContextPool::GetIOContext() {
     return *(io_contexts_[idx]);
 }
 
-void IOContextPool::runLoop(const std::shared_ptr<asio::io_context>& ctx,
-                            int i) {
-    std::cout << "[Net] context pool loop-" << i << " start." << std::endl;
+void IOContextPool::runLoop(const std::shared_ptr<asio::io_context>& ctx, int i) {
+    FLOG_INFO("[Net] context pool loop-%d start.", i);
 
     try {
         ctx->run();
     } catch (std::exception& e) {
-        // TODO: log
-        std::cerr << "[Net] run context pool loop-" << i
-                  << " error: " << e.what() << std::endl;
+        FLOG_ERROR("[Net] context pool loop-%d run error: %s.", i, e.what());
     }
 
-    std::cout << "[Net] context pool loop-" << i << " exit." << std::endl;
+    FLOG_INFO("[Net] context pool loop-%d exit.", i);
 }
 
 }  // namespace net
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

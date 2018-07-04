@@ -23,7 +23,7 @@
 #include <map>
 #include <inttypes.h>
 
-namespace fbase
+namespace sharkstore
 {
     namespace monitor
     {

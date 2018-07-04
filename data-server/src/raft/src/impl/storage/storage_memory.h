@@ -3,7 +3,7 @@ _Pragma("once");
 #include <deque>
 #include "storage.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace storage {
@@ -15,15 +15,15 @@ public:
 
     Status Open() override;
 
-    Status InitialState(pb::HardState* hs) override;
+    Status InitialState(pb::HardState* hs) const override;
 
     Status Entries(uint64_t lo, uint64_t hi, uint64_t max_size,
-                   std::vector<EntryPtr>* entries, bool* is_compacted) override;
+                   std::vector<EntryPtr>* entries, bool* is_compacted) const override;
 
-    Status Term(uint64_t index, uint64_t* term, bool* is_compacted) override;
+    Status Term(uint64_t index, uint64_t* term, bool* is_compacted) const override;
 
-    Status FirstIndex(uint64_t* index) override;
-    Status LastIndex(uint64_t* index) override;
+    Status FirstIndex(uint64_t* index) const override;
+    Status LastIndex(uint64_t* index) const override;
 
     Status StoreEntries(const std::vector<EntryPtr>& entries) override;
 
@@ -52,7 +52,6 @@ private:
     uint64_t trunc_index_ = 0;
     uint64_t trunc_term_ = 0;
 
-    uint64_t start_ = 0;
     std::deque<EntryPtr> entries_;
 
     pb::HardState hardstate_;
@@ -61,4 +60,4 @@ private:
 } /* namespace storage */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

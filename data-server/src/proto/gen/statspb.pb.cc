@@ -128,13 +128,18 @@ public:
  ::google::protobuf::internal::ExplicitlyConstructed<SqlTp>
      _instance;
 } _SqlTp_default_instance_;
+class RangeInfoDefaultTypeInternal {
+public:
+ ::google::protobuf::internal::ExplicitlyConstructed<RangeInfo>
+     _instance;
+} _RangeInfo_default_instance_;
 
 namespace protobuf_statspb_2eproto {
 
 
 namespace {
 
-::google::protobuf::Metadata file_level_metadata[22];
+::google::protobuf::Metadata file_level_metadata[23];
 const ::google::protobuf::EnumDescriptor* file_level_enum_descriptors[1];
 
 }  // namespace
@@ -150,6 +155,7 @@ PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::AuxillaryParseTableField
 };
 PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::ParseTable const
     TableStruct::schema[] GOOGLE_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
+  { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
@@ -438,6 +444,15 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SqlTp, calls_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SqlTp, tp_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SqlTp, delay_max_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeInfo, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeInfo, range_id_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeInfo, leader_id_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeInfo, node_adder_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeInfo, stats_),
 };
 static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(ClusterStats)},
@@ -462,6 +477,7 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_ATTR
   { 237, -1, sizeof(SqlSlowlog)},
   { 246, -1, sizeof(SqlSlow)},
   { 255, -1, sizeof(SqlTp)},
+  { 263, -1, sizeof(RangeInfo)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -487,6 +503,7 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::google::protobuf::Message*>(&_SqlSlowlog_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_SqlSlow_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_SqlTp_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&_RangeInfo_default_instance_),
 };
 
 namespace {
@@ -507,7 +524,7 @@ void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) GOOGLE_ATTRIBUTE_COLD;
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 22);
+  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 23);
 }
 
 }  // namespace
@@ -515,6 +532,7 @@ void TableStruct::InitDefaultsImpl() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::internal::InitProtobufDefaults();
+  ::mspb::protobuf_mspb_2eproto::InitDefaults();
   _ClusterStats_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_ClusterStats_default_instance_);_DatabaseStats_default_instance_._instance.DefaultConstruct();
@@ -559,7 +577,9 @@ void TableStruct::InitDefaultsImpl() {
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_SqlSlow_default_instance_);_SqlTp_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
-      &_SqlTp_default_instance_);_ProcessStats_default_instance_._instance.get_mutable()->disk_stats_ = const_cast< ::statspb::DiskStats*>(
+      &_SqlTp_default_instance_);_RangeInfo_default_instance_._instance.DefaultConstruct();
+  ::google::protobuf::internal::OnShutdownDestroyMessage(
+      &_RangeInfo_default_instance_);_ProcessStats_default_instance_._instance.get_mutable()->disk_stats_ = const_cast< ::statspb::DiskStats*>(
       ::statspb::DiskStats::internal_default_instance());
   _ProcessStats_default_instance_._instance.get_mutable()->tp_stats_ = const_cast< ::statspb::TpStats*>(
       ::statspb::TpStats::internal_default_instance());
@@ -569,6 +589,8 @@ void TableStruct::InitDefaultsImpl() {
       ::statspb::MemStats::internal_default_instance());
   _MacStats_default_instance_._instance.get_mutable()->net_stats_ = const_cast< ::statspb::NetStats*>(
       ::statspb::NetStats::internal_default_instance());
+  _RangeInfo_default_instance_._instance.get_mutable()->stats_ = const_cast< ::mspb::RangeStats*>(
+      ::mspb::RangeStats::internal_default_instance());
 }
 
 void InitDefaults() {
@@ -579,107 +601,111 @@ namespace {
 void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-      "\n\rstatspb.proto\022\007statspb\"\247\002\n\014ClusterStat"
-      "s\022\026\n\016capacity_total\030\001 \001(\004\022\021\n\tsize_used\030\002"
-      " \001(\004\022\021\n\trange_num\030\003 \001(\004\022\016\n\006db_num\030\004 \001(\004\022"
-      "\021\n\ttable_num\030\005 \001(\004\022\020\n\010task_num\030\006 \001(\004\022\025\n\r"
-      "node_up_count\030\007 \001(\004\022\027\n\017node_down_count\030\010"
-      " \001(\004\022\032\n\022node_offline_count\030\t \001(\004\022\034\n\024node"
-      "_tombstone_count\030\n \001(\004\022\034\n\024leader_balance"
-      "_ratio\030\013 \001(\001\022\034\n\024region_balance_ratio\030\014 \001"
-      "(\001\"0\n\rDatabaseStats\022\014\n\004name\030\001 \001(\t\022\021\n\ttab"
-      "le_num\030\002 \001(\r\"R\n\nTableStats\022\017\n\007db_name\030\001 "
-      "\001(\t\022\022\n\ntable_name\030\002 \001(\t\022\021\n\trange_num\030\003 \001"
-      "(\004\022\014\n\004size\030\004 \001(\004\"\231\001\n\010TaskInfo\022\017\n\007task_id"
-      "\030\001 \001(\004\022\020\n\010range_id\030\002 \001(\004\022\014\n\004kind\030\003 \001(\t\022\014"
-      "\n\004name\030\004 \001(\t\022\r\n\005state\030\005 \001(\t\022\r\n\005start\030\006 \001"
-      "(\003\022\013\n\003end\030\007 \001(\003\022\021\n\tused_time\030\010 \001(\001\022\020\n\010de"
-      "scribe\030\t \001(\t\"\304\001\n\014HotSpotStats\022\017\n\007node_id"
-      "\030\001 \001(\004\022\021\n\tnode_addr\030\002 \001(\t\022#\n\033total_writt"
-      "en_bytes_as_peer\030\003 \001(\001\022 \n\030hot_write_regi"
-      "on_as_peer\030\004 \001(\004\022%\n\035total_written_bytes_"
-      "as_leader\030\005 \001(\001\022\"\n\032hot_write_region_as_l"
-      "eader\030\006 \001(\004\";\n\rScheduleCount\022\014\n\004name\030\001 \001"
-      "(\t\022\r\n\005label\030\002 \001(\t\022\r\n\005count\030\003 \001(\004\"\364\001\n\tDis"
-      "kStats\022\021\n\tdisk_path\030\001 \001(\t\022\022\n\ndisk_total\030"
-      "\002 \001(\004\022\021\n\tdisk_used\030\003 \001(\004\022\021\n\tdisk_free\030\004 "
-      "\001(\004\022\026\n\016disk_proc_rate\030\005 \001(\001\022\036\n\026disk_read"
-      "_byte_per_sec\030\006 \001(\004\022\037\n\027disk_write_byte_p"
-      "er_sec\030\007 \001(\004\022\037\n\027disk_read_count_per_sec\030"
-      "\010 \001(\004\022 \n\030disk_write_count_per_sec\030\t \001(\004\""
-      "\341\003\n\010NetStats\022\036\n\026net_io_in_byte_per_sec\030\001"
-      " \001(\004\022\037\n\027net_io_out_byte_per_sec\030\002 \001(\004\022!\n"
-      "\031net_io_in_package_per_sec\030\003 \001(\004\022\"\n\032net_"
-      "io_out_package_per_sec\030\004 \001(\004\022\033\n\023net_tcp_"
-      "connections\030\005 \001(\r\022$\n\034net_tcp_active_open"
-      "s_per_sec\030\006 \001(\004\022#\n\033net_ip_recv_package_p"
-      "er_sec\030\007 \001(\004\022#\n\033net_ip_send_package_per_"
-      "sec\030\010 \001(\004\022#\n\033net_ip_drop_package_per_sec"
-      "\030\t \001(\004\022$\n\034net_tcp_recv_package_per_sec\030\n"
-      " \001(\004\022$\n\034net_tcp_send_package_per_sec\030\013 \001"
-      "(\004\022#\n\033net_tcp_err_package_per_sec\030\014 \001(\004\022"
-      "*\n\"net_tcp_retransfer_package_per_sec\030\r "
-      "\001(\004\"\361\001\n\010MemStats\022\024\n\014memory_total\030\001 \001(\004\022\027"
-      "\n\017memory_used_rss\030\002 \001(\004\022\023\n\013memory_used\030\003"
-      " \001(\004\022\023\n\013memory_free\030\004 \001(\004\022\033\n\023memory_used"
-      "_percent\030\005 \001(\001\022\031\n\021swap_memory_total\030\006 \001("
-      "\004\022\030\n\020swap_memory_used\030\007 \001(\004\022\030\n\020swap_memo"
-      "ry_free\030\010 \001(\004\022 \n\030swap_memory_used_percen"
-      "t\030\t \001(\001\"\244\001\n\007TpStats\022\013\n\003tps\030\001 \001(\004\022\013\n\003min\030"
-      "\002 \001(\001\022\013\n\003max\030\003 \001(\001\022\013\n\003avg\030\004 \001(\001\022\r\n\005tp_50"
-      "\030\005 \001(\001\022\r\n\005tp_90\030\006 \001(\001\022\r\n\005tp_99\030\007 \001(\001\022\016\n\006"
-      "tp_999\030\010 \001(\001\022\024\n\014total_number\030\t \001(\004\022\022\n\ner"
-      "r_number\030\n \001(\004\")\n\007SlowLog\022\020\n\010slow_log\030\001 "
-      "\001(\t\022\014\n\004lats\030\002 \001(\001\"3\n\014SlowLogStats\022#\n\tslo"
-      "w_logs\030\001 \003(\0132\020.statspb.SlowLog\"\274\001\n\006DsInf"
-      "o\022\023\n\013range_count\030\001 \001(\004\022\031\n\021range_split_co"
-      "unt\030\002 \001(\r\022\032\n\022sending_snap_count\030\003 \001(\r\022\034\n"
-      "\024receiving_snap_count\030\004 \001(\r\022\033\n\023applying_"
-      "snap_count\030\005 \001(\r\022\032\n\022range_leader_count\030\006"
-      " \001(\r\022\017\n\007version\030\007 \001(\t\"\221\002\n\014ProcessStats\022\025"
-      "\n\rcpu_proc_rate\030\001 \001(\001\022\024\n\014memory_total\030\002 "
-      "\001(\004\022\023\n\013memory_used\030\003 \001(\004\022\025\n\rconnect_coun"
-      "t\030\004 \001(\004\022&\n\ndisk_stats\030\010 \001(\0132\022.statspb.Di"
-      "skStats\022\"\n\010tp_stats\030\t \001(\0132\020.statspb.TpSt"
-      "ats\022 \n\007ds_info\030\n \001(\0132\017.statspb.DsInfo\022\022\n"
-      "\nthread_num\030\013 \001(\r\022\022\n\nhandle_num\030\014 \001(\r\022\022\n"
-      "\nstart_time\030\r \001(\003\"\223\002\n\010MacStats\022\025\n\rcpu_pr"
-      "oc_rate\030\001 \001(\001\022\021\n\tcpu_count\030\002 \001(\r\022\r\n\005load"
-      "1\030\003 \001(\001\022\r\n\005load5\030\004 \001(\001\022\016\n\006load15\030\005 \001(\001\022$"
-      "\n\tmem_stats\030\006 \001(\0132\021.statspb.MemStats\022$\n\t"
-      "net_stats\030\007 \001(\0132\021.statspb.NetStats\022&\n\ndi"
-      "sk_stats\030\010 \003(\0132\022.statspb.DiskStats\022\023\n\013pr"
-      "ocess_num\030\t \001(\r\022\022\n\nthread_num\030\n \001(\r\022\022\n\nh"
-      "andle_num\030\013 \001(\r\"\227\001\n\nRangeStats\022\014\n\004size\030\001"
-      " \001(\004\022\013\n\003ops\030\002 \001(\004\022\030\n\020bytes_in_per_sec\030\003 "
-      "\001(\004\022\031\n\021bytes_out_per_sec\030\004 \001(\004\022 \n\030total_"
-      "commands_processed\030\005 \001(\004\022\027\n\017keyspace_mis"
-      "ses\030\006 \001(\004\"\262\001\n\rReplicaStatus\022\r\n\005Match\030\001 \001"
-      "(\004\022\016\n\006Commit\030\002 \001(\004\022\014\n\004Next\030\003 \001(\004\022\r\n\005Stat"
-      "e\030\004 \001(\t\022\023\n\013Snapshoting\030\005 \001(\010\022\016\n\006Paused\030\006"
-      " \001(\010\022\016\n\006Active\030\007 \001(\010\022\022\n\nLastActive\030\010 \001(\003"
-      "\022\020\n\010Inflight\030\t \001(\005\022\n\n\002ID\030\n \001(\004\"\241\002\n\nRaftS"
-      "tatus\022\n\n\002ID\030\001 \001(\004\022\016\n\006NodeID\030\002 \001(\004\022\016\n\006Lea"
-      "der\030\003 \001(\004\022\014\n\004Term\030\004 \001(\004\022\r\n\005Index\030\005 \001(\004\022\016"
-      "\n\006Commit\030\006 \001(\004\022\017\n\007Applied\030\007 \001(\004\022\014\n\004Vote\030"
-      "\010 \001(\004\022\021\n\tPendQueue\030\t \001(\005\022\021\n\tRecvQueue\030\n "
-      "\001(\005\022\020\n\010AppQueue\030\013 \001(\005\022\017\n\007Stopped\030\014 \001(\010\022\031"
-      "\n\021RestoringSnapshot\030\r \001(\010\022\r\n\005State\030\016 \001(\t"
-      "\022(\n\010Replicas\030\017 \003(\0132\026.statspb.ReplicaStat"
-      "us\"6\n\010SqlStats\022\013\n\003ops\030\001 \001(\003\022\021\n\tdelay_avg"
-      "\030\002 \001(\003\022\n\n\002tp\030\003 \001(\014\"S\n\nSqlSlowlog\022\013\n\003len\030"
-      "\001 \001(\r\022\014\n\004than\030\002 \001(\005\022\013\n\003idx\030\003 \001(\r\022\035\n\003log\030"
-      "\004 \003(\0132\020.statspb.SqlSlow\"O\n\007SqlSlow\022\020\n\010ti"
-      "me_sec\030\001 \001(\003\022\013\n\003sql\030\002 \001(\t\022\022\n\ntotal_usec\030"
-      "\003 \001(\003\022\021\n\tcall_usec\030\004 \001(\003\"5\n\005SqlTp\022\r\n\005cal"
-      "ls\030\001 \001(\003\022\n\n\002tp\030\002 \003(\003\022\021\n\tdelay_max\030\003 \001(\003*"
-      "F\n\006TpArgs\022\013\n\007invalid\020\000\022\017\n\nmsec_index\020\350\007\022"
-      "\016\n\tsec_index\020\244\010\022\016\n\tmin_index\020\245\010b\006proto3"
+      "\n\rstatspb.proto\022\007statspb\032\nmspb.proto\"\247\002\n"
+      "\014ClusterStats\022\026\n\016capacity_total\030\001 \001(\004\022\021\n"
+      "\tsize_used\030\002 \001(\004\022\021\n\trange_num\030\003 \001(\004\022\016\n\006d"
+      "b_num\030\004 \001(\004\022\021\n\ttable_num\030\005 \001(\004\022\020\n\010task_n"
+      "um\030\006 \001(\004\022\025\n\rnode_up_count\030\007 \001(\004\022\027\n\017node_"
+      "down_count\030\010 \001(\004\022\032\n\022node_offline_count\030\t"
+      " \001(\004\022\034\n\024node_tombstone_count\030\n \001(\004\022\034\n\024le"
+      "ader_balance_ratio\030\013 \001(\001\022\034\n\024region_balan"
+      "ce_ratio\030\014 \001(\001\"0\n\rDatabaseStats\022\014\n\004name\030"
+      "\001 \001(\t\022\021\n\ttable_num\030\002 \001(\r\"R\n\nTableStats\022\017"
+      "\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\022\021\n\tr"
+      "ange_num\030\003 \001(\004\022\014\n\004size\030\004 \001(\004\"\231\001\n\010TaskInf"
+      "o\022\017\n\007task_id\030\001 \001(\004\022\020\n\010range_id\030\002 \001(\004\022\014\n\004"
+      "kind\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\r\n\005state\030\005 \001(\t\022"
+      "\r\n\005start\030\006 \001(\003\022\013\n\003end\030\007 \001(\003\022\021\n\tused_time"
+      "\030\010 \001(\001\022\020\n\010describe\030\t \001(\t\"\304\001\n\014HotSpotStat"
+      "s\022\017\n\007node_id\030\001 \001(\004\022\021\n\tnode_addr\030\002 \001(\t\022#\n"
+      "\033total_written_bytes_as_peer\030\003 \001(\001\022 \n\030ho"
+      "t_write_region_as_peer\030\004 \001(\004\022%\n\035total_wr"
+      "itten_bytes_as_leader\030\005 \001(\001\022\"\n\032hot_write"
+      "_region_as_leader\030\006 \001(\004\";\n\rScheduleCount"
+      "\022\014\n\004name\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\022\r\n\005count\030\003"
+      " \001(\004\"\364\001\n\tDiskStats\022\021\n\tdisk_path\030\001 \001(\t\022\022\n"
+      "\ndisk_total\030\002 \001(\004\022\021\n\tdisk_used\030\003 \001(\004\022\021\n\t"
+      "disk_free\030\004 \001(\004\022\026\n\016disk_proc_rate\030\005 \001(\001\022"
+      "\036\n\026disk_read_byte_per_sec\030\006 \001(\004\022\037\n\027disk_"
+      "write_byte_per_sec\030\007 \001(\004\022\037\n\027disk_read_co"
+      "unt_per_sec\030\010 \001(\004\022 \n\030disk_write_count_pe"
+      "r_sec\030\t \001(\004\"\341\003\n\010NetStats\022\036\n\026net_io_in_by"
+      "te_per_sec\030\001 \001(\004\022\037\n\027net_io_out_byte_per_"
+      "sec\030\002 \001(\004\022!\n\031net_io_in_package_per_sec\030\003"
+      " \001(\004\022\"\n\032net_io_out_package_per_sec\030\004 \001(\004"
+      "\022\033\n\023net_tcp_connections\030\005 \001(\r\022$\n\034net_tcp"
+      "_active_opens_per_sec\030\006 \001(\004\022#\n\033net_ip_re"
+      "cv_package_per_sec\030\007 \001(\004\022#\n\033net_ip_send_"
+      "package_per_sec\030\010 \001(\004\022#\n\033net_ip_drop_pac"
+      "kage_per_sec\030\t \001(\004\022$\n\034net_tcp_recv_packa"
+      "ge_per_sec\030\n \001(\004\022$\n\034net_tcp_send_package"
+      "_per_sec\030\013 \001(\004\022#\n\033net_tcp_err_package_pe"
+      "r_sec\030\014 \001(\004\022*\n\"net_tcp_retransfer_packag"
+      "e_per_sec\030\r \001(\004\"\361\001\n\010MemStats\022\024\n\014memory_t"
+      "otal\030\001 \001(\004\022\027\n\017memory_used_rss\030\002 \001(\004\022\023\n\013m"
+      "emory_used\030\003 \001(\004\022\023\n\013memory_free\030\004 \001(\004\022\033\n"
+      "\023memory_used_percent\030\005 \001(\001\022\031\n\021swap_memor"
+      "y_total\030\006 \001(\004\022\030\n\020swap_memory_used\030\007 \001(\004\022"
+      "\030\n\020swap_memory_free\030\010 \001(\004\022 \n\030swap_memory"
+      "_used_percent\030\t \001(\001\"\244\001\n\007TpStats\022\013\n\003tps\030\001"
+      " \001(\004\022\013\n\003min\030\002 \001(\001\022\013\n\003max\030\003 \001(\001\022\013\n\003avg\030\004 "
+      "\001(\001\022\r\n\005tp_50\030\005 \001(\001\022\r\n\005tp_90\030\006 \001(\001\022\r\n\005tp_"
+      "99\030\007 \001(\001\022\016\n\006tp_999\030\010 \001(\001\022\024\n\014total_number"
+      "\030\t \001(\004\022\022\n\nerr_number\030\n \001(\004\")\n\007SlowLog\022\020\n"
+      "\010slow_log\030\001 \001(\t\022\014\n\004lats\030\002 \001(\001\"3\n\014SlowLog"
+      "Stats\022#\n\tslow_logs\030\001 \003(\0132\020.statspb.SlowL"
+      "og\"\274\001\n\006DsInfo\022\023\n\013range_count\030\001 \001(\004\022\031\n\021ra"
+      "nge_split_count\030\002 \001(\r\022\032\n\022sending_snap_co"
+      "unt\030\003 \001(\r\022\034\n\024receiving_snap_count\030\004 \001(\r\022"
+      "\033\n\023applying_snap_count\030\005 \001(\r\022\032\n\022range_le"
+      "ader_count\030\006 \001(\r\022\017\n\007version\030\007 \001(\t\"\221\002\n\014Pr"
+      "ocessStats\022\025\n\rcpu_proc_rate\030\001 \001(\001\022\024\n\014mem"
+      "ory_total\030\002 \001(\004\022\023\n\013memory_used\030\003 \001(\004\022\025\n\r"
+      "connect_count\030\004 \001(\004\022&\n\ndisk_stats\030\010 \001(\0132"
+      "\022.statspb.DiskStats\022\"\n\010tp_stats\030\t \001(\0132\020."
+      "statspb.TpStats\022 \n\007ds_info\030\n \001(\0132\017.stats"
+      "pb.DsInfo\022\022\n\nthread_num\030\013 \001(\r\022\022\n\nhandle_"
+      "num\030\014 \001(\r\022\022\n\nstart_time\030\r \001(\003\"\223\002\n\010MacSta"
+      "ts\022\025\n\rcpu_proc_rate\030\001 \001(\001\022\021\n\tcpu_count\030\002"
+      " \001(\r\022\r\n\005load1\030\003 \001(\001\022\r\n\005load5\030\004 \001(\001\022\016\n\006lo"
+      "ad15\030\005 \001(\001\022$\n\tmem_stats\030\006 \001(\0132\021.statspb."
+      "MemStats\022$\n\tnet_stats\030\007 \001(\0132\021.statspb.Ne"
+      "tStats\022&\n\ndisk_stats\030\010 \003(\0132\022.statspb.Dis"
+      "kStats\022\023\n\013process_num\030\t \001(\r\022\022\n\nthread_nu"
+      "m\030\n \001(\r\022\022\n\nhandle_num\030\013 \001(\r\"\227\001\n\nRangeSta"
+      "ts\022\014\n\004size\030\001 \001(\004\022\013\n\003ops\030\002 \001(\004\022\030\n\020bytes_i"
+      "n_per_sec\030\003 \001(\004\022\031\n\021bytes_out_per_sec\030\004 \001"
+      "(\004\022 \n\030total_commands_processed\030\005 \001(\004\022\027\n\017"
+      "keyspace_misses\030\006 \001(\004\"\262\001\n\rReplicaStatus\022"
+      "\r\n\005Match\030\001 \001(\004\022\016\n\006Commit\030\002 \001(\004\022\014\n\004Next\030\003"
+      " \001(\004\022\r\n\005State\030\004 \001(\t\022\023\n\013Snapshoting\030\005 \001(\010"
+      "\022\016\n\006Paused\030\006 \001(\010\022\016\n\006Active\030\007 \001(\010\022\022\n\nLast"
+      "Active\030\010 \001(\003\022\020\n\010Inflight\030\t \001(\005\022\n\n\002ID\030\n \001"
+      "(\004\"\241\002\n\nRaftStatus\022\n\n\002ID\030\001 \001(\004\022\016\n\006NodeID\030"
+      "\002 \001(\004\022\016\n\006Leader\030\003 \001(\004\022\014\n\004Term\030\004 \001(\004\022\r\n\005I"
+      "ndex\030\005 \001(\004\022\016\n\006Commit\030\006 \001(\004\022\017\n\007Applied\030\007 "
+      "\001(\004\022\014\n\004Vote\030\010 \001(\004\022\021\n\tPendQueue\030\t \001(\005\022\021\n\t"
+      "RecvQueue\030\n \001(\005\022\020\n\010AppQueue\030\013 \001(\005\022\017\n\007Sto"
+      "pped\030\014 \001(\010\022\031\n\021RestoringSnapshot\030\r \001(\010\022\r\n"
+      "\005State\030\016 \001(\t\022(\n\010Replicas\030\017 \003(\0132\026.statspb"
+      ".ReplicaStatus\"6\n\010SqlStats\022\013\n\003ops\030\001 \001(\003\022"
+      "\021\n\tdelay_avg\030\002 \001(\003\022\n\n\002tp\030\003 \001(\014\"S\n\nSqlSlo"
+      "wlog\022\013\n\003len\030\001 \001(\r\022\014\n\004than\030\002 \001(\005\022\013\n\003idx\030\003"
+      " \001(\r\022\035\n\003log\030\004 \003(\0132\020.statspb.SqlSlow\"O\n\007S"
+      "qlSlow\022\020\n\010time_sec\030\001 \001(\003\022\013\n\003sql\030\002 \001(\t\022\022\n"
+      "\ntotal_usec\030\003 \001(\003\022\021\n\tcall_usec\030\004 \001(\003\"5\n\005"
+      "SqlTp\022\r\n\005calls\030\001 \001(\003\022\n\n\002tp\030\002 \003(\003\022\021\n\tdela"
+      "y_max\030\003 \001(\003\"e\n\tRangeInfo\022\020\n\010range_id\030\001 \001"
+      "(\004\022\021\n\tleader_id\030\002 \001(\004\022\022\n\nnode_adder\030\003 \001("
+      "\t\022\037\n\005stats\030\004 \001(\0132\020.mspb.RangeStats*F\n\006Tp"
+      "Args\022\013\n\007invalid\020\000\022\017\n\nmsec_index\020\350\007\022\016\n\tse"
+      "c_index\020\244\010\022\016\n\tmin_index\020\245\010b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 3839);
+      descriptor, 3954);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "statspb.proto", &protobuf_RegisterTypes);
+  ::mspb::protobuf_mspb_2eproto::AddDescriptors();
 }
 } // anonymous namespace
 
@@ -14229,6 +14255,513 @@ void SqlTp::set_delay_max(::google::protobuf::int64 value) {
   
   delay_max_ = value;
   // @@protoc_insertion_point(field_set:statspb.SqlTp.delay_max)
+}
+
+#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
+
+// ===================================================================
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int RangeInfo::kRangeIdFieldNumber;
+const int RangeInfo::kLeaderIdFieldNumber;
+const int RangeInfo::kNodeAdderFieldNumber;
+const int RangeInfo::kStatsFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+RangeInfo::RangeInfo()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
+    protobuf_statspb_2eproto::InitDefaults();
+  }
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:statspb.RangeInfo)
+}
+RangeInfo::RangeInfo(const RangeInfo& from)
+  : ::google::protobuf::Message(),
+      _internal_metadata_(NULL),
+      _cached_size_(0) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  node_adder_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.node_adder().size() > 0) {
+    node_adder_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.node_adder_);
+  }
+  if (from.has_stats()) {
+    stats_ = new ::mspb::RangeStats(*from.stats_);
+  } else {
+    stats_ = NULL;
+  }
+  ::memcpy(&range_id_, &from.range_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&leader_id_) -
+    reinterpret_cast<char*>(&range_id_)) + sizeof(leader_id_));
+  // @@protoc_insertion_point(copy_constructor:statspb.RangeInfo)
+}
+
+void RangeInfo::SharedCtor() {
+  node_adder_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  ::memset(&stats_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&leader_id_) -
+      reinterpret_cast<char*>(&stats_)) + sizeof(leader_id_));
+  _cached_size_ = 0;
+}
+
+RangeInfo::~RangeInfo() {
+  // @@protoc_insertion_point(destructor:statspb.RangeInfo)
+  SharedDtor();
+}
+
+void RangeInfo::SharedDtor() {
+  node_adder_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (this != internal_default_instance()) delete stats_;
+}
+
+void RangeInfo::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* RangeInfo::descriptor() {
+  protobuf_statspb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_statspb_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
+const RangeInfo& RangeInfo::default_instance() {
+  protobuf_statspb_2eproto::InitDefaults();
+  return *internal_default_instance();
+}
+
+RangeInfo* RangeInfo::New(::google::protobuf::Arena* arena) const {
+  RangeInfo* n = new RangeInfo;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void RangeInfo::Clear() {
+// @@protoc_insertion_point(message_clear_start:statspb.RangeInfo)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  node_adder_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (GetArenaNoVirtual() == NULL && stats_ != NULL) {
+    delete stats_;
+  }
+  stats_ = NULL;
+  ::memset(&range_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&leader_id_) -
+      reinterpret_cast<char*>(&range_id_)) + sizeof(leader_id_));
+  _internal_metadata_.Clear();
+}
+
+bool RangeInfo::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:statspb.RangeInfo)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // uint64 range_id = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &range_id_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // uint64 leader_id = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &leader_id_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // string node_adder = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(26u /* 26 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_node_adder()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->node_adder().data(), static_cast<int>(this->node_adder().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "statspb.RangeInfo.node_adder"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // .mspb.RangeStats stats = 4;
+      case 4: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(34u /* 34 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_stats()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:statspb.RangeInfo)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:statspb.RangeInfo)
+  return false;
+#undef DO_
+}
+
+void RangeInfo::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:statspb.RangeInfo)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // uint64 range_id = 1;
+  if (this->range_id() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(1, this->range_id(), output);
+  }
+
+  // uint64 leader_id = 2;
+  if (this->leader_id() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->leader_id(), output);
+  }
+
+  // string node_adder = 3;
+  if (this->node_adder().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->node_adder().data(), static_cast<int>(this->node_adder().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "statspb.RangeInfo.node_adder");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      3, this->node_adder(), output);
+  }
+
+  // .mspb.RangeStats stats = 4;
+  if (this->has_stats()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      4, *this->stats_, output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
+  }
+  // @@protoc_insertion_point(serialize_end:statspb.RangeInfo)
+}
+
+::google::protobuf::uint8* RangeInfo::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
+  // @@protoc_insertion_point(serialize_to_array_start:statspb.RangeInfo)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // uint64 range_id = 1;
+  if (this->range_id() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(1, this->range_id(), target);
+  }
+
+  // uint64 leader_id = 2;
+  if (this->leader_id() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->leader_id(), target);
+  }
+
+  // string node_adder = 3;
+  if (this->node_adder().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->node_adder().data(), static_cast<int>(this->node_adder().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "statspb.RangeInfo.node_adder");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        3, this->node_adder(), target);
+  }
+
+  // .mspb.RangeStats stats = 4;
+  if (this->has_stats()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        4, *this->stats_, deterministic, target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:statspb.RangeInfo)
+  return target;
+}
+
+size_t RangeInfo::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:statspb.RangeInfo)
+  size_t total_size = 0;
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
+  }
+  // string node_adder = 3;
+  if (this->node_adder().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->node_adder());
+  }
+
+  // .mspb.RangeStats stats = 4;
+  if (this->has_stats()) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        *this->stats_);
+  }
+
+  // uint64 range_id = 1;
+  if (this->range_id() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt64Size(
+        this->range_id());
+  }
+
+  // uint64 leader_id = 2;
+  if (this->leader_id() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt64Size(
+        this->leader_id());
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = cached_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void RangeInfo::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:statspb.RangeInfo)
+  GOOGLE_DCHECK_NE(&from, this);
+  const RangeInfo* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const RangeInfo>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:statspb.RangeInfo)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:statspb.RangeInfo)
+    MergeFrom(*source);
+  }
+}
+
+void RangeInfo::MergeFrom(const RangeInfo& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:statspb.RangeInfo)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.node_adder().size() > 0) {
+
+    node_adder_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.node_adder_);
+  }
+  if (from.has_stats()) {
+    mutable_stats()->::mspb::RangeStats::MergeFrom(from.stats());
+  }
+  if (from.range_id() != 0) {
+    set_range_id(from.range_id());
+  }
+  if (from.leader_id() != 0) {
+    set_leader_id(from.leader_id());
+  }
+}
+
+void RangeInfo::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:statspb.RangeInfo)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void RangeInfo::CopyFrom(const RangeInfo& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:statspb.RangeInfo)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool RangeInfo::IsInitialized() const {
+  return true;
+}
+
+void RangeInfo::Swap(RangeInfo* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void RangeInfo::InternalSwap(RangeInfo* other) {
+  using std::swap;
+  node_adder_.Swap(&other->node_adder_);
+  swap(stats_, other->stats_);
+  swap(range_id_, other->range_id_);
+  swap(leader_id_, other->leader_id_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata RangeInfo::GetMetadata() const {
+  protobuf_statspb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_statspb_2eproto::file_level_metadata[kIndexInFileMessages];
+}
+
+#if PROTOBUF_INLINE_NOT_IN_HEADERS
+// RangeInfo
+
+// uint64 range_id = 1;
+void RangeInfo::clear_range_id() {
+  range_id_ = GOOGLE_ULONGLONG(0);
+}
+::google::protobuf::uint64 RangeInfo::range_id() const {
+  // @@protoc_insertion_point(field_get:statspb.RangeInfo.range_id)
+  return range_id_;
+}
+void RangeInfo::set_range_id(::google::protobuf::uint64 value) {
+  
+  range_id_ = value;
+  // @@protoc_insertion_point(field_set:statspb.RangeInfo.range_id)
+}
+
+// uint64 leader_id = 2;
+void RangeInfo::clear_leader_id() {
+  leader_id_ = GOOGLE_ULONGLONG(0);
+}
+::google::protobuf::uint64 RangeInfo::leader_id() const {
+  // @@protoc_insertion_point(field_get:statspb.RangeInfo.leader_id)
+  return leader_id_;
+}
+void RangeInfo::set_leader_id(::google::protobuf::uint64 value) {
+  
+  leader_id_ = value;
+  // @@protoc_insertion_point(field_set:statspb.RangeInfo.leader_id)
+}
+
+// string node_adder = 3;
+void RangeInfo::clear_node_adder() {
+  node_adder_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+const ::std::string& RangeInfo::node_adder() const {
+  // @@protoc_insertion_point(field_get:statspb.RangeInfo.node_adder)
+  return node_adder_.GetNoArena();
+}
+void RangeInfo::set_node_adder(const ::std::string& value) {
+  
+  node_adder_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:statspb.RangeInfo.node_adder)
+}
+#if LANG_CXX11
+void RangeInfo::set_node_adder(::std::string&& value) {
+  
+  node_adder_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:statspb.RangeInfo.node_adder)
+}
+#endif
+void RangeInfo::set_node_adder(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  node_adder_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:statspb.RangeInfo.node_adder)
+}
+void RangeInfo::set_node_adder(const char* value, size_t size) {
+  
+  node_adder_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:statspb.RangeInfo.node_adder)
+}
+::std::string* RangeInfo::mutable_node_adder() {
+  
+  // @@protoc_insertion_point(field_mutable:statspb.RangeInfo.node_adder)
+  return node_adder_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+::std::string* RangeInfo::release_node_adder() {
+  // @@protoc_insertion_point(field_release:statspb.RangeInfo.node_adder)
+  
+  return node_adder_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void RangeInfo::set_allocated_node_adder(::std::string* node_adder) {
+  if (node_adder != NULL) {
+    
+  } else {
+    
+  }
+  node_adder_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), node_adder);
+  // @@protoc_insertion_point(field_set_allocated:statspb.RangeInfo.node_adder)
+}
+
+// .mspb.RangeStats stats = 4;
+bool RangeInfo::has_stats() const {
+  return this != internal_default_instance() && stats_ != NULL;
+}
+void RangeInfo::clear_stats() {
+  if (GetArenaNoVirtual() == NULL && stats_ != NULL) delete stats_;
+  stats_ = NULL;
+}
+const ::mspb::RangeStats& RangeInfo::stats() const {
+  const ::mspb::RangeStats* p = stats_;
+  // @@protoc_insertion_point(field_get:statspb.RangeInfo.stats)
+  return p != NULL ? *p : *reinterpret_cast<const ::mspb::RangeStats*>(
+      &::mspb::_RangeStats_default_instance_);
+}
+::mspb::RangeStats* RangeInfo::mutable_stats() {
+  
+  if (stats_ == NULL) {
+    stats_ = new ::mspb::RangeStats;
+  }
+  // @@protoc_insertion_point(field_mutable:statspb.RangeInfo.stats)
+  return stats_;
+}
+::mspb::RangeStats* RangeInfo::release_stats() {
+  // @@protoc_insertion_point(field_release:statspb.RangeInfo.stats)
+  
+  ::mspb::RangeStats* temp = stats_;
+  stats_ = NULL;
+  return temp;
+}
+void RangeInfo::set_allocated_stats(::mspb::RangeStats* stats) {
+  delete stats_;
+  stats_ = stats;
+  if (stats) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:statspb.RangeInfo.stats)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

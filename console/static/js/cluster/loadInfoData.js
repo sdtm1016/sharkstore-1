@@ -329,7 +329,7 @@ app.controller('myClusterNodeInfo', function($rootScope, $scope, $http, $timeout
 "<button id=\"upgradeNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"升级\" onclick=\"upgradeNode('"+row.id+"');\">升级</button>&nbsp;&nbsp;",
 "<button id=\"viewNodeMonitor\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"监控\" onclick=\"viewNodeMonitor('"+row.id+"','"+row.server_addr+"');\">监控</button>&nbsp;&nbsp;",
 "<button id=\"updateNodeStatus\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改状态\" onclick=\"updateNodeStatus('"+row.id+"');\">状态修改</button>&nbsp;&nbsp;",
-"<button id=\"deleteNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"删除\" onclick=\"deleteNode('"+row.id+"');\">删除</button>&nbsp;&nbsp;",
+"<button id=\"deleteNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"删除\" onclick=\"deleteNode("+row.id+");\">删除</button>&nbsp;&nbsp;",
 "<button id=\"updateNodeLogLevel\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改日志级别\" onclick=\"updateNodeLogLevel('"+row.id+"');\">设置日志级别</button>&nbsp;&nbsp;",
 "<button id=\"getRangeTopoOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"查看range\" onclick=\"getRangeTopoOfNode('"+row.id+"');\">查看range</button>&nbsp;&nbsp;",
 "<button id=\"updateIsolationLabel\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改隔离标识\" onclick=\"updateIsolationLabel('"+row.id+"');\">修改隔离标识/button>&nbsp;&nbsp;"
@@ -445,7 +445,7 @@ function batchDeleteNode(){
 
 //node下线操作
 function deleteNode(nodeId){
-    var nodeIds = new Array();
+    var nodeIds = [];
     nodeIds.push(nodeId);
 	swal({
   	  title: "删除实例操作, 只有logout的节点才能被删除",
@@ -464,7 +464,7 @@ function deleteNode(nodeId){
 		        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
 		        dataType:"json",
 		        data:{
-		        	"nodeIds":JSON.stringify(nodeIds),
+		        	"nodeIds": JSON.stringify(nodeIds),
 		        	"clusterId":clusterId
 		        },
 		        success: function(data){

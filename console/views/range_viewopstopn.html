@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>range TopN展示</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link href="/static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="/static/css/plugins/bootstrap-table/bootstrap-table.min.css" rel="stylesheet">
+    <link href="/static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="/static/css/animate.css" rel="stylesheet">
+    <link href="/static/css/style.css?v=4.1.0" rel="stylesheet">
+    <link href="/static/css/custom.min.css" rel="stylesheet">
+    <link href="/static/css/xenon-core.min.css" rel="stylesheet">
+    <link href="/static/css/plugins/sweetalert/sweetalert.css" rel="stylesheet">
+    <link href="/static/css/plugins/datapicker/bootstrap-datetimepicker.css" rel="stylesheet">
+</head>
+<body class="gray-bg">
+
+<div class="example-wrap" ng-app="rangeOpsTopN" ng-controller="rangeTopNCtrl" style="margin-top: 10px; overflow:scroll">
+    <input type="text" hidden="true" value="{[{.clusterId}]}" id="clusterId" name="clusterId"/>
+    <input type="text" hidden="true" value="{[{.topN}]}" id="topN" name="topN"/>
+<table class="table table-striped table-bordered space-list-table" id="table">
+    <thead>
+    <tr class="space-list-name">
+        <th class="order" style="text-align: center; vertical-align: middle;width: 3%"></th>
+        <th style="text-align: center; vertical-align: middle;width: 5%">rangeId</th>
+        <th style="text-align: center; vertical-align: middle;width: 5%">leaderId</th>
+        <th style="text-align: center; vertical-align: middle;width: 5%">nodeAddr</th>
+        <th style="text-align: center; vertical-align: middle;width: 8%">byteWrite</th>
+        <th style="text-align: center; vertical-align: middle;width: 8%">byteRead</th>
+        <th style="text-align: center; vertical-align: middle;width: 8%">keyWrite</th>
+        <th style="text-align: center; vertical-align: middle;width: 8%">keyRead</th>
+        <th style="text-align: center; vertical-align: middle;width: 8%">opsMax</th>
+        <th style="text-align: center; vertical-align: middle;width: 5%">tableId</th>
+        <!--<th style="text-align: center; vertical-align: middle;width: 8%">操作</th>-->
+    </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="statInfo in statList track by $index">
+            <td style="vertical-align:middle; text-align:center;">{{$index + 1}}</td></td>
+            <td style="vertical-align:middle; text-align:center;">{{statInfo.range_id}}</td>
+            <td style="vertical-align:middle; text-align:center;">{{statInfo.leader_id}}</td>
+            <td style="vertical-align:middle; text-align:center;">{{statInfo.node_adder}}</td>
+            <td style="vertical-align:middle; text-align:center;">{{statInfo.bytes_written}}</td>
+            <td style="vertical-align:middle; text-align:center;">{{statInfo.bytes_read}}</td>
+            <td style="vertical-align:middle; text-align:center;">{{statInfo.keys_written}}</td>
+            <td style="vertical-align:middle; text-align:center;">{{statInfo.keys_read}}</td>
+            <td style="vertical-align:middle; text-align:center;">{{statInfo.write_ops}}</td>
+            <td style="vertical-align:middle; text-align:center;">{{statInfo.table_id}}</td>
+            <!--<td style="vertical-align:middle; text-align:center;" class="table-btns">
+                <a class="btn btn-primary btn-rounded" ng-click="transferRange(statInfo)">迁移</a>
+            </td>-->
+        </tr>
+    </tbody>
+</table>
+</div>
+</body>
+    <script src="/static/js/jquery.min.js?v=2.1.4"></script>
+    <script src="/static/js/bootstrap.min.js?v=3.3.6"></script>
+    <script src="/static/js/plugins/bootstrap-table/bootstrap-table.min.js"></script>
+    <script src="/static/js/plugins/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+    <script src="/static/js/plugins/sweetalert/sweetalert.min.js"></script>
+    <script src="/static/js/angular/angular.min.js"></script>
+    <script src="/static/js/cluster/rangeopstopn.js"></script>
+</html>

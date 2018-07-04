@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <iostream>
 
 #include <fastcommon/logger.h>
 #include <fastcommon/process_ctrl.h>
@@ -24,8 +25,17 @@
 #include "frame/sf_service.h"
 
 #include "callback.h"
+#include "version.h"
+
+using sharkstore::dataserver::server::GetVersionInfo;
 
 int main(int argc, char *argv[]) {
+    // print version
+    if (argc > 1 && (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0)) {
+        std::cout << GetVersionInfo() << std::endl;
+        return 0;
+    }
+
     sf_set_proto_header_size(sizeof(ds_proto_header_t));
     sf_regist_body_length_callback(ds_get_body_length);
     sf_regist_load_config_callback(load_from_conf_file);

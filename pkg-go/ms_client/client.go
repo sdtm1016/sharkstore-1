@@ -1,20 +1,20 @@
 package client
 
 import (
-	"time"
 	"errors"
 	"sync"
+	"time"
 
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 	"model/pkg/metapb"
 	"model/pkg/mspb"
-	"google.golang.org/grpc"
 	"util/log"
-	"golang.org/x/net/context"
 )
 
 const (
-	RequestMSTimeout   = time.Second
-	ConnectMSTimeout   = time.Second * 3
+	RequestMSTimeout = time.Second
+	ConnectMSTimeout = time.Second * 3
 )
 
 // Client is a MS (master server) client.
@@ -50,18 +50,18 @@ type Client interface {
 
 // errInvalidResponse represents response message is invalid.
 var (
-	errGrpcError = errors.New("grpc error")
-	errNoLeader = errors.New("no leader")
-	errInvalidRequest = errors.New("invalid request")
-	errInvalidResponse = errors.New("invalid response")
+	errGrpcError             = errors.New("grpc error")
+	errNoLeader              = errors.New("no leader")
+	errInvalidRequest        = errors.New("invalid request")
+	errInvalidResponse       = errors.New("invalid response")
 	errInvalidResponseHeader = errors.New("response header not set")
 )
 
 type RPCClient struct {
-	msAddrs   []string
-	lock      sync.RWMutex
-	leader    string
-	pool      map[string]*Conn
+	msAddrs []string
+	lock    sync.RWMutex
+	leader  string
+	pool    map[string]*Conn
 }
 
 func NewClient(msAddrs []string) (Client, error) {
@@ -80,10 +80,10 @@ func NewClient(msAddrs []string) (Client, error) {
 
 func (c *RPCClient) GetRoute(dbId, tableId uint64, key []byte) ([]*metapb.Route, error) {
 	req := &mspb.GetRouteRequest{
-		Header: &mspb.RequestHeader{},
-		DbId:  dbId,
+		Header:  &mspb.RequestHeader{},
+		DbId:    dbId,
 		TableId: tableId,
-		Key: key,
+		Key:     key,
 	}
 	resp, err := c.callRPC(req, RequestMSTimeout)
 	if err != nil {
@@ -101,7 +101,7 @@ func (c *RPCClient) GetRoute(dbId, tableId uint64, key []byte) ([]*metapb.Route,
 func (c *RPCClient) GetNode(nodeId uint64) (*metapb.Node, error) {
 	req := &mspb.GetNodeRequest{
 		Header: &mspb.RequestHeader{},
-		Id: nodeId,
+		Id:     nodeId,
 	}
 	resp, err := c.callRPC(req, RequestMSTimeout)
 	if err != nil {
@@ -119,7 +119,7 @@ func (c *RPCClient) GetNode(nodeId uint64) (*metapb.Node, error) {
 func (c *RPCClient) GetDB(dbName string) (*metapb.DataBase, error) {
 	req := &mspb.GetDBRequest{
 		Header: &mspb.RequestHeader{},
-		Name: dbName,
+		Name:   dbName,
 	}
 	resp, err := c.callRPC(req, RequestMSTimeout)
 	if err != nil {
@@ -135,9 +135,9 @@ func (c *RPCClient) GetDB(dbName string) (*metapb.DataBase, error) {
 }
 
 func (c *RPCClient) GetTable(dbName, tableName string) (*metapb.Table, error) {
-	req :=  &mspb.GetTableRequest{
-		Header: &mspb.RequestHeader{},
-		DbName: dbName,
+	req := &mspb.GetTableRequest{
+		Header:    &mspb.RequestHeader{},
+		DbName:    dbName,
 		TableName: tableName,
 	}
 	resp, err := c.callRPC(req, RequestMSTimeout)
@@ -154,9 +154,9 @@ func (c *RPCClient) GetTable(dbName, tableName string) (*metapb.Table, error) {
 }
 
 func (c *RPCClient) GetTableById(dbId uint64, tableId uint64) (*metapb.Table, error) {
-	req :=  &mspb.GetTableByIdRequest{
-		Header: &mspb.RequestHeader{},
-		DbId: dbId,
+	req := &mspb.GetTableByIdRequest{
+		Header:  &mspb.RequestHeader{},
+		DbId:    dbId,
 		TableId: tableId,
 	}
 	resp, err := c.callRPC(req, RequestMSTimeout)
@@ -174,8 +174,8 @@ func (c *RPCClient) GetTableById(dbId uint64, tableId uint64) (*metapb.Table, er
 
 func (c *RPCClient) GetColumns(dbId, tableId uint64) ([]*metapb.Column, error) {
 	req := &mspb.GetColumnsRequest{
-		Header: &mspb.RequestHeader{},
-		DbId: dbId,
+		Header:  &mspb.RequestHeader{},
+		DbId:    dbId,
 		TableId: tableId,
 	}
 	resp, err := c.callRPC(req, RequestMSTimeout)
@@ -193,8 +193,8 @@ func (c *RPCClient) GetColumns(dbId, tableId uint64) ([]*metapb.Column, error) {
 
 func (c *RPCClient) GetColumnByName(dbId, tableId uint64, columnName string) (*metapb.Column, error) {
 	req := &mspb.GetColumnByNameRequest{
-		Header: &mspb.RequestHeader{},
-		DbId: dbId,
+		Header:  &mspb.RequestHeader{},
+		DbId:    dbId,
 		TableId: tableId,
 		ColName: columnName,
 	}
@@ -213,10 +213,10 @@ func (c *RPCClient) GetColumnByName(dbId, tableId uint64, columnName string) (*m
 
 func (c *RPCClient) GetColumnByID(dbId, tableId uint64, columnId uint64) (*metapb.Column, error) {
 	req := &mspb.GetColumnByIdRequest{
-		Header: &mspb.RequestHeader{},
-		DbId: dbId,
+		Header:  &mspb.RequestHeader{},
+		DbId:    dbId,
 		TableId: tableId,
-		ColId: columnId,
+		ColId:   columnId,
 	}
 	resp, err := c.callRPC(req, RequestMSTimeout)
 	if err != nil {
@@ -235,8 +235,8 @@ func (c *RPCClient) GetColumnByID(dbId, tableId uint64, columnId uint64) (*metap
 // 返回master server处理后的columns列表(本次新增部分)
 func (c *RPCClient) AddColumns(dbId, tableId uint64, columns []*metapb.Column) ([]*metapb.Column, error) {
 	req := &mspb.AddColumnRequest{
-		Header: &mspb.RequestHeader{},
-		DbId: dbId,
+		Header:  &mspb.RequestHeader{},
+		DbId:    dbId,
 		TableId: tableId,
 		Columns: columns,
 	}
@@ -283,8 +283,8 @@ func (c *RPCClient) RangeHeartbeat(req *mspb.RangeHeartbeatRequest) (*mspb.Range
 
 func (c *RPCClient) TruncateTable(dbId, tableId uint64) error {
 	req := &mspb.TruncateTableRequest{
-		Header: &mspb.RequestHeader{},
-		DbId: dbId,
+		Header:  &mspb.RequestHeader{},
+		DbId:    dbId,
 		TableId: tableId,
 	}
 	resp, err := c.callRPC(req, RequestMSTimeout)
@@ -320,9 +320,9 @@ func (c *RPCClient) CreateDatabase(dbName string) error {
 
 func (c *RPCClient) CreateTable(dbName, tableName, properties string) error {
 	req := &mspb.CreateTableRequest{
-		Header: &mspb.RequestHeader{},
-		DbName: dbName,
-		TableName: tableName,
+		Header:     &mspb.RequestHeader{},
+		DbName:     dbName,
+		TableName:  tableName,
 		Properties: properties,
 	}
 	resp, err := c.callRPC(req, RequestMSTimeout)
@@ -395,7 +395,7 @@ func (c *RPCClient) callRPC(req interface{}, timeout time.Duration) (resp interf
 	var conn *Conn
 	var retry int
 	var header *mspb.ResponseHeader
-	var pbErr  *mspb.Error
+	var pbErr *mspb.Error
 	retry = 3
 	for i := 0; i < retry; i++ {
 		conn, err = c.getConn()
@@ -664,8 +664,8 @@ func (c *RPCClient) callRPC(req interface{}, timeout time.Duration) (resp interf
 			return nil, errInvalidRequest
 		}
 
-		if pbErr.GetMsLeader() != nil {
-			c.leader = pbErr.GetMsLeader().GetMsLeader()
+		if pbErr.GetNewLeader() != nil {
+			c.leader = pbErr.GetNewLeader().GetAddress()
 			continue
 		} else if pbErr.GetNoLeader() != nil {
 			time.Sleep(time.Millisecond * 20)
@@ -686,7 +686,7 @@ func (c *RPCClient) getConn() (*Conn, error) {
 	leader := c.leader
 	// 第一次获取leader
 	if len(leader) == 0 {
-		err := func () error {
+		err := func() error {
 			c.lock.Lock()
 			defer c.lock.Unlock()
 			leader = c.leader

@@ -8,23 +8,24 @@ import (
 
 	"util/log"
 	"github.com/BurntSushi/toml"
+	"master-server/metric"
 )
 
 const (
-	defaultServerName           = "ms"
-	defaultMaxReplicas          = 3
-	defaultMaxSnapshotCount     = 3
-	defaultMaxNodeDownTime      = time.Hour
-	defaultLeaderScheduleLimit  = 64
-	defaultRegionScheduleLimit  = 12
-	defaultReplicaScheduleLimit = 16
-	defaultRaftHbInterval       = time.Millisecond * 500
-	defaultRaftRetainLogsCount  = 100
-	defaultMaxTaskWaitTime      = 5 * time.Minute
-	defaultMaxRangeDownTime     = 10 * time.Minute
-	defaultNodeRangeBalanceTime     = 2 * time.Minute
-	defaultStorageAvailableThreshold  = 20
-	defaultWriteByteOpsThreshold  = 30*1024*1024
+	defaultServerName                = "ms"
+	defaultMaxReplicas               = 3
+	defaultMaxSnapshotCount          = 3
+	defaultMaxNodeDownTime           = time.Hour
+	defaultLeaderScheduleLimit       = 64
+	defaultRegionScheduleLimit       = 12
+	defaultReplicaScheduleLimit      = 16
+	defaultRaftHbInterval            = time.Millisecond * 500
+	defaultRaftRetainLogsCount       = 100
+	defaultMaxTaskWaitTime           = 5 * time.Minute
+	defaultMaxRangeDownTime          = 10 * time.Minute
+	defaultNodeRangeBalanceTime      = 2 * time.Minute
+	defaultStorageAvailableThreshold = 20
+	defaultWriteByteOpsThreshold     = 30 * 1024 * 1024
 )
 const DefaultFactor = 0.75
 
@@ -98,23 +99,28 @@ location-labels = []
 `
 
 type Config struct {
-	Name    string  `toml:"name,omitempty" json:"name"`
-	NodeId  uint64  `toml:"node-id,omitempty" json:"node-id"`
+	Name              string `toml:"name,omitempty" json:"name"`
+	NodeId            uint64 `toml:"node-id,omitempty" json:"node-id"`
 	raftHeartbeatAddr string
 	raftReplicaAddr   string
 	webManageAddr     string
 	rpcServerAddr     string
-	Role    string  `toml:"role,omitempty" json:"role"`
-	Version string  `toml:"version,omitempty" json:"version"`
-	SecretKey string  `toml:"secret-key,omitempty" json:"secret-key"`
-	DataPath string  `toml:"data-dir,omitempty" json:"data-dir"`
+	Role              string `toml:"role,omitempty" json:"role"`
+	Version           string `toml:"version,omitempty" json:"version"`
+	SecretKey         string `toml:"secret-key,omitempty" json:"secret-key"`
+	DataPath          string `toml:"data-dir,omitempty" json:"data-dir"`
 
-	Cluster  ClusterConfig `toml:"cluster,omitempty" json:"cluster"`
-	Raft     RaftConfig `toml:"raft,omitempty" json:"raft"`
-	Log      LogConfig `toml:"log,omitempty" json:"log"`
-	Metric   MetricConfig `toml:"metric,omitempty" json:"metric"`
-	Schedule ScheduleConfig `toml:"schedule,omitempty" json:"schedule"`
+	Cluster     ClusterConfig     `toml:"cluster,omitempty" json:"cluster"`
+	Raft        RaftConfig        `toml:"raft,omitempty" json:"raft"`
+	Schedule    ScheduleConfig    `toml:"schedule,omitempty" json:"schedule"`
 	Replication ReplicationConfig `toml:"replication,omitempty" json:"replication"`
+
+	Log         LogConfig         `toml:"log,omitempty" json:"log"`
+	Metric      MetricConfig      `toml:"metric,omitempty" json:"metric"`
+
+	Threshold metric.ThresholdConfig `toml:"threshold,omitempty" json:"threshold"`
+	Alarm AlarmConfig`toml:"alarm,omitempty" json:"alarm"`
+
 }
 
 func NewDefaultConfig() *Config {
@@ -139,7 +145,7 @@ func (c *Config) LoadFromFile(path string) error {
 func (c *Config) adjust() error {
 	adjustString(&c.Role, "master")
 	adjustString(&c.Version, "v1")
-	if strings.Compare(c.Role, "master") != 0 && strings.Compare(c.Role, "metric") != 0{
+	if strings.Compare(c.Role, "master") != 0 && strings.Compare(c.Role, "metric") != 0 {
 		return fmt.Errorf("invalid role %s", c.Role)
 	}
 
@@ -162,7 +168,7 @@ func (c *Config) adjust() error {
 			return err
 		}
 		if c.NodeId == 0 {
-			LocalIPs:
+		LocalIPs:
 			for _, ip := range util.GetLocalIps() {
 				for _, peer := range c.Cluster.Peers {
 					if peer.Host == ip {
@@ -181,7 +187,7 @@ func (c *Config) adjust() error {
 				break
 			}
 		}
-		if c.NodeId == 0 || c.rpcServerAddr == ""{
+		if c.NodeId == 0 || c.rpcServerAddr == "" {
 			return fmt.Errorf("invalid node ID %d", c.NodeId)
 		}
 		err = c.Raft.adjust()
@@ -195,16 +201,31 @@ func (c *Config) adjust() error {
 }
 
 type ClusterPeer struct {
-	ID       uint64    `toml:"id,omitempty" json:"id"`
-	Host     string    `toml:"host,omitempty" json:"host"`
-	HttpPort int       `toml:"http-port,omitempty" json:"http-port"`
-	RpcPort  int       `toml:"rpc-port,omitempty" json:"rpc-port"`
-	RaftPorts []int       `toml:"raft-ports,omitempty" json:"raft-ports"`
+	ID        uint64 `toml:"id,omitempty" json:"id"`
+	Host      string `toml:"host,omitempty" json:"host"`
+	HttpPort  int    `toml:"http-port,omitempty" json:"http-port"`
+	RpcPort   int    `toml:"rpc-port,omitempty" json:"rpc-port"`
+	RaftPorts []int  `toml:"raft-ports,omitempty" json:"raft-ports"`
 }
 
 type ClusterConfig struct {
-	ClusterID     uint64     `toml:"cluster-id,omitempty" json:"cluster-id"`
-	Peers         []*ClusterPeer `toml:"peer,omitempty" json:"peer"`
+	ClusterID uint64         `toml:"cluster-id,omitempty" json:"cluster-id"`
+	Peers     []*ClusterPeer `toml:"peer,omitempty" json:"peer"`
+}
+
+type AlarmReceiver struct {
+	Mail string `toml:"mail,omitempty" json:"mail"`
+	Sms  string `toml:"sms,omitempty" json:"sms"`
+}
+
+
+
+type AlarmConfig struct {
+	ServerAddress string  			`toml:"server-address" json:"server-address"`
+	ServerPort int   				`toml:"server-port,omitempty" json:"port"`
+	RemoteAlarmServerAddress string`toml:"remote-alarm-server-address,omitempty" json:"remote-alarm-server-address"`
+	MessageGatewayAddress string	`toml:"message-gateway-address,omitempty" json:"message-gateway-address"`
+	Receivers []*AlarmReceiver		`toml:"receivers,omitempty" json:"receivers"`
 }
 
 func (c *ClusterConfig) adjust() error {
@@ -241,7 +262,7 @@ func (c *ClusterConfig) adjust() error {
 
 type RaftConfig struct {
 	HeartbeatInterval util.Duration `toml:"heartbeat-interval,omitempty" json:"heartbeat-interval"`
-	RetainLogsCount  uint64  `toml:"retain-logs-count,omitempty" json:"retain-logs-count"`
+	RetainLogsCount   uint64        `toml:"retain-logs-count,omitempty" json:"retain-logs-count"`
 }
 
 func (c *RaftConfig) adjust() error {
@@ -251,9 +272,9 @@ func (c *RaftConfig) adjust() error {
 }
 
 type LogConfig struct {
-	Dir      string        `toml:"dir,omitempty" json:"dir"`
-	Module   string        `toml:"module,omitempty" json:"module"`
-	Level    string        `toml:"level,omitempty" json:"level"`
+	Dir    string `toml:"dir,omitempty" json:"dir"`
+	Module string `toml:"module,omitempty" json:"module"`
+	Level  string `toml:"level,omitempty" json:"level"`
 }
 
 func (c *LogConfig) adjust() error {
@@ -275,17 +296,17 @@ func (c *LogConfig) adjust() error {
 }
 
 type MetricServer struct {
-	Address      string      `toml:"address,omitempty" json:"address"`
-	QueueNum  uint64         `toml:"queue-num,omitempty" json:"queue-num"`
-	StoreType string         `toml:"store-type,omitempty" json:"store-type"`
-	StoreUrl     []string    `toml:"store-url,omitempty" json:"store-url"`
+	Address   string   `toml:"address,omitempty" json:"address"`
+	QueueNum  uint64   `toml:"queue-num,omitempty" json:"queue-num"`
+	StoreType string   `toml:"store-type,omitempty" json:"store-type"`
+	StoreUrl  []string `toml:"store-url,omitempty" json:"store-url"`
 }
 
 type MetricConfig struct {
-	Interval util.Duration   `toml:"interval,omitempty" json:"interval"`
-	Address  string          `toml:"address,omitempty" json:"address"`
+	Interval util.Duration `toml:"interval,omitempty" json:"interval"`
+	Address  string        `toml:"address,omitempty" json:"address"`
 
-	Server   MetricServer    `toml:"server,omitempty" json:"server"`
+	Server   MetricServer  `toml:"server,omitempty" json:"server"`
 }
 
 func (c *MetricConfig) adjust(role string) error {
@@ -314,12 +335,12 @@ type ScheduleConfig struct {
 	// RegionScheduleLimit is the max coexist region schedules.
 	RegionScheduleLimit uint64 `toml:"region-schedule-limit,omitempty" json:"region-schedule-limit"`
 	// ReplicaScheduleLimit is the max coexist replica schedules.
-	ReplicaScheduleLimit uint64 `toml:"replica-schedule-limit,omitempty" json:"replica-schedule-limit"`
-	MaxTaskTimeout util.Duration `toml:"max-task-timeout,omitempty" json:"max-task-timeout"`
-	MaxRangeDownTime util.Duration `toml:"max-range-down-time,omitempty" json:"max-range-down-time"`
-	NodeRangeBalanceTime util.Duration `toml:"node-range-balance-time,omitempty" json:"node-range-balance-time"`
-	StorageAvailableThreshold uint64 `toml:"storage-available-threshold,omitempty" json:"storage-available-threshold"`
-	WriteByteOpsThreshold uint64 `toml:"writeByte-ops-threshold,omitempty" json:"writeByte-ops-threshold"`
+	ReplicaScheduleLimit      uint64        `toml:"replica-schedule-limit,omitempty" json:"replica-schedule-limit"`
+	MaxTaskTimeout            util.Duration `toml:"max-task-timeout,omitempty" json:"max-task-timeout"`
+	MaxRangeDownTime          util.Duration `toml:"max-range-down-time,omitempty" json:"max-range-down-time"`
+	NodeRangeBalanceTime      util.Duration `toml:"node-range-balance-time,omitempty" json:"node-range-balance-time"`
+	StorageAvailableThreshold uint64        `toml:"storage-available-threshold,omitempty" json:"storage-available-threshold"`
+	WriteByteOpsThreshold     uint64        `toml:"writeByte-ops-threshold,omitempty" json:"writeByte-ops-threshold"`
 }
 
 func (c *ScheduleConfig) adjust() {
@@ -363,17 +384,17 @@ func (c *ReplicationConfig) adjust() {
 
 // scheduleOption is a wrapper to access the configuration safely.
 type scheduleOption struct {
-	MaxSnapshotCount uint64
-	MaxNodeDownTime time.Duration
-	MaxRangeDownTime time.Duration
-	MaxReplicaDownTime time.Duration
-	MaxTaskTimeout  time.Duration
-	NodeRangeBalanceTime  time.Duration
-	LeaderScheduleLimit uint64
-	RegionScheduleLimit uint64
-	ReplicaScheduleLimit uint64
+	MaxSnapshotCount          uint64
+	MaxNodeDownTime           time.Duration
+	MaxRangeDownTime          time.Duration
+	MaxReplicaDownTime        time.Duration
+	MaxTaskTimeout            time.Duration
+	NodeRangeBalanceTime      time.Duration
+	LeaderScheduleLimit       uint64
+	RegionScheduleLimit       uint64
+	ReplicaScheduleLimit      uint64
 	StorageAvailableThreshold uint64
-	WriteByteOpsThreshold uint64
+	WriteByteOpsThreshold     uint64
 	//rep *Replication
 	MaxReplicas uint64
 	MetricAddr  string
@@ -382,14 +403,14 @@ type scheduleOption struct {
 
 func newScheduleOption(cfg *Config) *scheduleOption {
 	o := &scheduleOption{
-		MaxSnapshotCount: cfg.Schedule.MaxSnapshotCount,
-		MaxNodeDownTime: cfg.Schedule.MaxNodeDownTime.Duration,
-		MaxRangeDownTime: cfg.Schedule.MaxRangeDownTime.Duration,
-		LeaderScheduleLimit: cfg.Schedule.LeaderScheduleLimit,
-		RegionScheduleLimit: cfg.Schedule.RegionScheduleLimit,
-		ReplicaScheduleLimit: cfg.Schedule.ReplicaScheduleLimit,
-		MaxTaskTimeout: cfg.Schedule.MaxTaskTimeout.Duration,
-		NodeRangeBalanceTime: cfg.Schedule.NodeRangeBalanceTime.Duration,
+		MaxSnapshotCount:          cfg.Schedule.MaxSnapshotCount,
+		MaxNodeDownTime:           cfg.Schedule.MaxNodeDownTime.Duration,
+		MaxRangeDownTime:          cfg.Schedule.MaxRangeDownTime.Duration,
+		LeaderScheduleLimit:       cfg.Schedule.LeaderScheduleLimit,
+		RegionScheduleLimit:       cfg.Schedule.RegionScheduleLimit,
+		ReplicaScheduleLimit:      cfg.Schedule.ReplicaScheduleLimit,
+		MaxTaskTimeout:            cfg.Schedule.MaxTaskTimeout.Duration,
+		NodeRangeBalanceTime:      cfg.Schedule.NodeRangeBalanceTime.Duration,
 		StorageAvailableThreshold: cfg.Schedule.StorageAvailableThreshold,
 		WriteByteOpsThreshold:cfg.Schedule.WriteByteOpsThreshold,
 		MetricAddr: cfg.Metric.Address,
@@ -429,7 +450,7 @@ func (o *scheduleOption) GetMaxTaskTimeout() time.Duration {
 	return o.MaxTaskTimeout
 }
 
-func (o *scheduleOption) GetNodeRangeBalanceTime() time.Duration  {
+func (o *scheduleOption) GetNodeRangeBalanceTime() time.Duration {
 	return o.NodeRangeBalanceTime
 }
 

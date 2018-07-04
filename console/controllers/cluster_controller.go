@@ -15,11 +15,11 @@ import (
 )
 
 const (
-	REQURI_CLUSTER_GETALL = "/cluster/queryClusters"
-	REQURI_CLUSTER_GETBYID = "/cluster/getById"
-	REQURI_CLUSTER_CREATE = "/cluster/createCluster"
-	REQURI_CLUSTER_INIT = "/cluster/initCluster"
-	REQURI_CLUSTER_TOGGLEAUTO= "/cluster/toggleAuto"
+	REQURI_CLUSTER_GETALL     = "/cluster/queryClusters"
+	REQURI_CLUSTER_GETBYID    = "/cluster/getById"
+	REQURI_CLUSTER_CREATE     = "/cluster/createCluster"
+	REQURI_CLUSTER_INIT       = "/cluster/initCluster"
+	REQURI_CLUSTER_TOGGLEAUTO = "/cluster/toggleAuto"
 )
 
 /**
@@ -27,11 +27,12 @@ const (
  */
 type ClusterGetAllAction struct {
 }
+
 func NewClusterGetAllAction() *ClusterGetAllAction {
 	return &ClusterGetAllAction{
 	}
 }
-func (ctrl *ClusterGetAllAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *ClusterGetAllAction) Execute(c *gin.Context) (interface{}, error) {
 	userName := sessions.Default(c).Get("user_name").(string)
 	user := right.GetCacheUser(userName)
 	if user == nil {
@@ -39,8 +40,8 @@ func (ctrl *ClusterGetAllAction)Execute(c *gin.Context) (interface{}, error) {
 	}
 	var clusterIds []int64
 	for id, r := range user.Right {
-		if id == 0 &&  r == 1{
-			log.Debug("admin [%v] get cluster: %v", userName, clusterIds)
+		if id == 0 && r == 1 {
+			log.Debug("admin [%v] get all cluster", userName)
 			return service.NewService().GetAllClusters()
 		}
 		clusterIds = append(clusterIds, id)
@@ -49,17 +50,17 @@ func (ctrl *ClusterGetAllAction)Execute(c *gin.Context) (interface{}, error) {
 	return service.NewService().GetClusterById(clusterIds...)
 }
 
-
 /**
  * 查询集群详情
  */
 type ClusterGetByIdAction struct {
 }
+
 func NewClusterGetByIdAction() *ClusterGetByIdAction {
 	return &ClusterGetByIdAction{
 	}
 }
-func (ctrl *ClusterGetByIdAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *ClusterGetByIdAction) Execute(c *gin.Context) (interface{}, error) {
 	cIdStr := c.PostForm("clusterId")
 	if cIdStr == "" {
 		return nil, common.PARSE_PARAM_ERROR
@@ -69,11 +70,11 @@ func (ctrl *ClusterGetByIdAction)Execute(c *gin.Context) (interface{}, error) {
 		return nil, common.PARAM_FORMAT_ERROR
 	}
 	log.Debug("query cluster: %v info", cId)
-	clusters, err :=  service.NewService().GetClusterById(cId)
+	clusters, err := service.NewService().GetClusterById(cId)
 	if err != nil {
 		return nil, err
 	}
-	return  clusters[0], nil
+	return clusters[0], nil
 }
 
 /**
@@ -81,11 +82,12 @@ func (ctrl *ClusterGetByIdAction)Execute(c *gin.Context) (interface{}, error) {
  */
 type ClusterCreateAction struct {
 }
+
 func NewClusterCreateAction() *ClusterCreateAction {
-	return &ClusterCreateAction {
+	return &ClusterCreateAction{
 	}
 }
-func (ctrl *ClusterCreateAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *ClusterCreateAction) Execute(c *gin.Context) (interface{}, error) {
 	cIdStr := c.PostForm("clusterId")
 	if cIdStr == "" {
 		return nil, common.PARSE_PARAM_ERROR
@@ -126,11 +128,12 @@ func (ctrl *ClusterCreateAction)Execute(c *gin.Context) (interface{}, error) {
  */
 type ClusterInitAction struct {
 }
+
 func NewClusterInitAction() *ClusterInitAction {
 	return &ClusterInitAction{
 	}
 }
-func (ctrl *ClusterInitAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *ClusterInitAction) Execute(c *gin.Context) (interface{}, error) {
 	cIdStr := c.PostForm("clusterId")
 	if cIdStr == "" {
 		return nil, common.PARSE_PARAM_ERROR
@@ -159,11 +162,12 @@ func (ctrl *ClusterInitAction)Execute(c *gin.Context) (interface{}, error) {
  */
 type ClusterToggleAction struct {
 }
+
 func NewClusterToggleAction() *ClusterToggleAction {
 	return &ClusterToggleAction{
 	}
 }
-func (ctrl *ClusterToggleAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *ClusterToggleAction) Execute(c *gin.Context) (interface{}, error) {
 	log.Debug("set cluster toggle")
 	cIdStr := c.Query("clusterId")
 	if cIdStr == "" {
@@ -173,10 +177,11 @@ func (ctrl *ClusterToggleAction)Execute(c *gin.Context) (interface{}, error) {
 
 	autoTransfer := c.PostForm("autoTransferUnable")
 	autoFailover := c.PostForm("autoFailoverUnable")
+	autoSplit := c.PostForm("autoSplitUnable")
 
-	log.Debug("autoTransfer" + autoTransfer + ", autoFailover" + autoFailover)
+	log.Debug("autoTransfer" + autoTransfer + ", autoFailover" + autoFailover + ", autoSplit" + autoSplit)
 
-	if autoFailover == "" && autoTransfer == "" {
+	if autoFailover == "" && autoTransfer == "" && autoSplit == "" {
 		return nil, common.PARSE_PARAM_ERROR
 	}
 
@@ -185,7 +190,7 @@ func (ctrl *ClusterToggleAction)Execute(c *gin.Context) (interface{}, error) {
 		return nil, common.PARAM_FORMAT_ERROR
 	}
 
-	err = service.NewService().SetClusterToggle(clusterId, autoTransfer, autoFailover)
+	err = service.NewService().SetClusterToggle(clusterId, autoTransfer, autoFailover, autoSplit)
 	if err != nil {
 		return nil, err
 	}

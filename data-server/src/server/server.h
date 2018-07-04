@@ -3,7 +3,7 @@
 
 #include "context_server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace server {
 
@@ -11,10 +11,10 @@ class DataServer {
 public:
     ~DataServer();
 
-    DataServer(const DataServer&) = delete;
-    DataServer& operator=(const DataServer&) = delete;
+    DataServer(const DataServer &) = delete;
+    DataServer &operator=(const DataServer &) = delete;
 
-    static DataServer& Instance() {
+    static DataServer &Instance() {
         static DataServer instance_;
         return instance_;
     };
@@ -23,19 +23,21 @@ public:
     int Start();
     void Stop();
 
-    ContextServer *context_server() {return context_;}
+    ContextServer *context_server() { return context_; }
 
     void DealTask(common::ProtoMessage *task);
 
 private:
     DataServer();
 
+    bool startRaftServer();
+
 private:
-    ContextServer   *context_    = nullptr;
+    ContextServer *context_ = nullptr;
 };
 
 } /* namespace server */
 } /* namespace dataserver  */
-} /* namespace fbase */
+} /* namespace sharkstore */
 
 #endif /* end of include guard: FBASE_DATASERVER_SERVER_DS_SERVER_H_ */

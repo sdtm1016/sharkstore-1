@@ -45,7 +45,7 @@ typedef struct run_status_s {
 
 extern run_status_t g_status;
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace server {
 
@@ -105,5 +105,5 @@ private:
 
 }  // namespace server
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore
 #endif  //__RUN_STATUS_H__

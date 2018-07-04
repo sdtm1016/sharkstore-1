@@ -1,6 +1,6 @@
 
 set (test_MOCK_LIBS
-    fbase-ds-shared
+    sharkstore-ds-shared
     test-mock-shared
     ${GTEST_LIBRARY}
     ${depend_LIBRARYS}

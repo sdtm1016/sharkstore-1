@@ -1,17 +1,21 @@
 _Pragma("once");
 
 #include <list>
+#include <functional>
+
 #include "raft/options.h"
 #include "raft/status.h"
-
 #include "raft_log.h"
-#include "raft_snapshot.h"
 #include "raft_types.h"
 #include "replica.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
+
+struct Ready;
+class SendSnapTask;
+class ApplySnapTask;
 
 class RaftFsm {
 public:
@@ -21,7 +25,23 @@ public:
     RaftFsm(const RaftFsm&) = delete;
     RaftFsm& operator=(const RaftFsm&) = delete;
 
+    bool Validate(MessagePtr& msg) const;
     void Step(MessagePtr& msg);
+
+    // reset and return
+    void GetReady(Ready* rd);
+
+    std::tuple<uint64_t, uint64_t> GetLeaderTerm() const;
+
+    pb::HardState GetHardState() const;
+    Status Persist(bool persist_hardstate);
+
+    std::vector<Peer> GetPeers() const;
+    RaftStatus GetStatus() const;
+
+    Status TruncateLog(uint64_t index);
+    Status DestroyLog();
+    Status BackupLog();
 
 private:
     static int numOfPendingConf(const std::vector<EntryPtr>& ents);
@@ -39,24 +59,28 @@ private:
     void stepLowTerm(MessagePtr& msg);
     void stepVote(MessagePtr& msg, bool pre_vote);
 
-    void addPeer(const pb::Peer& peer);
-    void removePeer(const pb::Peer& peer);
-    void updatePeer(const pb::Peer& peer);
+    bool hasReplica(uint64_t node) const;
+    Replica* getReplica(uint64_t node) const;
+    std::unique_ptr<Replica> newReplica(const Peer& peer, bool is_leader) const;
+    void traverseReplicas(const std::function<void(uint64_t, Replica&)>& f) const;
+
+    void addPeer(const Peer& peer);
+    void removePeer(const Peer& peer);
+    void promotePeer(const Peer& peer);
     int quorum() const;
 
     // send填充msg的 id, from, term字段，然后放到待发送队列里
     void send(MessagePtr& msg);
 
-    void reset(uint64_t term, uint64_t lasti, bool is_leader);
+    void reset(uint64_t term, bool is_leader);
     void resetRandomizedElectionTimeout();
     bool pastElectionTimeout() const;
 
-    void resetSnapshotSend();
+    void abortSendSnap();
+    void abortApplySnap();
 
-    bool promotable() const;
-    bool validate(MessagePtr& msg);
-
-    void collect(RaftStatus* status);
+    // 是否有资格选举为leader
+    bool electable() const;
 
 private:
     void becomeLeader();
@@ -64,12 +88,10 @@ private:
     void tickHeartbeat();
     bool maybeCommit();
     void bcastAppend();
-    void sendAppend(uint64_t to);
+    void sendAppend(uint64_t to, Replica& pr);
     void appendEntry(const std::vector<EntryPtr>& ents);
-    void createSnapshot(uint64_t to, SnapshotRequest* snap);
-    void checkDownPeers();
-    void checkPendingPeers();
-    void checkSnapSend();
+    std::shared_ptr<SendSnapTask> newSendSnapTask(uint64_t to, uint64_t* snap_index);
+    void checkCaughtUp();
 
 private:
     void becomeCandidate();
@@ -84,13 +106,15 @@ private:
     void tickElection();
     void handleAppendEntries(MessagePtr& msg);
     void handleSnapshot(MessagePtr& msg);
-    Status applySnapshot(MessagePtr& msg, bool* over);
+    Status applySnapshot(MessagePtr& msg);
     bool checkSnapshot(const pb::SnapshotMeta& meta);
     // 从快照中恢复
-    void restore(const pb::SnapshotMeta& meta);
+    Status restore(const pb::SnapshotMeta& meta);
 
 private:
     friend class RaftImpl;
+
+    using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
     const RaftServerOptions sops_;
     RaftOptions rops_;
@@ -98,6 +122,7 @@ private:
     const uint64_t id_ = 0;
     std::shared_ptr<StateMachine> sm_;
 
+    bool is_learner_ = false;
     FsmState state_ = FsmState::kFollower;
     uint64_t leader_ = 0;
     uint64_t term_ = 0;
@@ -107,9 +132,8 @@ private:
     std::unique_ptr<RaftLog> raft_log_;
 
     std::map<uint64_t, bool> votes_;
-    std::map<uint64_t, std::shared_ptr<Replica>> replicas_;
-    std::vector<DownPeer> down_peers_;
-    std::vector<uint64_t> pending_peers_;
+    std::map<uint64_t, std::unique_ptr<Replica>> replicas_;  // normal replicas
+    std::map<uint64_t, std::unique_ptr<Replica>> learners_;  // learner replicas
 
     unsigned election_elapsed_ = 0;
     unsigned heartbeat_elapsed_ = 0;
@@ -118,11 +142,13 @@ private:
     std::function<void(MessagePtr&)> step_func_;
     std::function<void()> tick_func_;
 
-    std::list<MessagePtr> pending_send_msgs_;
-    std::shared_ptr<SnapshotRequest> pending_send_snap_;
-    std::unique_ptr<SnapshotApplyContext> applying_snap_;
+    std::vector<MessagePtr> sending_msgs_;
+    std::shared_ptr<SendSnapTask> sending_snap_;
+
+    std::shared_ptr<ApplySnapTask> applying_snap_;
+    pb::SnapshotMeta applying_meta_;
 };
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

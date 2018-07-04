@@ -7,7 +7,6 @@ import (
 	"time"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
-	"fmt"
 	"util/log"
 )
 
@@ -63,7 +62,7 @@ func GetPrivilege(db *sql.DB) gin.HandlerFunc {
 		}
 		log.Debug("user [%v] get privilege", userName)
 
-		if _, err := GetUserClusterFake(db, userName); err != nil {
+		if _, err := GetUserCluster(db, userName); err != nil {
 			log.Error("user_name [%v] is not exist: %v", userName, err)
 			return
 		}
@@ -71,47 +70,13 @@ func GetPrivilege(db *sql.DB) gin.HandlerFunc {
 }
 
 func GetUserCluster(db *sql.DB, userName string) (*User, error) {
-	if user := GetCacheUser(userName); user != nil {
-		return user, nil
-	}
-
-	req := fmt.Sprintf(`select cluster_id, privilege from fbase_privilege where user_name="%s"`, userName)
-	log.Debug("get user req: %v", req)
-	rows, err := db.Query(req)
-	if err != nil {
-		return nil, fmt.Errorf("db query: %v", err)
-	}
-	//defer db.Close()
-
-	user := NewUser(userName)
-	var (
-		id int64
-		right int64
-	)
-	defer rows.Close()
-	for rows.Next() {
-		err := rows.Scan(&id, &right)
-		if err != nil {
-			return nil, fmt.Errorf("row error: %v", err)
-		}
-		user.addClusterRight(id, right)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows error: %v", err)
-	}
-	if len(user.Right) == 0 {
-		return nil, fmt.Errorf("there is no cluster of the user")
-	}
-
-	AddCacheUser(user)
-	return user, nil
+	return GetUserClusterFake(db, userName)
 }
 
 func GetUserClusterFake(db *sql.DB, userName string) (*User, error) {
 	user := &User{
 		Name: userName,
-		Right: map[int64]Right{1:1},
+		Right: map[int64]Right{0:1},
 	}
 	AddCacheUser(user)
 	return user, nil

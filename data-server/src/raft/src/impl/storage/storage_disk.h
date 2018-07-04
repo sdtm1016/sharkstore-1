@@ -3,7 +3,7 @@ _Pragma("once");
 #include "meta_file.h"
 #include "storage.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace storage {
@@ -35,14 +35,14 @@ public:
     Status Open() override;
 
     Status StoreHardState(const pb::HardState& hs) override;
-    Status InitialState(pb::HardState* hs) override;
+    Status InitialState(pb::HardState* hs) const override;
 
     Status StoreEntries(const std::vector<EntryPtr>& entries) override;
-    Status Term(uint64_t index, uint64_t* term, bool* is_compacted) override;
-    Status FirstIndex(uint64_t* index) override;
-    Status LastIndex(uint64_t* index) override;
+    Status Term(uint64_t index, uint64_t* term, bool* is_compacted) const override;
+    Status FirstIndex(uint64_t* index) const override;
+    Status LastIndex(uint64_t* index) const override;
     Status Entries(uint64_t lo, uint64_t hi, uint64_t max_size,
-                   std::vector<EntryPtr>* entries, bool* is_compacted) override;
+                   std::vector<EntryPtr>* entries, bool* is_compacted) const override;
 
     Status Truncate(uint64_t index) override;
 
@@ -83,25 +83,25 @@ private:
 
     Status tryRotate();
     Status save(const EntryPtr& e);
-    LogFile* locate(uint64_t index);
-    Status load(uint64_t index, EntryPtr* e);
+    LogFile* locate(uint64_t index) const;
+    Status load(uint64_t index, EntryPtr* e) const;
 
 private:
-    const uint64_t id_{0};
+    const uint64_t id_ = 0;
     const std::string path_;
     const Options ops_;
 
     MetaFile meta_file_;
     pb::HardState hard_state_;
     pb::TruncateMeta trunc_meta_;
-    uint64_t applied_{0};  // 大于applied_的不可截断
+    uint64_t applied_ = 0;  // 大于applied_的不可截断
 
     std::vector<LogFile*> log_files_;
-    uint64_t next_file_seq_{1};
-    uint64_t last_index_{0};
+    uint64_t next_file_seq_ = 1;
+    uint64_t last_index_ = 0;
 };
 
 } /* namespace storage */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

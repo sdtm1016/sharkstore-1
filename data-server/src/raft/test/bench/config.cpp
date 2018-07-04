@@ -1,6 +1,6 @@
 #include "config.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace bench {
 
@@ -8,4 +8,4 @@ BenchConfig bench_config;
 
 } /* namespace bench */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

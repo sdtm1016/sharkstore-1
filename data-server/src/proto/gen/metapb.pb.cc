@@ -160,7 +160,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Peer, id_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Peer, node_id_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Peer, role_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Peer, type_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Replica, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -379,57 +379,57 @@ void AddDescriptorsImpl() {
       "\n\n\002id\030\001 \001(\004\022\023\n\013server_addr\030\002 \001(\t\022\021\n\traft"
       "_addr\030\003 \001(\t\022\021\n\thttp_addr\030\004 \001(\t\022 \n\005state\030"
       "\005 \001(\0162\021.metapb.NodeState\022\017\n\007version\030\006 \001("
-      "\t\022!\n\006labels\030\007 \003(\0132\021.metapb.NodeLabel\"F\n\004"
-      "Peer\022\n\n\002id\030\001 \001(\004\022\017\n\007node_id\030\002 \001(\004\022!\n\004rol"
-      "e\030\003 \001(\0162\023.metapb.ReplicaRole\"[\n\007Replica\022"
-      "\020\n\010range_id\030\001 \001(\004\022\032\n\004peer\030\002 \001(\0132\014.metapb"
-      ".Peer\022\021\n\tstart_key\030\003 \001(\014\022\017\n\007end_key\030\004 \001("
-      "\014\"/\n\nRangeEpoch\022\020\n\010conf_ver\030\001 \001(\004\022\017\n\007ver"
-      "sion\030\002 \001(\004\"\265\001\n\005Range\022\n\n\002id\030\001 \001(\004\022\021\n\tstar"
-      "t_key\030\002 \001(\014\022\017\n\007end_key\030\003 \001(\014\022\'\n\013range_ep"
-      "och\030\004 \001(\0132\022.metapb.RangeEpoch\022\033\n\005peers\030\005"
-      " \003(\0132\014.metapb.Peer\022\020\n\010table_id\030\006 \001(\004\022$\n\014"
-      "primary_keys\030\007 \003(\0132\016.metapb.Column\">\n\006Le"
-      "ader\022\020\n\010range_id\030\001 \001(\004\022\017\n\007node_id\030\002 \001(\004\022"
-      "\021\n\tnode_addr\030\003 \001(\t\"C\n\005Route\022\034\n\005range\030\001 \001"
-      "(\0132\r.metapb.Range\022\034\n\006leader\030\002 \001(\0132\014.meta"
-      "pb.Peer\"^\n\010DataBase\022\014\n\004name\030\001 \001(\t\022\n\n\002id\030"
-      "\002 \001(\004\022\022\n\nproperties\030\003 \001(\t\022\017\n\007version\030\004 \001"
-      "(\004\022\023\n\013create_time\030\005 \001(\003\"\355\001\n\006Column\022\014\n\004na"
-      "me\030\001 \001(\t\022\n\n\002id\030\002 \001(\004\022#\n\tdata_type\030\003 \001(\0162"
-      "\020.metapb.DataType\022\020\n\010unsigned\030\004 \001(\010\022\r\n\005s"
-      "cale\030\005 \001(\005\022\021\n\tprecision\030\006 \001(\005\022\020\n\010nullabl"
-      "e\030\007 \001(\010\022\023\n\013primary_key\030\010 \001(\004\022\017\n\007ordinal\030"
-      "\t \001(\005\022\r\n\005index\030\n \001(\010\022\025\n\rdefault_value\030\013 "
-      "\001(\014\022\022\n\nproperties\030\014 \001(\t\"=\n\007Primary\022\023\n\013co"
-      "lumn_name\030\001 \001(\t\022\035\n\004next\030\002 \001(\0132\017.metapb.P"
-      "rimary\"/\n\nTableEpoch\022\020\n\010conf_ver\030\001 \001(\004\022\017"
-      "\n\007version\030\002 \001(\004\"\230\002\n\005Table\022\014\n\004name\030\001 \001(\t\022"
-      "\017\n\007db_name\030\002 \001(\t\022\r\n\005db_id\030\003 \001(\004\022\n\n\002id\030\004 "
-      "\001(\004\022\022\n\nproperties\030\005 \001(\t\022\037\n\007columns\030\006 \003(\013"
-      "2\016.metapb.Column\022!\n\005epoch\030\007 \001(\0132\022.metapb"
-      ".TableEpoch\022\035\n\005regxs\030\010 \003(\0132\016.metapb.Colu"
-      "mn\022\023\n\013create_time\030\t \001(\003\022\024\n\014pk_dup_check\030"
-      "\n \001(\010\022#\n\006status\030\013 \001(\0162\023.metapb.TableStat"
-      "us\022\016\n\006expand\030\014 \001(\014*s\n\tNodeState\022\r\n\tN_Inv"
-      "alid\020\000\022\013\n\007N_Login\020\001\022\014\n\010N_Logout\020\002\022\r\n\tN_O"
-      "ffline\020\003\022\017\n\013N_Tombstone\020\004\022\r\n\tN_Upgrade\020\005"
-      "\022\r\n\tN_Initial\020\006*\214\001\n\nRangeState\022\r\n\tR_Inva"
-      "lid\020\000\022\n\n\006R_Init\020\001\022\014\n\010R_Normal\020\002\022\013\n\007R_Spl"
-      "it\020\003\022\013\n\007R_Merge\020\004\022\014\n\010R_Remove\020\005\022\016\n\nR_Loa"
-      "dSnap\020\006\022\016\n\nR_Abnormal\020\007\022\r\n\tR_Offline\020\010*N"
-      "\n\013ReplicaRole\022\020\n\014Role_Invalid\020\000\022\025\n\021Role_"
-      "Sync_Replica\020\001\022\026\n\022Role_Async_Replica\020\002*\220"
-      "\001\n\010DataType\022\013\n\007Invalid\020\000\022\013\n\007Tinyint\020\001\022\014\n"
-      "\010Smallint\020\002\022\007\n\003Int\020\003\022\n\n\006BigInt\020\004\022\t\n\005Floa"
-      "t\020\005\022\n\n\006Double\020\006\022\013\n\007Varchar\020\007\022\n\n\006Binary\020\010"
-      "\022\010\n\004Date\020\t\022\r\n\tTimeStamp\020\n*v\n\013TableStatus"
-      "\022\020\n\014TableInvalid\020\000\022\r\n\tTableInit\020\001\022\020\n\014Tab"
-      "lePrepare\020\002\022\020\n\014TableRunning\020\003\022\017\n\013TableDe"
-      "lete\020\004\022\021\n\rTableDeleting\020\005b\006proto3"
+      "\t\022!\n\006labels\030\007 \003(\0132\021.metapb.NodeLabel\"C\n\004"
+      "Peer\022\n\n\002id\030\001 \001(\004\022\017\n\007node_id\030\002 \001(\004\022\036\n\004typ"
+      "e\030\003 \001(\0162\020.metapb.PeerType\"[\n\007Replica\022\020\n\010"
+      "range_id\030\001 \001(\004\022\032\n\004peer\030\002 \001(\0132\014.metapb.Pe"
+      "er\022\021\n\tstart_key\030\003 \001(\014\022\017\n\007end_key\030\004 \001(\014\"/"
+      "\n\nRangeEpoch\022\020\n\010conf_ver\030\001 \001(\004\022\017\n\007versio"
+      "n\030\002 \001(\004\"\265\001\n\005Range\022\n\n\002id\030\001 \001(\004\022\021\n\tstart_k"
+      "ey\030\002 \001(\014\022\017\n\007end_key\030\003 \001(\014\022\'\n\013range_epoch"
+      "\030\004 \001(\0132\022.metapb.RangeEpoch\022\033\n\005peers\030\005 \003("
+      "\0132\014.metapb.Peer\022\020\n\010table_id\030\006 \001(\004\022$\n\014pri"
+      "mary_keys\030\007 \003(\0132\016.metapb.Column\">\n\006Leade"
+      "r\022\020\n\010range_id\030\001 \001(\004\022\017\n\007node_id\030\002 \001(\004\022\021\n\t"
+      "node_addr\030\003 \001(\t\"C\n\005Route\022\034\n\005range\030\001 \001(\0132"
+      "\r.metapb.Range\022\034\n\006leader\030\002 \001(\0132\014.metapb."
+      "Peer\"^\n\010DataBase\022\014\n\004name\030\001 \001(\t\022\n\n\002id\030\002 \001"
+      "(\004\022\022\n\nproperties\030\003 \001(\t\022\017\n\007version\030\004 \001(\004\022"
+      "\023\n\013create_time\030\005 \001(\003\"\355\001\n\006Column\022\014\n\004name\030"
+      "\001 \001(\t\022\n\n\002id\030\002 \001(\004\022#\n\tdata_type\030\003 \001(\0162\020.m"
+      "etapb.DataType\022\020\n\010unsigned\030\004 \001(\010\022\r\n\005scal"
+      "e\030\005 \001(\005\022\021\n\tprecision\030\006 \001(\005\022\020\n\010nullable\030\007"
+      " \001(\010\022\023\n\013primary_key\030\010 \001(\004\022\017\n\007ordinal\030\t \001"
+      "(\005\022\r\n\005index\030\n \001(\010\022\025\n\rdefault_value\030\013 \001(\014"
+      "\022\022\n\nproperties\030\014 \001(\t\"=\n\007Primary\022\023\n\013colum"
+      "n_name\030\001 \001(\t\022\035\n\004next\030\002 \001(\0132\017.metapb.Prim"
+      "ary\"/\n\nTableEpoch\022\020\n\010conf_ver\030\001 \001(\004\022\017\n\007v"
+      "ersion\030\002 \001(\004\"\230\002\n\005Table\022\014\n\004name\030\001 \001(\t\022\017\n\007"
+      "db_name\030\002 \001(\t\022\r\n\005db_id\030\003 \001(\004\022\n\n\002id\030\004 \001(\004"
+      "\022\022\n\nproperties\030\005 \001(\t\022\037\n\007columns\030\006 \003(\0132\016."
+      "metapb.Column\022!\n\005epoch\030\007 \001(\0132\022.metapb.Ta"
+      "bleEpoch\022\035\n\005regxs\030\010 \003(\0132\016.metapb.Column\022"
+      "\023\n\013create_time\030\t \001(\003\022\024\n\014pk_dup_check\030\n \001"
+      "(\010\022#\n\006status\030\013 \001(\0162\023.metapb.TableStatus\022"
+      "\016\n\006expand\030\014 \001(\014*s\n\tNodeState\022\r\n\tN_Invali"
+      "d\020\000\022\013\n\007N_Login\020\001\022\014\n\010N_Logout\020\002\022\r\n\tN_Offl"
+      "ine\020\003\022\017\n\013N_Tombstone\020\004\022\r\n\tN_Upgrade\020\005\022\r\n"
+      "\tN_Initial\020\006*\214\001\n\nRangeState\022\r\n\tR_Invalid"
+      "\020\000\022\n\n\006R_Init\020\001\022\014\n\010R_Normal\020\002\022\013\n\007R_Split\020"
+      "\003\022\013\n\007R_Merge\020\004\022\014\n\010R_Remove\020\005\022\016\n\nR_LoadSn"
+      "ap\020\006\022\016\n\nR_Abnormal\020\007\022\r\n\tR_Offline\020\010*K\n\010P"
+      "eerType\022\024\n\020PeerType_Invalid\020\000\022\023\n\017PeerTyp"
+      "e_Normal\020\001\022\024\n\020PeerType_Learner\020\002*\220\001\n\010Dat"
+      "aType\022\013\n\007Invalid\020\000\022\013\n\007Tinyint\020\001\022\014\n\010Small"
+      "int\020\002\022\007\n\003Int\020\003\022\n\n\006BigInt\020\004\022\t\n\005Float\020\005\022\n\n"
+      "\006Double\020\006\022\013\n\007Varchar\020\007\022\n\n\006Binary\020\010\022\010\n\004Da"
+      "te\020\t\022\r\n\tTimeStamp\020\n*v\n\013TableStatus\022\020\n\014Ta"
+      "bleInvalid\020\000\022\r\n\tTableInit\020\001\022\020\n\014TablePrep"
+      "are\020\002\022\020\n\014TableRunning\020\003\022\017\n\013TableDelete\020\004"
+      "\022\021\n\rTableDeleting\020\005b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 2153);
+      descriptor, 2147);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "metapb.proto", &protobuf_RegisterTypes);
 }
@@ -488,11 +488,11 @@ bool RangeState_IsValid(int value) {
   }
 }
 
-const ::google::protobuf::EnumDescriptor* ReplicaRole_descriptor() {
+const ::google::protobuf::EnumDescriptor* PeerType_descriptor() {
   protobuf_metapb_2eproto::protobuf_AssignDescriptorsOnce();
   return protobuf_metapb_2eproto::file_level_enum_descriptors[2];
 }
-bool ReplicaRole_IsValid(int value) {
+bool PeerType_IsValid(int value) {
   switch (value) {
     case 0:
     case 1:
@@ -2106,7 +2106,7 @@ Node::labels() const {
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int Peer::kIdFieldNumber;
 const int Peer::kNodeIdFieldNumber;
-const int Peer::kRoleFieldNumber;
+const int Peer::kTypeFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 Peer::Peer()
@@ -2123,15 +2123,15 @@ Peer::Peer(const Peer& from)
       _cached_size_(0) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::memcpy(&id_, &from.id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&role_) -
-    reinterpret_cast<char*>(&id_)) + sizeof(role_));
+    static_cast<size_t>(reinterpret_cast<char*>(&type_) -
+    reinterpret_cast<char*>(&id_)) + sizeof(type_));
   // @@protoc_insertion_point(copy_constructor:metapb.Peer)
 }
 
 void Peer::SharedCtor() {
   ::memset(&id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&role_) -
-      reinterpret_cast<char*>(&id_)) + sizeof(role_));
+      reinterpret_cast<char*>(&type_) -
+      reinterpret_cast<char*>(&id_)) + sizeof(type_));
   _cached_size_ = 0;
 }
 
@@ -2173,8 +2173,8 @@ void Peer::Clear() {
   (void) cached_has_bits;
 
   ::memset(&id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&role_) -
-      reinterpret_cast<char*>(&id_)) + sizeof(role_));
+      reinterpret_cast<char*>(&type_) -
+      reinterpret_cast<char*>(&id_)) + sizeof(type_));
   _internal_metadata_.Clear();
 }
 
@@ -2216,7 +2216,7 @@ bool Peer::MergePartialFromCodedStream(
         break;
       }
 
-      // .metapb.ReplicaRole role = 3;
+      // .metapb.PeerType type = 3;
       case 3: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(24u /* 24 & 0xFF */)) {
@@ -2224,7 +2224,7 @@ bool Peer::MergePartialFromCodedStream(
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          set_role(static_cast< ::metapb::ReplicaRole >(value));
+          set_type(static_cast< ::metapb::PeerType >(value));
         } else {
           goto handle_unusual;
         }
@@ -2267,10 +2267,10 @@ void Peer::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->node_id(), output);
   }
 
-  // .metapb.ReplicaRole role = 3;
-  if (this->role() != 0) {
+  // .metapb.PeerType type = 3;
+  if (this->type() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
-      3, this->role(), output);
+      3, this->type(), output);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -2297,10 +2297,10 @@ void Peer::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->node_id(), target);
   }
 
-  // .metapb.ReplicaRole role = 3;
-  if (this->role() != 0) {
+  // .metapb.PeerType type = 3;
+  if (this->type() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
-      3, this->role(), target);
+      3, this->type(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -2334,10 +2334,10 @@ size_t Peer::ByteSizeLong() const {
         this->node_id());
   }
 
-  // .metapb.ReplicaRole role = 3;
-  if (this->role() != 0) {
+  // .metapb.PeerType type = 3;
+  if (this->type() != 0) {
     total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::EnumSize(this->role());
+      ::google::protobuf::internal::WireFormatLite::EnumSize(this->type());
   }
 
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
@@ -2375,8 +2375,8 @@ void Peer::MergeFrom(const Peer& from) {
   if (from.node_id() != 0) {
     set_node_id(from.node_id());
   }
-  if (from.role() != 0) {
-    set_role(from.role());
+  if (from.type() != 0) {
+    set_type(from.type());
   }
 }
 
@@ -2406,7 +2406,7 @@ void Peer::InternalSwap(Peer* other) {
   using std::swap;
   swap(id_, other->id_);
   swap(node_id_, other->node_id_);
-  swap(role_, other->role_);
+  swap(type_, other->type_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_cached_size_, other->_cached_size_);
 }
@@ -2447,18 +2447,18 @@ void Peer::set_node_id(::google::protobuf::uint64 value) {
   // @@protoc_insertion_point(field_set:metapb.Peer.node_id)
 }
 
-// .metapb.ReplicaRole role = 3;
-void Peer::clear_role() {
-  role_ = 0;
+// .metapb.PeerType type = 3;
+void Peer::clear_type() {
+  type_ = 0;
 }
-::metapb::ReplicaRole Peer::role() const {
-  // @@protoc_insertion_point(field_get:metapb.Peer.role)
-  return static_cast< ::metapb::ReplicaRole >(role_);
+::metapb::PeerType Peer::type() const {
+  // @@protoc_insertion_point(field_get:metapb.Peer.type)
+  return static_cast< ::metapb::PeerType >(type_);
 }
-void Peer::set_role(::metapb::ReplicaRole value) {
+void Peer::set_type(::metapb::PeerType value) {
   
-  role_ = value;
-  // @@protoc_insertion_point(field_set:metapb.Peer.role)
+  type_ = value;
+  // @@protoc_insertion_point(field_set:metapb.Peer.type)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

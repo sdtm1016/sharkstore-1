@@ -19,7 +19,7 @@ public:
         return std::shared_ptr<Raft>(nullptr);
     }
 
-    void GetStatus(ServerStatus* status) override {}
+    void GetStatus(ServerStatus* status) const override {}
 
 private:
     RaftServerOptions rop_;

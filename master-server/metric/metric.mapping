@@ -1083,8 +1083,9 @@ PUT  /table_meta
 
 
 -------------------------
-PUT /range_stats
+PUT /range_stats-2018-06
 {
+  "template":"range_stats*",
   "settings": {
     "index": {
       "number_of_shards": "16",

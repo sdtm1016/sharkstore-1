@@ -10,7 +10,7 @@
 #include "proto/gen/redispb.pb.h"
 #include "row_fetcher.h"
 
-namespace fbase {
+namespace sharkstore {
 
 namespace dataserver {
 namespace storage {
@@ -49,7 +49,7 @@ Store::Store(const metapb::Range& meta, rocksdb::DB* db)
 Store::~Store() {}
 
 Status Store::Get(const std::string& key, std::string* value) {
-    rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), key, value);
+    rocksdb::Status s = db_->Get(rocksdb::ReadOptions(ds_config.rocksdb_config.read_checksum,true), key, value);
     if (s.ok()) {
         addMetricRead(1, key.size() + value->size());
         return Status::OK();
@@ -61,7 +61,14 @@ Status Store::Get(const std::string& key, std::string* value) {
 }
 
 Status Store::Put(const std::string& key, const std::string& value) {
-    rocksdb::Status s = db_->Put(write_options_, key, value);
+    rocksdb::Status s;
+    if(ds_config.rocksdb_config.storage_type == 1 && ds_config.rocksdb_config.ttl > 0){
+        auto *blobdb = static_cast<rocksdb::blob_db::BlobDB*>(db_);
+        s = blobdb->PutWithTTL(write_options_,rocksdb::Slice(key),rocksdb::Slice(value),ds_config.rocksdb_config.ttl);
+    }else{
+        s = db_->Put(write_options_, key, value);
+    }
+
     if (s.ok()) {
         addMetricWrite(1, key.size() + value.size());
         return Status::OK();
@@ -82,6 +89,36 @@ Status Store::Delete(const std::string& key) {
 }
 
 Status Store::Insert(const kvrpcpb::InsertRequest& req, uint64_t* affected) {
+    if(ds_config.rocksdb_config.storage_type == 1 && ds_config.rocksdb_config.ttl > 0){
+        auto *blobdb = static_cast<rocksdb::blob_db::BlobDB*>(db_);
+        std::string value;
+        rocksdb::Status s;
+        bool check_dup = req.check_duplicate();
+        *affected = 0;
+        for (int i = 0; i < req.rows_size(); ++i) {
+            const kvrpcpb::KeyValue& kv = req.rows(i);
+            if (check_dup) {
+                s = db_->Get(rocksdb::ReadOptions(ds_config.rocksdb_config.read_checksum,true), kv.key(), &value);
+                if (s.ok()) {
+                    return Status(Status::kDuplicate);
+                } else if (!s.IsNotFound()) {
+                    return Status(Status::kIOError, "get", s.ToString());
+                }
+            }
+            s = blobdb->PutWithTTL(write_options_,rocksdb::Slice(kv.key()),rocksdb::Slice(kv.value()),ds_config.rocksdb_config.ttl);
+            if (!s.ok()) {
+                return Status(Status::kIOError, "blobdb put", s.ToString());
+            }else{
+                addMetricWrite(*affected, kv.key().size()+kv.value().size());
+                *affected = *affected + 1;
+            }
+
+        }
+
+       return Status::OK();
+
+    }
+
     uint64_t bytes_written = 0;
     rocksdb::WriteBatch batch;
     rocksdb::Status s;
@@ -91,7 +128,7 @@ Status Store::Insert(const kvrpcpb::InsertRequest& req, uint64_t* affected) {
     for (int i = 0; i < req.rows_size(); ++i) {
         const kvrpcpb::KeyValue& kv = req.rows(i);
         if (check_dup) {
-            s = db_->Get(rocksdb::ReadOptions(), kv.key(), &value);
+            s = db_->Get(rocksdb::ReadOptions(ds_config.rocksdb_config.read_checksum,true), kv.key(), &value);
             if (s.ok()) {
                 return Status(Status::kDuplicate);
             } else if (!s.IsNotFound()) {
@@ -389,7 +426,7 @@ uint64_t Store::StatisSize(std::string& split_key, uint64_t split_size,
 }
 
 Iterator* Store::NewIterator(const kvrpcpb::Scope& scope) {
-    auto it = db_->NewIterator(rocksdb::ReadOptions());
+    auto it = db_->NewIterator(rocksdb::ReadOptions(ds_config.rocksdb_config.read_checksum,true));
     std::string start = scope.start();
     std::string limit = scope.limit();
     if (start.empty() || start < start_key_) {
@@ -406,7 +443,7 @@ Iterator* Store::NewIterator(const kvrpcpb::Scope& scope) {
 }
 
 Iterator* Store::NewIterator(std::string start, std::string limit) {
-    auto it = db_->NewIterator(rocksdb::ReadOptions());
+    auto it = db_->NewIterator(rocksdb::ReadOptions(ds_config.rocksdb_config.read_checksum,true));
     if (start.empty() || start < start_key_) {
         start = start_key_;
     }
@@ -443,7 +480,7 @@ Status Store::BatchDelete(const std::vector<std::string>& keys) {
 
 bool Store::KeyExists(const std::string& key) {
     rocksdb::PinnableSlice value;
-    auto ret = db_->Get(rocksdb::ReadOptions(), db_->DefaultColumnFamily(), key,
+    auto ret = db_->Get(rocksdb::ReadOptions(ds_config.rocksdb_config.read_checksum,true), db_->DefaultColumnFamily(), key,
                         &value);
     addMetricRead(1, key.size() + value.size());
     return ret.ok();
@@ -508,4 +545,4 @@ void Store::addMetricWrite(uint64_t keys, uint64_t bytes) {
 
 } /* namespace storage */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

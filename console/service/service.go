@@ -24,11 +24,12 @@ import (
 	"util/ttlcache"
 	"strconv"
 	"errors"
+	"sync"
 )
 
 const (
 	//DB_NAME = "fbase_mock_console"
-	DB_NAME = "fbase"
+	DB_NAME     = "fbase"
 	LOCK_DBNAME = "lock"
 	LOCK_COLUMN = "lock_col"
 
@@ -36,14 +37,15 @@ const (
 	TABLE_NAME_CLUSTER   = "fbase_cluster"
 	TABLE_NAME_ROLE      = "fbase_role"
 	TABLE_NAME_PRIVILEGE = "fbase_privilege"
-	TABLE_NAME_LOCK_NSP = "fbase_lock_nsp"
+	TABLE_NAME_LOCK_NSP  = "fbase_lock_nsp"
+	TABLE_NAME_METRIC_SERVER   = "metric_server"
 )
 
 var serviceInstance *Service = nil
 
 type Service struct {
-	config *config.Config
-	db     *sql.DB
+	config     *config.Config
+	db         *sql.DB
 	adminCache *ttlcache.TTLCache
 }
 
@@ -84,7 +86,8 @@ func (s *Service) GetUserInfoByErp(erp string) (*models.UserInfo, error) {
 func (s *Service) GetClusterById(ids ...int64) ([]*models.ClusterInfo, error) {
 	result := make([]*models.ClusterInfo, 0, 10) // TODO: 分页
 	for _, id := range ids {
-		rows, err := s.db.Query(fmt.Sprintf(`SELECT * FROM %s where id=%d`, TABLE_NAME_CLUSTER, id))
+		rows, err := s.db.Query(fmt.Sprintf(`SELECT id, cluster_name, cluster_url, gateway_http, gateway_sql, cluster_sign,
+		auto_transfer, auto_failover, auto_split, create_time FROM %s where id=%d`, TABLE_NAME_CLUSTER, id))
 		if err != nil {
 			log.Error("db select is failed. err:[%v]", err)
 			return nil, common.DB_ERROR
@@ -93,7 +96,7 @@ func (s *Service) GetClusterById(ids ...int64) ([]*models.ClusterInfo, error) {
 		for rows.Next() {
 			info := models.NewClusterInfo()
 			if err := rows.Scan(&(info.Id), &(info.Name), &(info.MasterUrl), &(info.GatewayHttpUrl), &(info.GatewaySqlUrl),
-				&(info.ClusterToken), &(info.AutoTransferUnable), &(info.AutoFailoverUnable), &(info.CreateTime)); err != nil {
+				&(info.ClusterToken), &(info.AutoTransferUnable), &(info.AutoFailoverUnable), &(info.AutoSplitUnable), &(info.CreateTime)); err != nil {
 				log.Error("db scan is failed. err:[%v]", err)
 				return nil, common.DB_ERROR
 			}
@@ -105,7 +108,8 @@ func (s *Service) GetClusterById(ids ...int64) ([]*models.ClusterInfo, error) {
 }
 
 func (s *Service) GetAllClusters() ([]*models.ClusterInfo, error) {
-	rows, err := s.db.Query(fmt.Sprintf(`SELECT * FROM %s`, TABLE_NAME_CLUSTER))
+	rows, err := s.db.Query(fmt.Sprintf(`SELECT id, cluster_name, cluster_url, gateway_http, gateway_sql, cluster_sign,
+		auto_transfer, auto_failover, auto_split, create_time FROM %s`, TABLE_NAME_CLUSTER))
 	if err != nil {
 		log.Error("db select is failed. err:[%v]", err)
 		return nil, common.DB_ERROR
@@ -115,7 +119,7 @@ func (s *Service) GetAllClusters() ([]*models.ClusterInfo, error) {
 	for rows.Next() {
 		info := models.NewClusterInfo()
 		if err := rows.Scan(&(info.Id), &(info.Name), &(info.MasterUrl), &(info.GatewayHttpUrl), &(info.GatewaySqlUrl),
-			&(info.ClusterToken), &(info.AutoTransferUnable), &(info.AutoFailoverUnable), &(info.CreateTime)); err != nil {
+			&(info.ClusterToken), &(info.AutoTransferUnable), &(info.AutoFailoverUnable), &(info.AutoSplitUnable), &(info.CreateTime)); err != nil {
 			log.Error("db scan is failed. err:[%v]", err)
 			return nil, common.DB_ERROR
 		}
@@ -128,7 +132,7 @@ func (s *Service) GetAllClusters() ([]*models.ClusterInfo, error) {
 
 func (s *Service) CreateCluster(cId int, cName, masterUrl, gateHttpUrl, gateSqlUrl, cToken string, cTime int64) error {
 	result, err := s.db.Exec(fmt.Sprintf(`INSERT INTO %s (id, cluster_name, cluster_url, gateway_http, gateway_sql, cluster_sign,
-		auto_failover, auto_transfer, create_time) values (%d, "%s", "%s", "%s", "%s", "%s", 1, 1, %d)`, TABLE_NAME_CLUSTER, cId, cName, masterUrl,
+		auto_failover, auto_transfer, auto_split, create_time) values (%d, "%s", "%s", "%s", "%s", "%s", 0, 0, 0, %d)`, TABLE_NAME_CLUSTER, cId, cName, masterUrl,
 		gateHttpUrl, gateSqlUrl, cToken, cTime))
 	if err != nil {
 		log.Error("db exec is failed. err:[%v]", err)
@@ -758,7 +762,7 @@ func (s *Service) GetPresentTask(clusterId int) (interface{}, error) {
 	return resp.Data, nil
 }
 
-func (s *Service) DeletePeer(clusterId int, rangeId, peerId, dbName, tableName string) (interface{}, error) {
+func (s *Service) DeletePeer(clusterId int, rangeId, peerId string) (interface{}, error) {
 	if s == nil {
 		return nil, errors.New("service is nil")
 	}
@@ -778,8 +782,6 @@ func (s *Service) DeletePeer(clusterId int, rangeId, peerId, dbName, tableName s
 	reqParams["s"] = sign
 	reqParams["rangeId"] = rangeId
 	reqParams["peerId"] = peerId
-	reqParams["dbName"] = dbName
-	reqParams["tableName"] = tableName
 
 	var peerDeleteResp = struct {
 		Code int         `json:"code"`
@@ -794,6 +796,40 @@ func (s *Service) DeletePeer(clusterId int, rangeId, peerId, dbName, tableName s
 		return nil, fmt.Errorf(peerDeleteResp.Msg)
 	}
 	return peerDeleteResp.Data, nil
+}
+
+func (s *Service) AddPeer(clusterId int, rangeId string) error {
+	if s == nil {
+		return errors.New("service is nil")
+	}
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return err
+	}
+	if info == nil {
+		return common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["rangeId"] = rangeId
+
+	var peerAddResp = struct {
+		Code int         `json:"code"`
+		Msg  string      `json:"message"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/range/add/peer", reqParams, &peerAddResp); err != nil {
+		return err
+	}
+	if peerAddResp.Code != 0 {
+		log.Error("add peer failed. err:[%v]", peerAddResp)
+		return fmt.Errorf(peerAddResp.Msg)
+	}
+	return nil
 }
 
 func (s *Service) DeleteNodes(clusterId int, nodeIds string) error {
@@ -845,8 +881,8 @@ func (s *Service) GetRangeTopoByNodeId(clusterId, nodeId int) (interface{}, erro
 	reqParams["nodeId"] = nodeId
 
 	var getRangeTopoOfNodeResp = struct {
-		Code int    `json:"code"`
-		Msg  string `json:"message"`
+		Code int             `json:"code"`
+		Msg  string          `json:"message"`
 		Data []*models.Route `json:"data"`
 	}{}
 	if err := sendGetReq(info.MasterUrl, "/manage/node/getRangeTopo", reqParams, &getRangeTopoOfNodeResp); err != nil {
@@ -892,7 +928,7 @@ func (s *Service) UpdateNodeIsolationLabel(clusterId, nodeId int, isolationLabel
 	return nil
 }
 
-func (s *Service) SetClusterToggle(clusterId int, autoTransfer, autoFailover string) error {
+func (s *Service) SetClusterToggle(clusterId int, autoTransfer, autoFailover, autoSplit string) error {
 	info, err := s.selectClusterById(clusterId)
 	if err != nil {
 		return err
@@ -910,6 +946,7 @@ func (s *Service) SetClusterToggle(clusterId int, autoTransfer, autoFailover str
 	reqParams["s"] = sign
 	reqParams["autoTransferUnable"] = autoTransfer
 	reqParams["autoFailoverUnable"] = autoFailover
+	reqParams["autoSplitUnable"] = autoSplit
 
 	var clusterToggleSetResp = struct {
 		Code int    `json:"code"`
@@ -925,6 +962,7 @@ func (s *Service) SetClusterToggle(clusterId int, autoTransfer, autoFailover str
 		//改库
 		info.AutoFailoverUnable, _ = strconv.ParseBool(autoFailover)
 		info.AutoTransferUnable, _ = strconv.ParseBool(autoTransfer)
+		info.AutoSplitUnable, _ =  strconv.ParseBool(autoSplit)
 		log.Debug("start to update database, %v", info)
 		if err := s.insertClusterById(info); err != nil {
 			return fmt.Errorf("更新集群开关失败")
@@ -963,6 +1001,39 @@ func (s *Service) GetSchedulerAll(clusterId int) (map[string]bool, error) {
 		return nil, fmt.Errorf(getScheduleResp.Msg)
 	}
 	return getScheduleResp.Data, nil
+}
+
+func (s *Service) GetSchedulerDetail(clusterId int, name string) (interface{}, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	log.Debug("get cluster scheduler detail, clusterId:%d, scheduler name:%s", clusterId, name)
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["name"] = name
+
+	var scheduleDetailResp = struct {
+		Code int             `json:"code"`
+		Msg  string          `json:"message"`
+		Data interface{} `json:"data"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/scheduler/detail", reqParams, &scheduleDetailResp); err != nil {
+		return nil, err
+	}
+	if scheduleDetailResp.Code != 0 {
+		log.Error("get cluster[%d] scheduler %s detail failed. err:[%v]", clusterId, name, scheduleDetailResp)
+		return nil, fmt.Errorf(scheduleDetailResp.Msg)
+	}
+	return scheduleDetailResp.Data, nil
 }
 
 func (s *Service) AdjustScheduler(clusterId, optType int, scheduler string) (error) {
@@ -1060,8 +1131,8 @@ func (s *Service) GetTableTopologyMissing(clusterId int, dbName, tableName strin
 	reqParams["tableName"] = tableName
 
 	var topologyMResp = struct {
-		Code int    `json:"code"`
-		Msg  string `json:"message"`
+		Code int         `json:"code"`
+		Msg  string      `json:"message"`
 		Data interface{} `json:"data"`
 	}{}
 	if err := sendGetReq(info.MasterUrl, "/manage/table/topology/missing", reqParams, &topologyMResp); err != nil {
@@ -1162,8 +1233,8 @@ func (s *Service) GetRangeDuplicate(clusterId int, dbName, tableName string) (in
 	reqParams["tableName"] = tableName
 
 	var getDuplicateResp = struct {
-		Code int    `json:"code"`
-		Msg  string `json:"message"`
+		Code int         `json:"code"`
+		Msg  string      `json:"message"`
 		Data interface{} `json:"data"`
 	}{}
 	if err := sendGetReq(info.MasterUrl, "/manage/table/range/duplicate", reqParams, &getDuplicateResp); err != nil {
@@ -1194,8 +1265,8 @@ func (s *Service) GetClusterTopology(clusterId int) (interface{}, error) {
 	reqParams["s"] = sign
 
 	var getTopologyResp = struct {
-		Code int    `json:"code"`
-		Msg  string `json:"message"`
+		Code int         `json:"code"`
+		Msg  string      `json:"message"`
 		Data interface{} `json:"data"`
 	}{}
 	if err := sendGetReq(info.MasterUrl, "/manage/topology/query", reqParams, &getTopologyResp); err != nil {
@@ -1275,7 +1346,7 @@ func (s *Service) OperateDb(clusterId int, paramMap map[string]string) (int64, e
 	return rowsAffected, nil
 }
 
-func (s *Service) GetUnhealthyRanges(clusterId int, dbName, tableName string,rangeId string) (interface{}, error) {
+func (s *Service) GetUnhealthyRanges(clusterId int, dbName, tableName string, rangeId string) (interface{}, error) {
 	info, err := s.selectClusterById(clusterId)
 	if err != nil {
 		return nil, err
@@ -1308,6 +1379,40 @@ func (s *Service) GetUnhealthyRanges(clusterId int, dbName, tableName string,ran
 	}
 	return getAbnormalRangesResp.Data, nil
 }
+
+func (s *Service) GetUnstableRanges(clusterId int, dbName, tableName string) (interface{}, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["dbName"] = dbName
+	reqParams["tableName"] = tableName
+
+	var getUnstableRangesResp = struct {
+		Code int                  `json:"code"`
+		Msg  string               `json:"message"`
+		Data []*models.RangeBrief `json:"data"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/range/unstable/query", reqParams, &getUnstableRangesResp); err != nil {
+		return nil, err
+	}
+	if getUnstableRangesResp.Code != 0 {
+		log.Error("get cluster[%d] db[%s] table[%s] unstable ranges failed. err:[%v]", clusterId, dbName, tableName, getUnstableRangesResp)
+		return nil, fmt.Errorf(getUnstableRangesResp.Msg)
+	}
+	return getUnstableRangesResp.Data, nil
+}
+
 
 func (s *Service) GetPeerInfo(clusterId int, dbName, tableName string, rangeId int) (interface{}, error) {
 	info, err := s.selectClusterById(clusterId)
@@ -1528,8 +1633,8 @@ func (s *Service) GetRangeTopoByRangeId(clusterId int, rangeId int) (interface{}
 	reqParams["rangeId"] = rangeId
 
 	var getRangeTopoResp = struct {
-		Code int    `json:"code"`
-		Msg  string `json:"message"`
+		Code int           `json:"code"`
+		Msg  string        `json:"message"`
 		Data *models.Route `json:"data"`
 	}{}
 	if err := sendGetReq(info.MasterUrl, "/manage/range/getRangeTopo", reqParams, &getRangeTopoResp); err != nil {
@@ -1572,6 +1677,104 @@ func (s *Service) BatchRecoverRange(clusterId int, dbName, tableName string) err
 		return fmt.Errorf(recoverRangeResp.Msg)
 	}
 	return nil
+}
+
+//迁移
+func (s *Service) TransferRange(clusterId int, rangeId int, peerId int) error {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return err
+	}
+	if info == nil {
+		return common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["rangeId"] = rangeId
+	reqParams["peerId"] = peerId
+
+	var transferRangeResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/range/transfer", reqParams, &transferRangeResp); err != nil {
+		return err
+	}
+	if transferRangeResp.Code != 0 {
+		log.Error("transfer range[%s] peer[%v] of cluster %v failed. err:[%v]", rangeId, peerId, clusterId, transferRangeResp)
+		return fmt.Errorf(transferRangeResp.Msg)
+	}
+	return nil
+}
+
+//切换主
+func (s *Service) ChangeRangeLeader(clusterId int, rangeId int, peerId int) error {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return err
+	}
+	if info == nil {
+		return common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["rangeId"] = rangeId
+	reqParams["peerId"] = peerId
+
+	var changeLeaderResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/range/leader/change", reqParams, &changeLeaderResp); err != nil {
+		return err
+	}
+	if changeLeaderResp.Code != 0 {
+		log.Error("change range[%s] leader of cluster %v to %v failed. err:[%v]", rangeId, clusterId, peerId, changeLeaderResp)
+		return fmt.Errorf(changeLeaderResp.Msg)
+	}
+	return nil
+}
+
+func (s *Service) GetRangeOpsTopN(clusterId int, topN int) (interface{}, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["topN"] = topN
+
+	var getTopNResp = struct {
+		Code int         `json:"code"`
+		Msg  string      `json:"message"`
+		Data interface{} `json:"data"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/range/getOpsTopN", reqParams, &getTopNResp); err != nil {
+		return nil, err
+	}
+	if getTopNResp.Code != 0 {
+		log.Error("get cluster %d range ops topN %v failed. err:[%v]", clusterId, topN, getTopNResp)
+		return nil, fmt.Errorf(getTopNResp.Msg)
+	}
+	return getTopNResp.Data, nil
 }
 
 func (s *Service) GetPrivilegeInfo(offset, limit int, order string) ([]*models.UserPrivilege, error) {
@@ -1733,7 +1936,6 @@ func (s *Service) IsAdmin(userName string) (bool, error) {
 	return exist, nil
 }
 
-
 //=============lock start==============
 func (s *Service) GetAllNamespace(userName string, isAdmin bool) ([]*models.NamespaceApply, error) {
 	var sql string
@@ -1772,7 +1974,7 @@ func (s *Service) ApplyLockNamespace(cId int, namespace, applyer string, cTime i
 	}
 
 	var columns []*models.Column
-	lockColumn := &models.Column{Name: LOCK_COLUMN, DataType:1, PrimaryKey: 1, Index:true}
+	lockColumn := &models.Column{Name: LOCK_COLUMN, DataType: 1, PrimaryKey: 1, Index: true}
 	columns = append(columns, lockColumn)
 	err = s.CreateTable(cId, LOCK_DBNAME, namespace, "", "", "", columns, nil)
 	if err != nil {
@@ -1804,7 +2006,6 @@ func (s *Service) UpdateLockNsp(cId int, namespace, applyer string, cTime int64)
 	return nil
 }
 
-
 func (s *Service) GetLockCluster() (*models.ClusterInfo, error) {
 	clusterId := s.config.LockClusterId
 	info, err := s.selectClusterById(clusterId)
@@ -1816,8 +2017,214 @@ func (s *Service) GetLockCluster() (*models.ClusterInfo, error) {
 	}
 	return info, nil
 }
-
 //=============lock end================
+
+
+//=============metric add ===============
+
+func (s *Service) GetAllMetricServer() ([]models.MetricServer, error) {
+	rows, err := s.db.Query(fmt.Sprintf(`SELECT addr FROM %s`, TABLE_NAME_METRIC_SERVER))
+	if err != nil {
+		log.Error("metric server select is failed. err:[%v]", err)
+		return nil, common.DB_ERROR
+	}
+
+	var result []models.MetricServer
+	for rows.Next() {
+		var info models.MetricServer
+		if err := rows.Scan(&info.Addr); err != nil {
+			log.Error("metric server scan is failed. err:[%v]", err)
+			return nil, common.DB_ERROR
+		}
+		log.Debug("selected metric server:%v", info)
+		result = append(result, info)
+	}
+
+	return result, nil
+}
+
+func (s *Service) CreateMetricServer(addr string) error {
+	rows, err := s.db.Exec(fmt.Sprintf(`insert into %s values("%s")`, TABLE_NAME_METRIC_SERVER, addr))
+	if err != nil {
+		log.Error("db exec is failed. err:[%v]", err)
+		return common.DB_ERROR
+	}
+	rowsAffected, err := rows.RowsAffected()
+	if err != nil {
+		log.Error("db rowsaffected is failed. err:[%v]", err)
+		return common.DB_ERROR
+	}
+	if rowsAffected != 1 {
+		return common.CLUSTER_DUPCREATE_ERROR
+	}
+	return nil
+}
+
+func (s *Service) DeleteMetricServer(addrs []string) error {
+	for _, addr := range addrs {
+		rows, err := s.db.Exec(fmt.Sprintf(`delete from %s where addr = "%s"`, TABLE_NAME_METRIC_SERVER, addr))
+		if err != nil {
+			log.Error("db exec is failed. err:[%v]", err)
+			return common.DB_ERROR
+		}
+		rowsAffected, err := rows.RowsAffected()
+		if err != nil {
+			log.Error("db rowsaffected is failed. err:[%v]", err)
+			return common.DB_ERROR
+		}
+		if rowsAffected != 1 {
+			return common.CLUSTER_DUPCREATE_ERROR
+		}
+	}
+	return nil
+}
+
+
+func (s *Service) GetMetricConfig(cId int) (map[string]*models.MetricConfig, error) {
+	info, err := s.selectClusterById(cId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	msConfig := &models.MetricConfig{}
+	gsConfig := &models.MetricConfig{}
+
+	var waitLock sync.WaitGroup
+	waitLock.Add(1)
+
+	go func(msConfig *models.MetricConfig) {
+		defer waitLock.Done()
+
+		ts := time.Now().Unix()
+		sign := common.CalcMsReqSign(info.Id, info.ClusterToken, ts)
+
+		reqParams := make(map[string]interface{})
+		reqParams["d"] = ts
+		reqParams["s"] = sign
+
+		var getConfigResp = struct {
+			Code int         `json:"code"`
+			Msg  string      `json:"message"`
+			Data models.MetricConfig `json:"data"`
+		}{}
+		if err := sendGetReq(info.MasterUrl, "/metric/config/get", reqParams, &getConfigResp); err != nil {
+			msConfig.Address = err.Error()
+		} else {
+			if getConfigResp.Code != 0 {
+				msConfig.Address = getConfigResp.Msg
+			} else {
+				msConfig.Address = getConfigResp.Data.Address
+				msConfig.Interval = getConfigResp.Data.Interval
+			}
+		}
+	}(msConfig)
+
+	waitLock.Add(1)
+	 go func(gsConfig *models.MetricConfig) {
+		 defer waitLock.Done()
+
+		 ts := time.Now().Unix()
+		 sign := common.CalcMsReqSign(info.Id, info.ClusterToken, ts)
+
+		 reqParams := make(map[string]interface{})
+		 reqParams["d"] = ts
+		 reqParams["s"] = sign
+
+		 var getConfigResp = struct {
+			 Code int         `json:"code"`
+			 Msg  string      `json:"message"`
+			 Data models.MetricConfig `json:"data"`
+		 }{}
+		 if err := sendGetReq(info.GatewayHttpUrl, "/metric/config/get", reqParams, &getConfigResp); err != nil {
+			 msConfig.Address = err.Error()
+		 } else {
+			 if getConfigResp.Code != 0 {
+				 gsConfig.Address = getConfigResp.Msg
+			 } else {
+				 gsConfig.Address = getConfigResp.Data.Address
+			 }
+		 }
+	}(gsConfig)
+	waitLock.Wait()
+
+	reply := make(map[string]*models.MetricConfig)
+	reply["ms"] = msConfig
+	reply["gs"] = gsConfig
+
+	log.Debug("get metric config: {}", reply)
+	return reply, nil
+}
+
+
+func (s *Service) SetMetricConfig(cId int, addr, interval string) (map[string]string, error) {
+	info, err := s.selectClusterById(cId)
+	if err != nil {
+		return  nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	respose := make(map[string]string, 0)
+
+	var waitLock sync.WaitGroup
+	waitLock.Add(1)
+	go func(response map[string]string) {
+		defer waitLock.Done()
+		ts := time.Now().Unix()
+		sign := common.CalcMsReqSign(info.Id, info.ClusterToken, ts)
+		reqParams := make(map[string]interface{})
+		reqParams["d"] = ts
+		reqParams["s"] = sign
+		reqParams["interval"] = interval
+		reqParams["address"] = addr
+		var setConfigResp = struct {
+			Code int         `json:"code"`
+			Msg  string      `json:"message"`
+		}{}
+		if err := sendGetReq(info.MasterUrl, "/metric/config/set", reqParams, &setConfigResp); err != nil {
+			respose["ms"] = err.Error()
+		} else if setConfigResp.Code > 0{
+			respose["ms"] = setConfigResp.Msg
+		} else {
+			respose["ms"] = "success"
+		}
+
+	}(respose)
+
+	waitLock.Add(1)
+	go func(response map[string]string) {
+		defer waitLock.Done()
+
+		ts := time.Now().Unix()
+		sign := common.CalcMsReqSign(info.Id, info.ClusterToken, ts)
+
+		reqParams := make(map[string]interface{})
+		reqParams["d"] = ts
+		reqParams["s"] = sign
+		reqParams["address"] = addr
+		var setConfigResp = struct {
+			Code int         `json:"code"`
+			Msg  string      `json:"message"`
+		}{}
+		if err := sendGetReq(info.GatewayHttpUrl, "/metric/config/set", reqParams, &setConfigResp); err != nil {
+			respose["gs"] = err.Error()
+		} else if setConfigResp.Code > 0{
+			respose["gs"] = setConfigResp.Msg
+		} else {
+			respose["gs"] = "success"
+		}
+	}(respose)
+	waitLock.Wait()
+
+	log.Debug("set master client config: %v", respose)
+	return respose, nil
+}
+//=============metric end ===============
+
 
 // ------------http request -------------------
 func sendGetSimpleReq(host, uri string, params map[string]interface{}, result string) (error) {
@@ -2019,17 +2426,20 @@ func (s *Service) insertClusterById(info *models.ClusterInfo) error {
 	//}
 	//res, err := stmt.Exec(TABLE_NAME_CLUSTER, info.Id, info.Name, info.MasterUrl,
 	//	info.GatewayUrl, info.ClusterToken, info.CreateTime, info.AutoTransferUnable, info.AutoFailoverUnable)
-	var autoTransfer, autoFailover int
+	var autoTransfer, autoFailover, autoSplit int
 	if info.AutoTransferUnable {
 		autoTransfer = 1
 	}
 	if info.AutoFailoverUnable {
 		autoFailover = 1
 	}
+	if info.AutoSplitUnable {
+		autoSplit = 1
+	}
 	sql := fmt.Sprintf(`INSERT INTO %s (id, cluster_name, cluster_url, gateway_http, gateway_sql, cluster_sign,
-		create_time, auto_transfer, auto_failover ) values (%d, "%s", "%s", "%s", "%s", "%s", %d, %d, %d)`, TABLE_NAME_CLUSTER,
+		create_time, auto_transfer, auto_failover, auto_split ) values (%d, "%s", "%s", "%s", "%s", "%s", %d, %d, %d, %d)`, TABLE_NAME_CLUSTER,
 		info.Id, info.Name, info.MasterUrl,
-		info.GatewayHttpUrl, info.GatewaySqlUrl, info.ClusterToken, info.CreateTime, autoTransfer, autoFailover)
+		info.GatewayHttpUrl, info.GatewaySqlUrl, info.ClusterToken, info.CreateTime, autoTransfer, autoFailover, autoSplit)
 	rowsAffected, err := s.execSql(sql)
 	if err != nil {
 		return err
@@ -2203,9 +2613,11 @@ func InitService(c *config.Config) {
 	if err != nil {
 		panic("Fail to initialize mysql")
 	}
+	db.SetMaxOpenConns(20)
+	db.SetMaxIdleConns(0)
 	serviceInstance = &Service{
-		config: c,
-		db:     db,
+		config:     c,
+		db:         db,
 		adminCache: ttlcache.NewTTLCache(2 * time.Minute),
 	}
 }

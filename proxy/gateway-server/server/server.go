@@ -115,10 +115,7 @@ func NewServer(cfg *Config) (*Server, error) {
 	mysql.DEFAULT_COLLATION_ID = cid
 	mysql.DEFAULT_COLLATION_NAME = mysql.Collations[cid]
 
-	ips := util.GetLocalIps()
-	addr := fmt.Sprintf("%s:%d", ips[0], cfg.SqlPort)
-	//performance monitor about mysql port [addr] transport to metric server[cfg.MetricAddr]
-	metric.GsMetric= metric.NewMetric(cfg.ClusterId, addr, cfg.MetricAddr, uint64(cfg.SlowlogMaxLen))
+	initMetricSender(cfg)
 
 	var l net.Listener
 	var err error
@@ -130,7 +127,7 @@ func NewServer(cfg *Config) (*Server, error) {
 
 	l = LimitListener(l, cfg.MaxClients)
 	s.listener = l
-	proxy := NewProxy(cfg.MasterServerAddrs, cfg)
+	proxy := NewProxy(cfg.Cluster.ServerAddr, cfg)
 	if proxy == nil {
 		log.Fatal("proxy fault")
 		return nil, nil
@@ -153,6 +150,8 @@ func NewServer(cfg *Config) (*Server, error) {
 	svr.Handle("/createdatabase", s.handleCreateDatabase)
 	svr.Handle("/createtable", s.handleCreateTable)
 	svr.Handle("/lock/debug", s.handleLockDebug)
+	svr.Handle("/metric/config/set", s.handleMetricConfigSet)
+	svr.Handle("/metric/config/get", s.handleMetricConfigGet)
 	go svr.Run()
 	s.httpSvr = svr
 
@@ -161,8 +160,15 @@ func NewServer(cfg *Config) (*Server, error) {
 	return s, nil
 }
 
+func initMetricSender(cfg *Config)  {
+	ips := util.GetLocalIps()
+	addr := fmt.Sprintf("%s:%d", ips[0], cfg.SqlPort)
+	//performance monitor about mysql port [addr] transport to metric server[cfg.MetricAddr]
+	metric.GsMetric= metric.NewMetric(cfg.Cluster.ID, addr, cfg.Metric.Address, cfg.Performance.SlowLogMaxLen)
+}
+
 func (s *Server) GetCfg() *Config{
-	return s.cfg;
+	return s.cfg
 }
 
 func (s *Server) flushCounter() {

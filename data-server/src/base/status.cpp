@@ -1,7 +1,7 @@
 #include "status.h"
 #include <cstring>
 
-namespace fbase {
+namespace sharkstore {
 
 const char *Status::copyState(const char *s) {
     char *const result = new char[strlen(s) + 1];
@@ -108,4 +108,4 @@ std::string Status::ToString() const {
     return result;
 }
 
-} /* namespace fbase */
+} /* namespace sharkstore */

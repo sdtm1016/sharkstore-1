@@ -1,6 +1,6 @@
 #include "connection.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace master {
 
@@ -16,4 +16,4 @@ Connection::~Connection() {}
 
 }  // namespace master
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <time.h>
 
-namespace fbase
+namespace sharkstore
 {
     namespace monitor
     {
@@ -53,6 +53,7 @@ namespace fbase
                     break;
                 case PrintTag::Store:
                     StorePutData(tag,timedata);
+		    break;
                 case PrintTag::Qwait:
                     QwaitPutData(tag,timedata);
                     break;

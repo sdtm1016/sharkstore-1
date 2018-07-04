@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace playground {
 
@@ -28,8 +28,8 @@ static std::string ccTypeName(ConfChangeType type) {
             return "add";
         case ConfChangeType::kRemove:
             return "remove";
-        case ConfChangeType::kUpdate:
-            return "update";
+        case ConfChangeType::kPromote:
+            return "promote";
         default:
             return "unknown";
     }
@@ -70,11 +70,11 @@ Status PGStateMachine::ApplySnapshotData(const std::vector<std::string>& datas) 
     return Status::OK();
 }
 
-Status PGStateMachine::ApplySnapshotFinish() {
-    std::cout << "[NODE " << gNodeID << "] apply snapshot finish" << std::endl;
+Status PGStateMachine::ApplySnapshotFinish(uint64_t index) {
+    std::cout << "[NODE " << gNodeID << "] apply snapshot finish. index=" << index << std::endl;
     return Status::OK();
 }
 
 } /* namespace playground */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

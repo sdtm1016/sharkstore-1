@@ -1,11 +1,12 @@
 package server
 
 import (
-	"util/log"
+	"fmt"
+	"master-server/http_reply"
 	"model/pkg/metapb"
 	"model/pkg/mspb"
-	"fmt"
 	"util/deepcopy"
+	"util/log"
 )
 
 func (c *Cluster) createRangeRemote(r *metapb.Range) error {
@@ -108,6 +109,18 @@ func (c *Cluster) GetTableAllRanges(tableId uint64) []*Range {
 	return c.ranges.GetTableAllRanges(tableId)
 }
 
+func (c *Cluster) GetNodeRangeStatByTable(tableId uint64) map[uint64]int {
+	rngStat := make(map[uint64]int, 0)
+	tRanges := c.GetTableAllRanges(tableId)
+	for _, r := range tRanges {
+		rPeers := r.GetPeers()
+		for _, p := range rPeers {
+			rngStat[p.GetNodeId()] = rngStat[p.GetNodeId()] + 1
+		}
+	}
+	return rngStat
+}
+
 func (c *Cluster) getLeaderNode(r *Range) *Node {
 	return c.FindNodeById(r.GetLeader().GetNodeId())
 }
@@ -124,7 +137,7 @@ func (c *Cluster) getFollowerNodes(r *Range) []*Node {
 	var nodes []*Node
 	for nodeID, _ := range r.GetFollowers() {
 		if node := c.FindNodeById(nodeID); node != nil {
-			nodes =  append(nodes, node)
+			nodes = append(nodes, node)
 		}
 	}
 	return nodes
@@ -139,26 +152,13 @@ func (c *Cluster) updateStatus(region *Range, stats *mspb.RangeStats) {
 	region.opsStat.Hit(region.BytesWritten)
 }
 
-
-
 func (c *Cluster) queryPeerRemote(r *metapb.Range) interface{} {
-	type PeerBrief struct {
-		Id 		   uint64 		`json:"id,omitempty"`
-		Index      uint64  		`json:"index,omitempty"`
-		Term 	   uint64  		`json:"term,omitempty"`
-		Commit     uint64       `json:"commit,omitempty"`
-		StartKey   string       `json:"start_key,omitempty"`
-		EndKey     string       `json:"end_key,omitempty"`
-		NodeId      uint64      `json:"node_id,omitempty"`
-		NodeAddress     string  `json:"node_address,omitempty"`
-		nodeState     int32     `json:"node_state,omitempty"`
-	}
-	var result []*PeerBrief
+	var result []*http_reply.PeerBrief
 	peerLen := len(r.GetPeers())
-	resultChannel := make(chan *PeerBrief, peerLen)
+	resultChannel := make(chan *http_reply.PeerBrief, peerLen)
 	for _, p := range r.GetPeers() {
 		go func(p *metapb.Peer) {
-			peerInfo := &PeerBrief{Id: p.GetId()}
+			peerInfo := &http_reply.PeerBrief{Id: p.GetId()}
 			node := c.FindNodeById(p.GetNodeId())
 			if node == nil {
 				resultChannel <- peerInfo
@@ -166,13 +166,13 @@ func (c *Cluster) queryPeerRemote(r *metapb.Range) interface{} {
 			}
 			peerInfo.NodeId = node.GetId()
 			peerInfo.NodeAddress = node.GetServerAddr()
-			peerInfo.nodeState = int32(node.GetState())
+			peerInfo.NodeState = int32(node.GetState())
 			var i int
 			for i = 0; i < 3; i++ {
 				resp, err := c.cli.GetPeerInfo(node.GetServerAddr(), r.GetId())
 				if err != nil {
-					log.Warn("query peer info: range[%v] peer[%v] node[%s] failed, err[%v]",r.GetId(), p.GetId(), node.GetServerAddr(), err)
-				}else{
+					log.Warn("query peer info: range[%v] peer[%v] node[%s] failed, err[%v]", r.GetId(), p.GetId(), node.GetServerAddr(), err)
+				} else {
 					log.Debug("query peer info: range[%v] peer[%v] node[%s] success, resp:[%v]", r.GetId(), p.GetId(), node.GetServerAddr(), resp)
 					if resp != nil {
 						if resp.Replica != nil {
@@ -189,8 +189,8 @@ func (c *Cluster) queryPeerRemote(r *metapb.Range) interface{} {
 			resultChannel <- peerInfo
 		}(p)
 	}
-	for i := 0; i< peerLen; i++ {
-		result = append(result, <- resultChannel)
+	for i := 0; i < peerLen; i++ {
+		result = append(result, <-resultChannel)
 	}
 	return result
 }
@@ -212,7 +212,7 @@ func (c *Cluster) rangeRecreate(r *Range, peerId uint64) (err error) {
 	for _, peer := range r.GetPeers() {
 		if peer.GetId() == peerId {
 			needNewPeer = false
-			newPeer, err = c.allocPeer(peer.GetNodeId())
+			newPeer, err = c.allocPeer(peer.GetNodeId(), false)
 			if err != nil {
 				return nil
 			}
@@ -221,7 +221,7 @@ func (c *Cluster) rangeRecreate(r *Range, peerId uint64) (err error) {
 		toGcPeer = append(toGcPeer, peer)
 	}
 	if needNewPeer {
-		newPeer, err = c.allocPeerAndSelectNode(r)
+		newPeer, err = c.allocPeerAndSelectNode(r, false)
 		if err != nil {
 			return
 		}
@@ -260,7 +260,7 @@ func (c *Cluster) updateRangePeerRemote(r *Range, peerId uint64) error {
 	for _, p := range rngCopy.GetPeers() {
 		if peerId == p.GetId() {
 			peer = p
-		}else {
+		} else {
 			peerUnable = append(peerUnable, p)
 		}
 	}
@@ -309,11 +309,11 @@ func (c *Cluster) UpdateRangeEpochRemote(r *Range, epoch *metapb.RangeEpoch) err
 func (c *Cluster) UpdateRangeRemote(addr string, r *metapb.Range) error {
 	var err error
 	for i := 0; i < 3; i++ {
-		 err = c.cli.UpdateRange(addr, r)
+		err = c.cli.UpdateRange(addr, r)
 		if err != nil {
-			log.Warn("update range meta: range[%v] node[%s] failed, err[%v]",r.GetId(), addr, err)
-		}else{
-			log.Debug("update range meta: range[%v] node[%s] success",r.GetId(), addr)
+			log.Warn("update range meta: range[%v] node[%s] failed, err[%v]", r.GetId(), addr, err)
+		} else {
+			log.Debug("update range meta: range[%v] node[%s] success", r.GetId(), addr)
 			break
 		}
 	}
@@ -339,7 +339,7 @@ func (c *Cluster) offlineRangeRemote(r *Range, peerId uint64) error {
 
 	err := c.cli.OffLineRange(node.GetServerAddr(), r.GetId())
 	if err != nil {
-		log.Warn("offline range: range[%v] peer[%v] node[%s] failed, err[%v]",r.GetId(), peerId, node.GetServerAddr(), err)
+		log.Warn("offline range: range[%v] peer[%v] node[%s] failed, err[%v]", r.GetId(), peerId, node.GetServerAddr(), err)
 	}
 	return err
 }
@@ -350,8 +350,8 @@ func (c *Cluster) ReplaceRangeRemote(addr string, oldRangeId uint64, newRange *m
 		err = c.cli.ReplaceRange(addr, oldRangeId, newRange)
 		if err != nil {
 			log.Warn("replace range meta: oldRangeId[%v]， newRangeId[%v] node[%s] failed, err[%v]", oldRangeId, newRange.GetId(), addr, err)
-		}else{
-			log.Debug("replace range meta: range[%v] node[%s] success", oldRangeId, newRange.GetId(), addr,)
+		} else {
+			log.Debug("replace range meta: range[%v] node[%s] success", oldRangeId, newRange.GetId(), addr)
 			break
 		}
 	}

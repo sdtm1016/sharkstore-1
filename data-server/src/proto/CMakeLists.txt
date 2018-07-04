@@ -13,4 +13,4 @@ set (proto_SOURCES
     gen/timestamp.pb.cc
 )
 
-add_library(fbase-proto STATIC ${proto_SOURCES})
+add_library(sharkstore-proto STATIC ${proto_SOURCES})

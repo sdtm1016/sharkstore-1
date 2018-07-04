@@ -36,6 +36,7 @@ service MsServer {
 message MSLeader {
     uint64 id          = 1;
     string address     = 2;
+    uint64 term        = 3;
 }
 
 message GetMSLeaderRequest {
@@ -47,9 +48,12 @@ message GetMSLeaderResponse {
     MSLeader leader                 = 2;
 }
 
-message PeerStats {
+message PeerStatus {
     metapb.Peer peer    = 1;
-    uint64 down_seconds = 2;
+    uint64 index        = 2;
+    uint64 commit       = 3;
+    uint64 down_seconds = 4;
+    bool snapshotting   = 5;
 }
 
 message RangeStats {
@@ -65,18 +69,17 @@ message RangeStats {
 }
 
 message RangeHeartbeatRequest {
-    RequestHeader header                    = 1;
+    RequestHeader header                  = 1;
 
-    metapb.Range range                      = 2;
-    // Leader Peer sending the heartbeat.
-    metapb.Peer leader                      = 3;
-    // Leader considers that these peers are down.
-    repeated PeerStats down_peers           = 4;
-    // Pending peers are the peers that the leader can't consider as
-    // working followers.
-    repeated metapb.Peer pending_peers      = 5;
-
-    RangeStats stats                        = 6;
+    metapb.Range range                    = 2;
+    // leader
+    metapb.Peer leader                    = 3;
+    // leader term
+    uint64 term                           = 4;
+    // replica status
+    repeated PeerStatus peers_status      = 5;
+    // range metric stats
+    RangeStats stats                      = 6;
 }
 
 message RangeHeartbeatResponse {
@@ -86,7 +89,6 @@ message RangeHeartbeatResponse {
     // target leader for task
     metapb.Peer target_peer     = 4;
     taskpb.Task  task           = 5;
-    uint64 commit_id            = 6;
 }
 
 message NodeStats {
@@ -341,14 +343,15 @@ message ResponseHeader {
     Error error               = 2;
 }
 
-message MsLeader {
-    string  ms_leader   = 1;
+message LeaderHint {
+    string address   = 1;
+    uint64 term      = 2;
 }
 
 message NoLeader {
 }
 
 message Error {
-    MsLeader  ms_leader = 2;
-    NoLeader  no_leader = 3;
+    LeaderHint new_leader     = 2;
+    NoLeader   no_leader      = 3;
 }

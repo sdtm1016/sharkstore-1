@@ -15,6 +15,7 @@ import (
 	"master-server/raft"
 	"golang.org/x/net/context"
 	"master-server/metric"
+		"util/alarm"
 )
 
 type Server struct {
@@ -29,6 +30,8 @@ type Server struct {
 	rpcServer   *grpc.Server
 
 	metricServer *metric.Metric
+	alarmServer *alarm.Server
+	alarmClient *alarm.Client
 
 	leaderChangeNotify chan uint64
 	wg     sync.WaitGroup
@@ -75,6 +78,8 @@ func (service *Server) initHttpHandler() (){
 	s.Handle("/manage/scheduler/getall", NewHandler(service.validRequest, service.handleSchedulerGetAll))
 	s.Handle("/manage/scheduler/add", NewHandler(service.validRequest, service.handleAddScheduler))
 	s.Handle("/manage/scheduler/remove", NewHandler(service.validRequest, service.handleRemoveScheduler))
+	s.Handle("/manage/scheduler/detail", NewHandler(service.validRequest, service.handleQuerySchedulerDetail))
+
 	s.Handle("/manage/database/getall", NewHandler(service.validRequest, service.handleDBGetAll))
 	s.Handle("/manage/table/getall", NewHandler(service.validRequest, service.handleTableGetAll))
 	s.Handle("/manage/get/table", NewHandler(service.validRequest, service.handleTableGet))
@@ -95,16 +100,20 @@ func (service *Server) initHttpHandler() (){
 	s.Handle("/manage/range/getRangeTopo", NewHandler(service.validRequest, service.handleRangeGetRangeTopo))
 	s.Handle("/manage/range/add/peer", NewHandler(service.validRequest, service.handleRangeAddPeer))
 	s.Handle("/manage/range/del/peer", NewHandler(service.validRequest, service.handleRangeDelPeer))
-	s.Handle("/manage/range/leader/transfer", NewHandler(service.validRequest, service.handleRangeLeaderTransfer))
+	s.Handle("/manage/range/leader/change", NewHandler(service.validRequest, service.handleRangeLeaderChange))
 	s.Handle("/manage/range/task/query", NewHandler(service.validRequest, service.handleRangeTaskQuery))
 	s.Handle("/manage/range/unhealthy/recover", NewHandler(service.validRequest, service.handleUnhealthyRangeRecover))
 	s.Handle("/manage/range/rebuildRange", NewHandler(service.validRequest, service.handleRangeRecreate))
 	s.Handle("/manage/range/replaceRange", NewHandler(service.validRequest, service.handleRangeRecreate))
 	s.Handle("/manage/range/unhealthy/query", NewHandler(service.validRequest, service.handleUnhealthyRangeQuery))
+	s.Handle("/manage/range/unstable/query", NewHandler(service.validRequest, service.handleUnstableRangeQuery))
 	s.Handle("/manage/range/getPeerInfo", NewHandler(service.validRequest, service.handlePeerInfoQuery))
 	s.Handle("/manage/range/updateRange", NewHandler(service.validRequest, service.handleUnhealthyRangeUpdate))
 	s.Handle("/manage/range/updateEpoch", NewHandler(service.validRequest, service.handleUpdateRangeEpoch))
 	s.Handle("/manage/range/offlineRange", NewHandler(service.validRequest, service.handleRangeOffline))
+	s.Handle("/manage/range/transfer", NewHandler(service.validRequest, service.handleRangeTransfer))
+	s.Handle("/manage/range/getOpsTopN", NewHandler(service.validRequest, service.handleRangeTopNQuery))
+
 	s.Handle("/manage/task/getall", NewHandler(service.validRequest, service.handleGetAllTask))
 	s.Handle("/manage/task/delete", NewHandler(service.validRequest, service.handleDeleteTask))
 
@@ -126,6 +135,11 @@ func (service *Server) initHttpHandler() (){
 
 	s.Handle("/peer/delete_force", NewHandler(service.validRequest, service.handlePeerDeleteForce))
 	s.Handle("/range/locate", NewHandler(service.validRequest, service.handleRangeLocate))
+
+	s.Handle("/metric/config/set", NewHandler(service.validRequest, service.handleMetricConfigSet))
+	s.Handle("/metric/config/get", NewHandler(service.validRequest, service.handleMetricConfigGet))
+	s.Handle("/test/alarm", NewHandler(nil, service.handleTestAlarm))
+  
 	return
 }
 
@@ -171,9 +185,28 @@ func (service *Server) InitMasterServer(conf *Config) {
 		}, )
 		service.server = s
 	}
-
 	service.initHttpHandler()
+	if "" != conf.Alarm.ServerAddress {
+		service.alarmClient, err = alarm.NewAlarmClient(conf.Alarm.ServerAddress)
+		if err != nil {
+			log.Fatal("create alarm client failed, err[%v]", err)
+		}
+		service.cluster.alarmCli = service.alarmClient
+	}
 }
+
+func (service *Server) InitAlarmServer(conf AlarmConfig) (err error) {
+	var alarmReceivers []*alarm.User
+	for _, r := range conf.Receivers {
+		alarmReceivers = append(alarmReceivers, &alarm.User{
+			Mail: r.Mail,
+			Sms: r.Sms,
+		})
+	}
+	service.alarmServer, err = alarm.NewAlarmServer(service.ctx, conf.ServerPort, conf.MessageGatewayAddress, conf.RemoteAlarmServerAddress, alarm.NewSimpleReceiver(alarmReceivers))
+	return err
+}
+
 
 func (service *Server) InitMetricServer(conf *Config) {
 	if service.server == nil {
@@ -192,7 +225,16 @@ func (service *Server) InitMetricServer(conf *Config) {
 	} else { //默认为es存储
 		store = metric.NewEsStore(conf.Metric.Server.StoreUrl, int(conf.Metric.Server.QueueNum))
 	}
-	service.metricServer = metric.NewMetric(service.server, store)
+	service.metricServer = metric.NewMetric(service.server, store, conf.Threshold)
+
+	if "" != conf.Alarm.ServerAddress {
+		var err error
+		service.alarmClient, err = alarm.NewAlarmClient(conf.Alarm.ServerAddress)
+		if err != nil {
+			log.Fatal("create alarm client failed, err[%v]", err)
+		}
+		service.metricServer.AlarmCli = service.alarmClient
+	}
 }
 
 func (service *Server) InitServer(conf *Config) {
@@ -206,6 +248,7 @@ func (service *Server) InitServer(conf *Config) {
 		service.InitMasterServer(conf)
 	case "metric":
 		service.InitMetricServer(conf)
+		service.InitAlarmServer(conf.Alarm)
 	}
 }
 
@@ -299,6 +342,7 @@ func (service *Server) RaftLeaderChange(leaderId uint64) {
 		cluster.UpdateLeader(raftLeader)
 		cluster.Start()
 		service.cluster = cluster
+		service.cluster.alarmCli = service.alarmClient
 		return
 	}
 

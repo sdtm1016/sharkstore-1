@@ -3,7 +3,7 @@ _Pragma("once");
 #include <stdint.h>
 #include <string>
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -87,4 +87,4 @@ void EncodeFieldValue(std::string* buf, FieldValue* v);
 
 } /* namespace storage */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

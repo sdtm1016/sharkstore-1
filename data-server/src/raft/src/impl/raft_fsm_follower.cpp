@@ -1,14 +1,16 @@
 #include "raft_fsm.h"
+
 #include "logger.h"
 #include "storage/storage.h"
+#include "snapshot/apply_task.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
 void RaftFsm::becomeFollower(uint64_t term, uint64_t leader) {
     step_func_ = std::bind(&RaftFsm::stepFollower, this, std::placeholders::_1);
-    reset(term, 0, false);
+    reset(term, false);
     tick_func_ = std::bind(&RaftFsm::tickElection, this);
     leader_ = leader;
     state_ = FsmState::kFollower;
@@ -20,9 +22,8 @@ void RaftFsm::stepFollower(MessagePtr& msg) {
     switch (msg->type()) {
         case pb::LOCAL_MSG_PROP:
             if (leader_ == 0) {
-                LOG_DEBUG(
-                    "raft[%llu] no leader at term %llu; dropping proposal.",
-                    id_, term_);
+                LOG_DEBUG("raft[%llu] no leader at term %llu; dropping proposal.", id_,
+                          term_);
             } else {
                 // 转发给leader
                 msg->set_to(leader_);
@@ -47,6 +48,29 @@ void RaftFsm::stepFollower(MessagePtr& msg) {
             handleSnapshot(msg);
             return;
 
+        case pb::LOCAL_SNAPSHOT_STATUS:
+            if (!applying_snap_ || applying_snap_->GetContext().uuid != msg->snapshot().uuid()) {
+                return;
+            }
+
+            if (!msg->reject()) {
+                auto s = restore(applying_meta_);
+                if (!s.ok()) {
+                    LOG_ERROR("raft[%lu] restore snapshot[%lu] failed(%s) at term %lu.",
+                              id_, applying_snap_->GetContext().uuid, s.ToString().c_str(), term_);
+                } else {
+                    // 通知leader应用快照成功
+                    MessagePtr resp(new pb::Message);
+                    resp->set_type(pb::APPEND_ENTRIES_RESPONSE);
+                    resp->set_to(msg->from());
+                    resp->set_log_index(raft_log_->lastIndex());
+                    resp->set_commit(raft_log_->committed());
+                    send(resp);
+                }
+            }
+            applying_snap_.reset();
+            return;
+
         default:
             return;
     }
@@ -54,7 +78,7 @@ void RaftFsm::stepFollower(MessagePtr& msg) {
 
 void RaftFsm::tickElection() {
     // 检查是否还在成员内
-    if (!promotable()) {
+    if (!electable()) {
         election_elapsed_ = 0;
         return;
     }
@@ -88,16 +112,16 @@ void RaftFsm::handleAppendEntries(MessagePtr& msg) {
     std::vector<EntryPtr> ents;
     takeEntries(msg, ents);
     uint64_t last_index = 0;
-    if (raft_log_->maybeAppend(msg->log_index(), msg->log_term(), msg->commit(),
-                               ents, &last_index)) {
+    if (raft_log_->maybeAppend(msg->log_index(), msg->log_term(), msg->commit(), ents,
+                               &last_index)) {
         resp_msg->set_log_index(last_index);
         resp_msg->set_commit(raft_log_->committed());
         send(resp_msg);
     } else {
         LOG_DEBUG("raft[%llu] [logterm:%llu, index:%llu] rejected msgApp from "
                   "%llu[logterm:%llu, index:%llu]",
-                  id_, raft_log_->lastTerm(), raft_log_->lastIndex(),
-                  msg->from(), msg->log_term(), msg->log_index());
+                  id_, raft_log_->lastTerm(), raft_log_->lastIndex(), msg->from(),
+                  msg->log_term(), msg->log_index());
 
         resp_msg->set_log_index(msg->log_index());
         resp_msg->set_commit(raft_log_->committed());
@@ -108,155 +132,52 @@ void RaftFsm::handleAppendEntries(MessagePtr& msg) {
 }
 
 void RaftFsm::handleSnapshot(MessagePtr& msg) {
-    bool over = false;
-    Status status = applySnapshot(msg, &over);
-    if (!status.ok()) {
-        // 应用快照失败
-        LOG_ERROR("raft[%llu] apply snapshot[%llu] from %llu failed: %s", id_,
-                  msg->snapshot().uuid(), msg->from(),
-                  status.ToString().c_str());
+    auto s = applySnapshot(msg);
+    if (!s.ok()) {
+        LOG_ERROR("raft[%lu] apply snapshot[%lu:%lu] from %lu at term %lu failed: %s", id_, msg->snapshot().uuid(),
+                  msg->snapshot().seq(), msg->from(), term_, s.ToString().c_str());
 
-        // 重置SnapshotApplyContext
-        applying_snap_.reset();
-
-        // 给远程leader发送失败消息
         MessagePtr resp(new pb::Message);
-        resp->set_type(pb::SNAPSHOT_RESPONSE);
+        resp->set_type(pb::SNAPSHOT_ACK);
         resp->set_to(msg->from());
         resp->set_reject(true);
+        resp->mutable_snapshot()->set_uuid(msg->snapshot().uuid());
+        resp->mutable_snapshot()->set_seq(msg->snapshot().seq());
         send(resp);
-        return;
-    } else if (over) {
-        // 应用快照完成，重置SnapshotApplyContext
-        applying_snap_.reset();
     }
-
-    // 给远程发送快照ack
-    MessagePtr ack(new pb::Message);
-    ack->set_type(pb::SNAPSHOT_ACK);
-    ack->set_to(msg->from());
-    // 正常情况下，对方发送最后一个快照数据的时候不需要接收ack
-    // over也reject是为了兼容以下情况：
-    // 快照过期不用应用(此时over为true， status ok），则需要reject，让对方别发了
-    ack->set_reject(!status.ok() || over);
-    ack->mutable_snapshot()->set_uuid(msg->snapshot().uuid());
-    ack->mutable_snapshot()->set_seq(msg->snapshot().seq());
-
-    LOG_DEBUG("raft[%lu] send snapshot[%lu] ack to %lu. seq=%ld, reject=%d",
-              id_, ack->snapshot().uuid(), ack->to(), ack->snapshot().seq(),
-              ack->reject());
-
-    send(ack);
 }
 
-Status RaftFsm::applySnapshot(MessagePtr& msg, bool* over) {
-    bool first = false;
-    const auto& snapshot = msg->snapshot();
-
-    // 当前没有快照，或者一个新的uuid不同的快照过来。即当前msg是新快照的第一个消息
-    if (!applying_snap_ || applying_snap_->uuid != snapshot.uuid()) {
-        if (snapshot.uuid() == 0) {
-            // uuid不能为0
-            return Status(Status::kInvalidArgument, "invalid snapshot uuid",
-                          "0");
-        } else if (!snapshot.has_meta()) {
-            // 第一条快照消息必须包含meta信息
-            return Status(Status::kInvalidArgument, "invalid snapshot meta",
-                          "NULL");
-        } else if (snapshot.seq() != 0) {
-            // 第一条快照消息的序号应该为0
-            return Status(Status::kInvalidArgument,
-                          "invalid snapshot no-zero seq",
-                          std::to_string(snapshot.seq()));
-        } else {  // a new apply context
-            if (applying_snap_ != nullptr) {
-                LOG_WARN("raft[%lu] [logterm: %lu, index: %lu] abort apply "
-                         "prev snapshot[%lu] at term %lu.",
-                         id_, raft_log_->lastTerm(), raft_log_->lastIndex(),
-                         applying_snap_->uuid, term_);
-            }
-
-            applying_snap_.reset(new SnapshotApplyContext);
-            applying_snap_->uuid = snapshot.uuid();
-            applying_snap_->meta = snapshot.meta();
-            first = true;
-        }
-    } else if (snapshot.seq() != applying_snap_->prev_seq + 1) {
-        // 快照序号不连续
-        return Status(Status::kInvalidArgument, "discontinuous snapshot seq",
-                      std::string("prev:") +
-                          std::to_string(applying_snap_->prev_seq) + ", msg:" +
-                          std::to_string(snapshot.seq()));
-    } else {
-        // 更新序列号
-        applying_snap_->prev_seq = snapshot.seq();
-    }
-
-    // 第一条快照消息
-    if (first) {
-        const auto& meta = snapshot.meta();
-        // 检查meta信息
-        if (!checkSnapshot(meta)) {
-            LOG_WARN("raft[%llu] [commit: %llu] ignored snapshot [index: %llu, "
-                     "term: %llu].",
-                     id_, raft_log_->committed(), meta.index(), meta.term());
-
-            MessagePtr resp(new pb::Message);
-            resp->set_type(pb::APPEND_ENTRIES_RESPONSE);
-            resp->set_to(msg->from());
-            resp->set_log_index(raft_log_->committed());  // TODO:?
-            resp->set_commit(raft_log_->committed());
-            send(resp);
-            *over = true;
-            return Status::OK();
+Status RaftFsm::applySnapshot(MessagePtr& msg) {
+    if (applying_snap_) {
+        bool reject = false;
+        if (applying_snap_->GetContext().uuid != msg->snapshot().uuid()) {
+            return Status(Status::kExisted, "othre snapshot is applying", std::to_string(applying_snap_->GetContext().uuid));
         } else {
-            LOG_WARN(
-                "raft[%llu] [commit: %llu] start apply snapshot [uuid: "
-                "%llu, index: %llu, term: %llu] from %lu, total applying: %lu",
-                id_, raft_log_->committed(), snapshot.uuid(), meta.index(),
-                meta.term(), msg->from(),
-                SnapshotApplyContext::total_applying.load());
-
-            // 应用快照前，先清空raft日志
-            storage_->ApplySnapshot(pb::SnapshotMeta());
-            auto status = sm_->ApplySnapshotStart(meta.context());
-            if (!status.ok()) {
-                return status;
+            auto s = applying_snap_->RecvData(msg);
+            if (!s.ok()) {
+                return s;
             }
         }
+        return Status::OK();
     }
 
-    // 应用快照数据
-    if (snapshot.datas_size() > 0) {
-        std::vector<std::string> datas;
-        datas.resize(snapshot.datas_size());
-        for (int i = 0; i < snapshot.datas_size(); ++i) {
-            msg->mutable_snapshot()->mutable_datas(i)->swap(datas[i]);
-        }
-        auto status = sm_->ApplySnapshotData(datas);
-        if (!status.ok()) {
-            return status;
-        }
+    const auto& snapshot = msg->snapshot();
+    // uuid不能为0
+    if (snapshot.uuid() == 0) {
+        return Status(Status::kInvalidArgument, "uuid", "0");
+    }
+    if (!snapshot.has_meta()) {
+        return Status(Status::kInvalidArgument, "meta", "missing");
+    }
+    if (snapshot.seq() != 1) {
+        return Status(Status::kInvalidArgument, "seq", "invalid first seq");
     }
 
-    if (snapshot.final()) {
-        LOG_WARN("raft[%llu] [commit: %llu] apply snapshot [uuid: %llu] from "
-                 "%lu finished, total blocks: %ld",
-                 id_, raft_log_->committed(), snapshot.uuid(), msg->from(),
-                 snapshot.seq());
-
-        auto status = sm_->ApplySnapshotFinish(applying_snap_->meta.index());
-        if (!status.ok()) {
-            return status;
-        }
-
-        status = storage_->ApplySnapshot(applying_snap_->meta);
-        if (!status.ok()) {
-            return status;
-        }
-        restore(applying_snap_->meta);
-
-        *over = true;
+    // 过时的快照
+    if (!checkSnapshot(snapshot.meta())) {
+        LOG_WARN("raft[%llu] [commit: %llu] ignored snapshot [index: %llu, "
+                 "term: %llu].",
+                 id_, raft_log_->committed(), snapshot.meta().index(), snapshot.meta().term());
 
         MessagePtr resp(new pb::Message);
         resp->set_type(pb::APPEND_ENTRIES_RESPONSE);
@@ -264,9 +185,20 @@ Status RaftFsm::applySnapshot(MessagePtr& msg, bool* over) {
         resp->set_log_index(raft_log_->lastIndex());
         resp->set_commit(raft_log_->committed());
         send(resp);
+        return Status::OK();
     }
 
-    return Status::OK();
+    SnapContext ctx;
+    ctx.uuid = snapshot.uuid();
+    ctx.from = msg->from();
+    ctx.id = id_;
+    ctx.term = term_;
+    ctx.to = node_id_;
+
+    // new apply task
+    applying_snap_ = std::make_shared<ApplySnapTask>(ctx, sm_);
+    applying_meta_ = snapshot.meta();
+    return applying_snap_->RecvData(msg);
 }
 
 bool RaftFsm::checkSnapshot(const pb::SnapshotMeta& meta) {
@@ -282,21 +214,42 @@ bool RaftFsm::checkSnapshot(const pb::SnapshotMeta& meta) {
     }
 }
 
-void RaftFsm::restore(const pb::SnapshotMeta& meta) {
+Status RaftFsm::restore(const pb::SnapshotMeta& meta) {
     LOG_WARN("raft[%llu] [commit:%llu, lastindex:%llu, lastterm:%llu] starts "
              "to restore snapshot [index:%llu, term:%llu], peers: %d",
-             id_, raft_log_->committed(), raft_log_->lastIndex(),
-             raft_log_->lastTerm(), meta.index(), meta.term(),
-             meta.peers_size());
+             id_, raft_log_->committed(), raft_log_->lastIndex(), raft_log_->lastTerm(),
+             meta.index(), meta.term(), meta.peers_size());
+
+    auto s = storage_->ApplySnapshot(meta);
+    if (!s.ok()) return s;
 
     raft_log_->restore(meta.index());
+
+    // restore all replicas
     replicas_.clear();
+    learners_.clear();
     for (int i = 0; i < meta.peers_size(); ++i) {
-        const pb::Peer& peer = meta.peers(i);
-        replicas_[peer.node_id()] = std::make_shared<Replica>(peer, 0);
+        Peer peer;
+        auto s = DecodePeer(meta.peers(i), &peer);
+        if (!s.ok()) {
+            return s;
+        }
+
+        if (peer.type == PeerType::kLearner) {
+            // 不能从正常peer降级为learner
+            if (!is_learner_ && peer.node_id == node_id_) {
+                return Status(Status::kInvalidArgument, "restore meta",
+                              "counld degrade from a normal peer to leadrner");
+            } else {
+                learners_.emplace(peer.node_id, newReplica(peer, false));
+            }
+        } else {
+            replicas_.emplace(peer.node_id, newReplica(peer, false));
+        }
     }
+    return Status::OK();
 }
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

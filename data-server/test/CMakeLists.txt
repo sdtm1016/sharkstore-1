@@ -10,7 +10,7 @@ include_directories(${PROJECT_SOURCE_DIR}/test/mock)
 add_library(test-mock-shared SHARED ${test_MOCK_SOURCES})
 
 set (test_DEPEND_LIBS
-    fbase-ds-shared
+    sharkstore-ds-shared
     test-mock-shared
     ${GTEST_LIBRARY}
     ${depend_LIBRARYS}

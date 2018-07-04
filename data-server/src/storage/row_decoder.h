@@ -7,7 +7,7 @@ _Pragma("once");
 #include "proto/gen/kvrpcpb.pb.h"
 #include "proto/gen/metapb.pb.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -69,4 +69,4 @@ private:
 
 } /* namespace storage */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

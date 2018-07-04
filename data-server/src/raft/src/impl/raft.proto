@@ -1,80 +1,80 @@
 syntax = "proto3";
 
-package fbase.raft.impl.pb;
+package sharkstore.raft.impl.pb;
 
 enum PeerType {
-  PEER_NORMAL     = 0;
-  PEER_LEARNER    = 1;
+  PEER_NORMAL       = 0;
+  PEER_LEARNER      = 1;
 }
 
 message Peer {
-  PeerType type     = 1;
-  uint64 node_id    = 2;
-  uint64 peer_id    = 3;
+  PeerType type         = 1;
+  uint64 node_id        = 2;
+  uint64 peer_id        = 3;
 }
 
 enum ConfChangeType {
-  CONF_ADD_NODE = 0;
-  CONF_REMOVE_NODE = 1;
-  CONF_UPDATE_NODE = 2;
+  CONF_ADD_PEER         = 0;
+  CONF_REMOVE_PEER      = 1;
+  CONF_PROMOTE_PEER     = 2;
 }
 
 message ConfChange {
-  ConfChangeType type = 1;
-  Peer Peer = 2;
-  bytes context = 3;
+  ConfChangeType type   = 1;
+  Peer Peer             = 2;
+  bytes context         = 3;
 }
 
 enum EntryType {
-  ENTRY_TYPE_INVALID = 0;
-  ENTRY_NORMAL = 1;
-  ENTRY_CONF_CHANGE = 2;
+  ENTRY_TYPE_INVALID    = 0;
+  ENTRY_NORMAL          = 1;
+  ENTRY_CONF_CHANGE     = 2;
 }
 
 message Entry {
-  EntryType type = 1;
-  uint64 index = 2;
-  uint64 term = 3;
-  bytes data = 4;
+  EntryType type    = 1;
+  uint64 index      = 2;
+  uint64 term       = 3;
+  bytes data        = 4;
 }
 
 enum MessageType {
-  MESSAGE_TYPE_INVALID = 0;
+  MESSAGE_TYPE_INVALID      = 0;
 
-  APPEND_ENTRIES_REQUEST = 1;
-  APPEND_ENTRIES_RESPONSE = 2;
+  APPEND_ENTRIES_REQUEST    = 1;
+  APPEND_ENTRIES_RESPONSE   = 2;
 
-  VOTE_REQUEST = 3;
-  VOTE_RESPONSE = 4;
+  VOTE_REQUEST              = 3;
+  VOTE_RESPONSE             = 4;
 
-  HEARTBEAT_REQUEST = 5;
-  HEARTBEAT_RESPONSE = 6;
+  HEARTBEAT_REQUEST         = 5;
+  HEARTBEAT_RESPONSE        = 6;
 
-  SNAPSHOT_REQUEST = 7;
-  SNAPSHOT_RESPONSE = 8;
-  SNAPSHOT_ACK  = 9;
+  SNAPSHOT_REQUEST          = 7;
+  SNAPSHOT_ACK              = 8;
 
+  // 本地消息，快照发送结果
+  LOCAL_SNAPSHOT_STATUS     = 9;
   // 本地消息，触发选举
-  LOCAL_MSG_HUP = 10;
+  LOCAL_MSG_HUP             = 10;
   // 本地消息，客户端请求
-  LOCAL_MSG_PROP = 11;
+  LOCAL_MSG_PROP            = 11;
   // tick消息
-  LOCAL_MSG_TICK = 12;
+  LOCAL_MSG_TICK            = 12;
 
-  PRE_VOTE_REQUEST = 13;
-  PRE_VOTE_RESPONSE = 14; 
+  PRE_VOTE_REQUEST          = 13;
+  PRE_VOTE_RESPONSE         = 14;
 }
 
-message HeartbeatContext {
-  repeated uint64 ids = 1;
+message HeartbeatContext { 
+    repeated uint64 ids     = 1; 
 };
 
-
 message SnapshotMeta {
-  uint64 index  = 1;
-  uint64 term   = 2;
-  repeated Peer peers = 3;
-  bytes context = 4;
+  uint64 index          = 1;
+  uint64 term           = 2;
+  repeated Peer peers   = 3;
+  bytes context         = 4;
 }
 
 message Snapshot {
@@ -86,60 +86,50 @@ message Snapshot {
 };
 
 message Message {
-  MessageType type = 1;
-  uint64 id = 2;
-  uint64 from = 3;
-  uint64 to = 4;
-  uint64 term = 5;
-  uint64 commit = 6;
+  MessageType type          = 1;
+  uint64 id                 = 2;
+  uint64 from               = 3;
+  uint64 to                 = 4;
+  uint64 term               = 5;
+  uint64 commit             = 6;
 
   // for request
-  uint64 log_term = 8;
-  uint64 log_index = 9;
-  repeated Entry entries = 10;
+  uint64 log_term           = 8;
+  uint64 log_index          = 9;
+  repeated Entry entries    = 10;
 
   // for response
-  bool reject = 12;
-  uint64 reject_hint = 13;
+  bool reject               = 12;
+  uint64 reject_hint        = 13;
 
   // for heartbeat
-  HeartbeatContext hb_ctx = 14;
+  HeartbeatContext hb_ctx   = 14;
 
-  // for snapshot request 
-  Snapshot snapshot   = 15;
+  // for snapshot request
+  Snapshot snapshot         = 15;
 }
 
-message RaftMessageRequest {
-  Message msg = 1;
-};
-
-message RaftMessageResponse {
-};
-
-service MultiRaft {
-  rpc RaftMessage(RaftMessageRequest) returns (RaftMessageResponse) {} 
-}
 
 // HardState is the repl state,must persist to the storage.
 message HardState {
-  uint64 term = 1;
-  uint64 commit = 2;
-  uint64 vote = 3;
+  uint64 term       = 1;
+  uint64 commit     = 2;
+  uint64 vote       = 3;
 }
 
 message TruncateMeta {
-  uint64 index = 1;
-  uint64 term = 2;
+  uint64 index      = 1;
+  uint64 term       = 2;
 }
 
-// log storage 
+// log storage
 message IndexItem {
-    uint64 index    = 1;
-    uint64 term     = 2;
-    uint32 offset   = 3;
+  uint64 index      = 1;
+  uint64 term       = 2;
+  uint32 offset     = 3;
 };
 
-// log storage 
-message LogIndex {
-    repeated IndexItem items = 1;
+// log storage
+message LogIndex { 
+    repeated IndexItem items    = 1; 
 };

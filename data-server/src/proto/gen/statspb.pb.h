@@ -30,6 +30,7 @@
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
 #include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
+#include "mspb.pb.h"
 // @@protoc_insertion_point(includes)
 namespace statspb {
 class ClusterStats;
@@ -62,6 +63,9 @@ extern ProcessStatsDefaultTypeInternal _ProcessStats_default_instance_;
 class RaftStatus;
 class RaftStatusDefaultTypeInternal;
 extern RaftStatusDefaultTypeInternal _RaftStatus_default_instance_;
+class RangeInfo;
+class RangeInfoDefaultTypeInternal;
+extern RangeInfoDefaultTypeInternal _RangeInfo_default_instance_;
 class RangeStats;
 class RangeStatsDefaultTypeInternal;
 extern RangeStatsDefaultTypeInternal _RangeStats_default_instance_;
@@ -3373,6 +3377,135 @@ class SqlTp : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
   mutable int _cached_size_;
   friend struct protobuf_statspb_2eproto::TableStruct;
 };
+// -------------------------------------------------------------------
+
+class RangeInfo : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:statspb.RangeInfo) */ {
+ public:
+  RangeInfo();
+  virtual ~RangeInfo();
+
+  RangeInfo(const RangeInfo& from);
+
+  inline RangeInfo& operator=(const RangeInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  RangeInfo(RangeInfo&& from) noexcept
+    : RangeInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline RangeInfo& operator=(RangeInfo&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const RangeInfo& default_instance();
+
+  static inline const RangeInfo* internal_default_instance() {
+    return reinterpret_cast<const RangeInfo*>(
+               &_RangeInfo_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    22;
+
+  void Swap(RangeInfo* other);
+  friend void swap(RangeInfo& a, RangeInfo& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline RangeInfo* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  RangeInfo* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const RangeInfo& from);
+  void MergeFrom(const RangeInfo& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(RangeInfo* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // string node_adder = 3;
+  void clear_node_adder();
+  static const int kNodeAdderFieldNumber = 3;
+  const ::std::string& node_adder() const;
+  void set_node_adder(const ::std::string& value);
+  #if LANG_CXX11
+  void set_node_adder(::std::string&& value);
+  #endif
+  void set_node_adder(const char* value);
+  void set_node_adder(const char* value, size_t size);
+  ::std::string* mutable_node_adder();
+  ::std::string* release_node_adder();
+  void set_allocated_node_adder(::std::string* node_adder);
+
+  // .mspb.RangeStats stats = 4;
+  bool has_stats() const;
+  void clear_stats();
+  static const int kStatsFieldNumber = 4;
+  const ::mspb::RangeStats& stats() const;
+  ::mspb::RangeStats* mutable_stats();
+  ::mspb::RangeStats* release_stats();
+  void set_allocated_stats(::mspb::RangeStats* stats);
+
+  // uint64 range_id = 1;
+  void clear_range_id();
+  static const int kRangeIdFieldNumber = 1;
+  ::google::protobuf::uint64 range_id() const;
+  void set_range_id(::google::protobuf::uint64 value);
+
+  // uint64 leader_id = 2;
+  void clear_leader_id();
+  static const int kLeaderIdFieldNumber = 2;
+  ::google::protobuf::uint64 leader_id() const;
+  void set_leader_id(::google::protobuf::uint64 value);
+
+  // @@protoc_insertion_point(class_scope:statspb.RangeInfo)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr node_adder_;
+  ::mspb::RangeStats* stats_;
+  ::google::protobuf::uint64 range_id_;
+  ::google::protobuf::uint64 leader_id_;
+  mutable int _cached_size_;
+  friend struct protobuf_statspb_2eproto::TableStruct;
+};
 // ===================================================================
 
 
@@ -6484,10 +6617,137 @@ inline void SqlTp::set_delay_max(::google::protobuf::int64 value) {
   // @@protoc_insertion_point(field_set:statspb.SqlTp.delay_max)
 }
 
+// -------------------------------------------------------------------
+
+// RangeInfo
+
+// uint64 range_id = 1;
+inline void RangeInfo::clear_range_id() {
+  range_id_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 RangeInfo::range_id() const {
+  // @@protoc_insertion_point(field_get:statspb.RangeInfo.range_id)
+  return range_id_;
+}
+inline void RangeInfo::set_range_id(::google::protobuf::uint64 value) {
+  
+  range_id_ = value;
+  // @@protoc_insertion_point(field_set:statspb.RangeInfo.range_id)
+}
+
+// uint64 leader_id = 2;
+inline void RangeInfo::clear_leader_id() {
+  leader_id_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 RangeInfo::leader_id() const {
+  // @@protoc_insertion_point(field_get:statspb.RangeInfo.leader_id)
+  return leader_id_;
+}
+inline void RangeInfo::set_leader_id(::google::protobuf::uint64 value) {
+  
+  leader_id_ = value;
+  // @@protoc_insertion_point(field_set:statspb.RangeInfo.leader_id)
+}
+
+// string node_adder = 3;
+inline void RangeInfo::clear_node_adder() {
+  node_adder_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& RangeInfo::node_adder() const {
+  // @@protoc_insertion_point(field_get:statspb.RangeInfo.node_adder)
+  return node_adder_.GetNoArena();
+}
+inline void RangeInfo::set_node_adder(const ::std::string& value) {
+  
+  node_adder_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:statspb.RangeInfo.node_adder)
+}
+#if LANG_CXX11
+inline void RangeInfo::set_node_adder(::std::string&& value) {
+  
+  node_adder_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:statspb.RangeInfo.node_adder)
+}
+#endif
+inline void RangeInfo::set_node_adder(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  node_adder_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:statspb.RangeInfo.node_adder)
+}
+inline void RangeInfo::set_node_adder(const char* value, size_t size) {
+  
+  node_adder_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:statspb.RangeInfo.node_adder)
+}
+inline ::std::string* RangeInfo::mutable_node_adder() {
+  
+  // @@protoc_insertion_point(field_mutable:statspb.RangeInfo.node_adder)
+  return node_adder_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* RangeInfo::release_node_adder() {
+  // @@protoc_insertion_point(field_release:statspb.RangeInfo.node_adder)
+  
+  return node_adder_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void RangeInfo::set_allocated_node_adder(::std::string* node_adder) {
+  if (node_adder != NULL) {
+    
+  } else {
+    
+  }
+  node_adder_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), node_adder);
+  // @@protoc_insertion_point(field_set_allocated:statspb.RangeInfo.node_adder)
+}
+
+// .mspb.RangeStats stats = 4;
+inline bool RangeInfo::has_stats() const {
+  return this != internal_default_instance() && stats_ != NULL;
+}
+inline void RangeInfo::clear_stats() {
+  if (GetArenaNoVirtual() == NULL && stats_ != NULL) delete stats_;
+  stats_ = NULL;
+}
+inline const ::mspb::RangeStats& RangeInfo::stats() const {
+  const ::mspb::RangeStats* p = stats_;
+  // @@protoc_insertion_point(field_get:statspb.RangeInfo.stats)
+  return p != NULL ? *p : *reinterpret_cast<const ::mspb::RangeStats*>(
+      &::mspb::_RangeStats_default_instance_);
+}
+inline ::mspb::RangeStats* RangeInfo::mutable_stats() {
+  
+  if (stats_ == NULL) {
+    stats_ = new ::mspb::RangeStats;
+  }
+  // @@protoc_insertion_point(field_mutable:statspb.RangeInfo.stats)
+  return stats_;
+}
+inline ::mspb::RangeStats* RangeInfo::release_stats() {
+  // @@protoc_insertion_point(field_release:statspb.RangeInfo.stats)
+  
+  ::mspb::RangeStats* temp = stats_;
+  stats_ = NULL;
+  return temp;
+}
+inline void RangeInfo::set_allocated_stats(::mspb::RangeStats* stats) {
+  delete stats_;
+  stats_ = stats;
+  if (stats) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:statspb.RangeInfo.stats)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

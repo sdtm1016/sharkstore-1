@@ -1,13 +1,14 @@
 _Pragma("once");
 
 #include <rocksdb/db.h>
+#include <rocksdb/utilities/blob_db/blob_db.h>
 #include <mutex>
 
 #include "iterator.h"
 #include "metric.h"
 #include "proto/gen/kvrpcpb.pb.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace storage {
 
@@ -85,4 +86,4 @@ private:
 
 } /* namespace storage */
 } /* namespace dataserver */
-} /* namespace fbase */
+} /* namespace sharkstore */

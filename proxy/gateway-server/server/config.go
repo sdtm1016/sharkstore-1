@@ -1,204 +1,347 @@
 package server
 
 import (
-	"util/config"
+	"util"
 	"util/log"
-	"encoding/json"
+	"github.com/BurntSushi/toml"
+
+	"time"
+	"fmt"
+	"bufio"
+	"strings"
+	"io"
+	"io/ioutil"
+	"os"
 )
 
-var DefaultMaxRawCount uint64 = 10000
-var DefaultMaxWorkNum  uint64 = 100
-var DefaultMaxTaskQueueLen  uint64 = 10000
-var DefaultHttpPort int = 8080
-var DefaultLockRpcPort int = 8090
-var DefaultInsertSlowLog int = 50
-var DefaultSelectSlowlog int = 200
+const (
+	DefaultHttpPort    = 8080
+	DefaultLockRpcPort = 8090
+	DefaultSqlPort     = 6060
+
+	DefaultServerName = "gateway"
+
+	DefaultInsertSlowLog = 20 * time.Millisecond
+	DefaultSelectSlowLog = 100 * time.Millisecond
+	DefaultDeleteSlowLog = 20 * time.Millisecond
+
+	DefaultMaxWorkNum      = 100
+	DefaultMaxTaskQueueLen = 10000
+	DefaultGrpcPoolSize    = 3
+	DefaultGrpcInitWinSize = 64 * 1024
+	DefaultMaxSlowLogLen   = 10
+
+	DefaultMaxRawCount = 10000
+)
 
 type Config struct {
-	SqlPort            int
+	HttpPort    int `toml:"http-port,omitempty" json:"http-port"`
+	LockRpcPort int `toml:"lock-port,omitempty" json:"lock-port"`
+	SqlPort     int `toml:"mysql-port,omitempty" json:"mysql-port"`
 
-	LogDir             string
-	LogModule          string
-	LogLevel           string
+	MaxClients int    `toml:"max-clients,omitempty" json:"max-clients"`
+	MaxLimit   uint64 `toml:"max-record-limit,omitempty" json:"max-record-limit"`
 
-	MasterServerAddrs  []string
+	User     string `toml:"user,omitempty" json:"user"`
+	Password string `toml:"password,omitempty" json:"password"`
+	Charset  string `toml:"charset,omitempty" json:"charset"`
 
-	MaxClients         int
+	Performance PerformConfig `toml:"performance,omitempty" json:"performance"`
+	Cluster     ClusterConfig `toml:"cluster,omitempty" json:"cluster"`
+	Log         LogConfig     `toml:"log,omitempty" json:"log"`
+	Metric      MetricConfig  `toml:"metric,omitempty" json:"metric"`
 
-	User               string
-	Password           string
-
-	Charset            string
-
-	HttpPort           int
-	LockRpcPort        int
-
-	ClusterId  uint64
-	MetricAddr string
-
-	MaxLimit	uint64
-	MaxWorkNum  uint64
-	MaxTaskQueueLen uint64
-	InsertSlowLog int
-	SelectSlowLog int
-	OpenMetric bool
-
-	GrpcPoolSize     int
-	GrpcInitWinSize  int
-	SlowlogSlowerThanUsec int
-	SlowlogMaxLen int
-	HeartbeatIntervalSec int
-
-	BenchMark int
-	SendNum int
-	Threads int
-	TestDataLen int
-	TestDB string
-	TestTable string
-	TestBatch int
+	BenchConfig BenchMarkConfig `toml:"benchmark,omitempty" json:"benchmark"`
 }
 
-func (c *Config)LoadConfig() {
-	var found bool
-	config.InitConfig()
-	if config.Config == nil {
-		log.Fatal("No Config.")
-		return
-	}
+const DefaultConfig = `
+# GS Configuration.
 
-	if c.SqlPort, found = config.Config.Int("mysql.port"); !found {
-		log.Panic("mysql.port not specified")
-	}
+#http port
+http-port = 8080
 
-	if c.MaxClients, found = config.Config.Int("mysql.maxclients"); !found {
-		log.Panic("mysql.maxclients not specified")
-	}
+#distributed lock grpc service port
+lock-port = 8090
 
-	if c.User, found = config.Config.String("mysql.user"); !found {
-		log.Panic("mysql.user not specified")
-	}
-	if c.Password, found = config.Config.String("mysql.password"); !found {
-		log.Panic("mysql.password not specified")
-	}
-	c.Charset, _ = config.Config.String("mysql.charset")
+#mysql port
+mysql-port = 6060
+
+#max client connection number allowed for sql port
+max-clients = 10000
+#max limit number for row record
+max-record-limit = 10000
+#mysql login user
+user = "test"
+password = "123456"
+#mysql connect property
+charset = "utf8"
 
 
-	if c.LogDir,found = config.Config.String("log.dir");!found {
-		log.Panic("log.dir not specified")
-	}
+[performance]
+#proxy concurrency number
+max-work-num = 100
+#task queue size
+max-task-queue-len = 10000
+#keep connect size for each ds
+grpc-pool-size = 10
+# 128 KB
+grpc-win-size = 131072
+#be identified to 'slow command' when time consuming is greater than the value, unit: millisecond
+slow-insert = "20ms"
+slow-select = "100ms"
+slow-delete = "20ms"
 
-	if c.LogModule,found = config.Config.String("log.module");!found {
-		log.Panic("log.module not specified")
-	}
 
-	if c.LogLevel,found = config.Config.String("log.level");!found {
-		log.Panic("log.level not specified")
-	}
+[cluster]
+id = 1
+address = ["127.0.165.52:8887"]
+token = "xxxx"
 
-	var addrs string
-	if addrs, found = config.Config.String("master.addrs"); !found {
-		log.Panic("master.addrs not specified")
-	}
-	var msGroup []string
-	msGroup = make([]string, 0)
-	err := json.Unmarshal([]byte(addrs), &msGroup)
-	if err != nil || len(msGroup) == 0 {
-		log.Panic("encode master addrs %s failed, err %v", addrs, err)
-	}
-	c.MasterServerAddrs = msGroup
-	//list := strings.Split(addrs, ";")
-	//if len(list) == 0 {
-	//	log.Panic("master.addrs invalid")
-	//}
-	//var msServerAddrs, msManageAddrs []string
-	//for _, item := range list {
-	//	ipports := strings.Split(item, ":")
-	//	if len(ipports) != 2 {
-	//		log.Panic("master addrs is invalid")
-	//	}
-	//	ip := ipports[0]
-	//	ports := strings.Split(ipports[1], "-")
-	//	if len(ipports) != 2 {
-	//		log.Panic("master addrs is invalid")
-	//	}
-	//	sPort := ports[0]
-	//	mPort := ports[1]
-	//	sAddrs := fmt.Sprintf("%s:%s", ip, sPort)
-	//	mAddrs := fmt.Sprintf("%s:%s", ip, mPort)
-	//	msServerAddrs = append(msServerAddrs, sAddrs)
-	//	msManageAddrs = append(msManageAddrs, mAddrs)
-	//}
-	//c.MasterServerAddrs = msServerAddrs
 
-	if c.HttpPort, found = config.Config.Int("http.port"); !found {
-		log.Warn("http.port not specified")
+[log]
+dir = "./log"
+module = "gateway"
+# log level debug, info, warn, error
+level = "debug"
+
+
+[metric]
+# metric client push interval, set "0s" to disable metric.
+interval = "15s"
+# receive metric address, leaves it empty will disable metric.
+address = ""
+`
+
+var configFileN *string
+
+func (c *Config) LoadConfig(configFileName *string) {
+	if *configFileName != "" {
+		configFileN = configFileName
+		_, err := toml.DecodeFile(*configFileName, c)
+		if err != nil {
+			log.Panic("load config file failed, err %v", err)
+		}
+	} else {
+		//load default config
+		if _, err := toml.Decode(DefaultConfig, c); err != nil {
+			log.Panic("decode default config failed, err %v", err)
+		}
+	}
+	if err := c.adjust(); err != nil {
+		log.Panic("validate config failed, err %v", err)
+	}
+}
+
+type PerformConfig struct {
+	MaxWorkNum      uint64 `toml:"max-work-num,omitempty" json:"max-work-num"`
+	MaxTaskQueueLen uint64 `toml:"max-task-queue-len,omitempty" json:"max-task-queue-len"`
+	GrpcPoolSize    int    `toml:"grpc-pool-size,omitempty" json:"grpc-pool-size"`
+	GrpcInitWinSize int    `toml:"grpc-win-size,omitempty" json:"grpc-win-size"`
+
+	InsertSlowLog util.Duration `toml:"slow-insert,omitempty" json:"slow-insert"`
+	SelectSlowLog util.Duration `toml:"slow-select,omitempty" json:"slow-select"`
+	DeleteSlowLog util.Duration `toml:"slow-delete,omitempty" json:"slow-delete"`
+	SlowLogMaxLen uint64        `toml:"slow-log-max-len,omitempty" json:"slow-log-max-len"`
+	//HeartbeatIntervalSec util.Duration `toml:"hb-interval,omitempty" json:"hb-interval"`
+}
+
+func (p *PerformConfig) adjust() error {
+	adjustUint64(&p.MaxWorkNum, DefaultMaxWorkNum)
+	adjustUint64(&p.MaxTaskQueueLen, DefaultMaxTaskQueueLen)
+	adjustInt(&p.GrpcPoolSize, DefaultGrpcPoolSize)
+	adjustInt(&p.GrpcInitWinSize, DefaultGrpcInitWinSize)
+
+	adjustDuration(&p.InsertSlowLog, DefaultInsertSlowLog)
+	adjustDuration(&p.SelectSlowLog, DefaultSelectSlowLog)
+	adjustDuration(&p.DeleteSlowLog, DefaultDeleteSlowLog)
+	adjustUint64(&p.SlowLogMaxLen, DefaultMaxSlowLogLen)
+
+	return nil
+}
+
+type ClusterConfig struct {
+	ID         uint64   `toml:"id,omitempty" json:"id"`
+	ServerAddr []string `toml:"address,omitempty" json:"address"`
+	Token      string   `toml:"token,omitempty" json:"token"`
+}
+
+func (c *ClusterConfig) adjust() error {
+	if c.ID == uint64(0) {
+		return fmt.Errorf("invalid cluster.id config")
+	}
+	if len(c.ServerAddr) == 0 {
+		return fmt.Errorf("invalid cluster.address config")
+	}
+	return nil
+}
+
+type LogConfig struct {
+	Dir    string `toml:"dir,omitempty" json:"dir"`
+	Module string `toml:"module,omitempty" json:"module"`
+	Level  string `toml:"level,omitempty" json:"level"`
+}
+
+func (c *LogConfig) adjust() error {
+	if c.Dir == "" {
+		return fmt.Errorf("invalid log dir")
+	}
+	adjustString(&c.Module, DefaultServerName)
+	adjustString(&c.Level, "info")
+	switch c.Level {
+	case "TRACE", "trace", "Trace":
+	case "debug", "Debug", "DEBUG":
+	case "info", "Info", "INFO":
+	case "warn", "Warn", "WARN":
+	case "error", "Error", "ERROR":
+	default:
+		c.Level = "debug"
+	}
+	return nil
+}
+
+type MetricConfig struct {
+	Interval util.Duration `toml:"interval,omitempty" json:"interval"`
+	Address  string        `toml:"address,omitempty" json:"address"`
+}
+
+func (c *Config) adjust() error {
+	if c.HttpPort == 0 {
 		c.HttpPort = DefaultHttpPort
 	}
-
-	if c.LockRpcPort, found = config.Config.Int("lock.rpc.port"); !found {
-		log.Warn("lock rpc port not specified")
+	if c.LockRpcPort == 0 {
 		c.LockRpcPort = DefaultLockRpcPort
 	}
-
-	if maxLimit, found := config.Config.Int("max.record.limit"); !found{
-		c.MaxLimit = DefaultMaxRawCount
-	}else{
-		c.MaxLimit = uint64(maxLimit)
-	}
-	if maxNum, found := config.Config.Int("max.work.num"); !found{
-		c.MaxWorkNum = DefaultMaxWorkNum
-	}else{
-		c.MaxWorkNum = uint64(maxNum)
-	}
-	if maxLen, found := config.Config.Int("max.taskqueue.len"); !found{
-		c.MaxTaskQueueLen = DefaultMaxTaskQueueLen
-	}else{
-		c.MaxTaskQueueLen = uint64(maxLen)
+	if c.SqlPort == 0 {
+		c.SqlPort = DefaultSqlPort
 	}
 
-
-	if c.InsertSlowLog, found = config.Config.Int("insert.slowlog"); !found {
-		log.Warn("http.port not specified")
-		c.InsertSlowLog = DefaultInsertSlowLog
-	}
-	if c.SelectSlowLog, found = config.Config.Int("select.slowlog"); !found {
-		log.Warn("http.port not specified")
-		c.SelectSlowLog = DefaultSelectSlowlog
+	if c.MaxClients == 0 {
+		return fmt.Errorf("max-clients not specified")
 	}
 
-	c.OpenMetric = config.Config.BoolDefault("metrics.flag", false)
-	c.GrpcPoolSize = config.Config.IntDefault("grpc.pool.size", 3)
-	c.GrpcInitWinSize = config.Config.IntDefault("grpc.win.size", 64 * 1024)
-
-	if c.SlowlogSlowerThanUsec, found = config.Config.Int("slowlog.slowerthanusec"); !found {
-		log.Warn("slowlog.SlowlogSlowerThanUsec not specified, default 10000")
-		c.SlowlogSlowerThanUsec = 10000
-	}
-	if c.SlowlogMaxLen, found = config.Config.Int("slowlog.maxlen"); !found {
-		log.Warn("slowlog.maxlen not specified, default 10")
-		c.SlowlogMaxLen = 10
-	}
-	if c.HeartbeatIntervalSec, found = config.Config.Int("heartbeat.intervalsec"); !found {
-		log.Warn("heartbeat.intervalsec not specified, default 10")
-		c.HeartbeatIntervalSec = 10
-	}
-	var clusterId int
-	if clusterId, found = config.Config.Int("cluster.id"); !found {
-		log.Panic("cluster.id not specified")
-	}
-	c.ClusterId = uint64(clusterId)
-	if c.MetricAddr, found = config.Config.String("metric.addr"); !found {
-		log.Panic("metric.addr not specified")
+	if c.User == "" {
+		return fmt.Errorf("mysql user not specified")
 	}
 
-	//==================================================
+	if c.Password == "" {
+		return fmt.Errorf("mysql password not specified")
+	}
 
-	c.BenchMark = config.Config.IntDefault("test.benchmark",0)
-	c.TestDataLen = config.Config.IntDefault("test.datalen",10)
-	c.SendNum = config.Config.IntDefault("test.sendnum",1000000000)
-	c.Threads = config.Config.IntDefault("test.threads",100)
-	c.TestBatch = config.Config.IntDefault("test.batch",100)
-	c.TestTable = config.Config.StringDefault("test.table","test")
-	c.TestDB = config.Config.StringDefault("test.db","test")
-	
+	var err error
+	err = c.Performance.adjust()
+	if err != nil {
+		return err
+	}
+
+	err = c.Cluster.adjust()
+	if err != nil {
+		return err
+	}
+
+	err = c.Log.adjust()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func adjustString(v *string, defValue string) {
+	if len(*v) == 0 {
+		*v = defValue
+	}
+}
+
+func adjustUint64(v *uint64, defValue uint64) {
+	if *v == 0 {
+		*v = defValue
+	}
+}
+
+func adjustInt(v *int, defValue int) {
+	if *v == 0 {
+		*v = defValue
+	}
+}
+
+func adjustInt64(v *int64, defValue int64) {
+	if *v == 0 {
+		*v = defValue
+	}
+}
+
+func adjustFloat64(v *float64, defValue float64) {
+	if *v == 0 {
+		*v = defValue
+	}
+}
+
+func adjustDuration(v *util.Duration, defValue time.Duration) {
+	if v.Duration == 0 {
+		v.Duration = defValue
+	}
+}
+
+type BenchMarkConfig struct {
+	Type    int    `toml:"type,omitempty" json:"type"`
+	DataLen int    `toml:"data-len,omitempty" json:"data-len"`
+	SendNum int    `toml:"send-num,omitempty" json:"send-num"`
+	Threads int    `toml:"threads,omitempty" json:"threads"`
+	DB      string `toml:"db,omitempty" json:"db"`
+	Table   string `toml:"table,omitempty" json:"table"`
+	Batch   int    `toml:"batch,omitempty" json:"batch"`
+}
+
+func UpdateConfig(addr string) error{
+	if *configFileN == "" {
+		return nil
+	}
+	content, err := readAndReplaceConfig(*configFileN, addr)
+	if err != nil {
+		return  err
+	}
+	if content == "" {
+		return nil
+	}
+	err = writeConfig(*configFileN, content)
+	return err
+}
+
+func readAndReplaceConfig(fileName string, addr string) (string, error)   {
+	f, err := os.Open(fileName)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	rd := bufio.NewReader(f)
+	blockFlag := false
+	var lines []string
+	for {
+		line, err := rd.ReadString('\n')
+		if err != nil && err != io.EOF {
+			return "", err
+		}
+		if strings.Contains(line, "[metric]") {
+			blockFlag = true
+		}
+		if blockFlag && strings.Contains(line, "address")  && strings.Contains(line, "=") {
+			line = "address = \"" + addr + "\"\n"
+			blockFlag = false
+		}
+		lines = append(lines, line)
+		if err != nil && io.EOF == err {
+			break
+		}
+	}
+	content := strings.Join(lines, "")
+	return content, nil
+}
+func writeConfig(fileName string, content string) error {
+	data := []byte(content)
+	err := ioutil.WriteFile(fileName, data, 0666)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -4,7 +4,7 @@ _Pragma("once");
 #include <string>
 #include <vector>
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace playground {
 
@@ -19,4 +19,4 @@ struct TelnetCommand {
 
 } /* namespace playground */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

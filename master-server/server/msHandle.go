@@ -127,9 +127,27 @@ func (service *Server) handleNodeHeartbeat(ctx context.Context, req *mspb.NodeHe
 	return
 }
 
+func checkQurumDown(req *mspb.RangeHeartbeatRequest) bool {
+	totalVoters := 0
+	downVoters := 0
+	for _, peer := range req.GetRange().GetPeers() {
+		if peer.GetType() != metapb.PeerType_PeerType_Learner {
+			totalVoters++
+		}
+	}
+	for _, status := range req.GetPeersStatus() {
+		if status.GetDownSeconds() > 0 && status.GetPeer().GetType() != metapb.PeerType_PeerType_Learner {
+			downVoters++
+		}
+	}
+	quorum := totalVoters/2 + 1
+	return totalVoters-downVoters < quorum
+}
+
 func (service *Server) handleRangeHeartbeat(ctx context.Context, req *mspb.RangeHeartbeatRequest) (resp *mspb.RangeHeartbeatResponse) {
 	r := req.GetRange()
-	log.Debug("[HB] range[%d:%d] heartbeat, from ip[%s] DownPeers:%v", r.GetTableId(), r.GetId(), util.GetIpFromContext(ctx), req.GetDownPeers())
+	log.Debug("[HB] range[%d:%d] heartbeat, from ip[%s], peers: %v, status: %v",
+		r.GetTableId(), r.GetId(), util.GetIpFromContext(ctx), req.GetRange().GetPeers(), req.GetPeersStatus())
 
 	cluster := service.cluster
 	resp = new(mspb.RangeHeartbeatResponse)
@@ -162,12 +180,16 @@ func (service *Server) handleRangeHeartbeat(ctx context.Context, req *mspb.Range
 		rng.State = metapb.RangeState_R_Remove
 	}
 
+	if rng.State == metapb.RangeState_R_Init {
+		rng.State = metapb.RangeState_R_Normal
+	}
+
 	if rng.Trace || log.IsEnableInfo() {
 		log.Info("[HB] range[%s] heartbeat, from ip[%s]", rng.SString(), util.GetIpFromContext(ctx))
 	}
 
 	//range心跳恢复
-	if rng.State == metapb.RangeState_R_Abnormal && len(req.GetDownPeers())*2 < len(r.GetPeers()) {
+	if rng.State == metapb.RangeState_R_Abnormal && !checkQurumDown(req) {
 		rng.State = metapb.RangeState_R_Normal
 		//执行store GC .
 		oldRng, found := cluster.FindPreGCRangeById(rng.GetId())
@@ -188,17 +210,20 @@ func (service *Server) handleRangeHeartbeat(ctx context.Context, req *mspb.Range
 		log.Warn("range[%v] stale %v", rng.Range, r)
 		return
 	}
-	// 超过半数的副本发生down，　同时leader不一致, 疑似脑裂，新的leader已经在多数派选举出来
-	if len(req.GetDownPeers())*2 >= len(r.GetPeers()) && req.GetLeader().GetNodeId() != rng.GetLeader().GetNodeId() {
-		log.Warn("range[%v] maybe net split %v", rng.Range, r)
-		// TODO alarm
+
+	// Stale term
+	if req.GetTerm() < rng.Term {
+		log.Warn("range[%v] stale %v", rng.Range, r)
 		return
+	} else if req.GetTerm() > rng.Term {
+		saveCache = true
+		log.Info("range[%d] term change from %d to %d", rng.GetId(), rng.Term, req.GetTerm())
 	}
 
 	if r.GetRangeEpoch().GetVersion() > rng.GetRangeEpoch().GetVersion() {
 		saveCache = true
 		saveStore = true
-		log.Info("range %d version change from %d to %d",
+		log.Info("range[%d] version change from %d to %d",
 			rng.GetId(), rng.GetRangeEpoch().GetVersion(), r.GetRangeEpoch().GetVersion())
 	}
 	if r.GetRangeEpoch().GetConfVer() > rng.GetRangeEpoch().GetConfVer() {
@@ -208,13 +233,27 @@ func (service *Server) handleRangeHeartbeat(ctx context.Context, req *mspb.Range
 			rng.GetId(), rng.GetRangeEpoch().GetConfVer(), r.GetRangeEpoch().GetConfVer())
 	}
 	if req.GetLeader().GetNodeId() != rng.GetLeader().GetNodeId() {
+		log.Info("range[%d] leader change from Node: %d to Node: %d", rng.GetId(),
+			rng.GetLeader().GetNodeId(), req.GetLeader().GetNodeId())
 		saveCache = true
 	}
-	if len(req.GetDownPeers()) > 0 || len(req.GetPendingPeers()) > 0 {
-		saveCache = true
+	// 有down peer 或者 pending peer
+	for _, status := range req.GetPeersStatus() {
+		if status.GetSnapshotting() || status.GetDownSeconds() > 0 {
+			saveCache = true
+		}
 	}
+	// 之前有down peer 或者 pending peer
 	if len(rng.GetDownPeers()) > 0 || len(rng.GetPendingPeers()) > 0 {
 		saveCache = true
+	}
+	// 检查有learner提升
+	for _, peer := range r.GetPeers() {
+		oldPeer := rng.GetPeer(peer.GetId())
+		if oldPeer == nil || oldPeer.Type != peer.Type {
+			saveCache = true
+			saveStore = true
+		}
 	}
 
 	if saveStore {
@@ -241,22 +280,19 @@ func (service *Server) handleRangeHeartbeat(ctx context.Context, req *mspb.Range
 		}
 
 		rng.Range = r
-		rng.DownPeers = req.GetDownPeers()
-		rng.PendingPeers = req.GetPendingPeers()
+		rng.Term = req.GetTerm()
+		rng.PeersStatus = req.GetPeersStatus()
 		rng.Leader = req.GetLeader()
 
 		cluster.AddRange(rng)
 	}
 	rng.LastHbTimeTS = time.Now()
 	cluster.updateStatus(rng, req.GetStats())
-	if rng.Trace || log.IsEnableDebug() {
-		log.Debug("[HB] range[%s] dispatch task", rng.SString())
-	}
 	// 暂时不能参与任务调度
 	if table != nil && table.Status == metapb.TableStatus_TableInit {
 		return
 	}
-	task := cluster.eventDispatcher.Dispatch(rng)
+	task := cluster.Dispatch(rng)
 	if task != nil {
 		if rng.Trace || log.IsEnableInfo() {
 			log.Info("[HB] range[%s] dispatch task[%v]", rng.SString(), task)
@@ -268,6 +304,12 @@ func (service *Server) handleRangeHeartbeat(ctx context.Context, req *mspb.Range
 
 func (service *Server) handleAskSplit(ctx context.Context, req *mspb.AskSplitRequest) (resp *mspb.AskSplitResponse, err error) {
 	cluster := service.cluster
+	//集群不允许分裂
+	if cluster.autoSplitUnable {
+		log.Debug("cluster is not allowed split")
+		err = ErrNotAllowSplit
+		return
+	}
 	// 标记删除的table拒绝分片分裂
 	table, find := cluster.FindTableById(req.GetRange().GetTableId())
 	if !find {

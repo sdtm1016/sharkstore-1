@@ -7,4 +7,4 @@ foreach(f IN LISTS lkqueue_SOURCES)
         COMPILE_DEFINITIONS "__FNAME__=\"common/${f}\"") 
 endforeach() 
 
-add_library(fbase-lkqueue STATIC ${lkqueue_SOURCES})
+add_library(sharkstore-lkqueue STATIC ${lkqueue_SOURCES})

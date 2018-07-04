@@ -3,10 +3,12 @@
 #include <assert.h>
 #include <string.h>
 #include <iomanip>
+#include <sstream>
 #include <regex>
+
 #include "base/byte_order.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 namespace storage {
@@ -107,4 +109,4 @@ void Record::Decode() {
 } /* namespace storage */
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

@@ -6,7 +6,7 @@
 #include "address.h"
 #include "config.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace bench {
 
@@ -91,4 +91,4 @@ Status Range::Apply(const std::string& cmd, uint64_t index) {
 
 } /* namespace bench */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

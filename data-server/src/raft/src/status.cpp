@@ -2,17 +2,17 @@
 
 #include <sstream>
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 
 std::string ReplicaStatus::ToString() const {
     std::ostringstream ss;
     ss << "{";
-    ss << "\"peer_id\": " << peer_id << ", ";
+    ss << "\"peer\": " << peer.ToString() << ", ";
     ss << "\"match\": " << match << ", ";
     ss << "\"commit\": " << commit << ", ";
     ss << "\"next\": " << next << ", ";
-    ss << "\"inactive\": " << inactive << ", ";
+    ss << "\"inactive\": " << inactive_seconds << ", ";
     ss << "\"state\": \"" << state << "\"";
     ss << "}";
     return ss.str();
@@ -58,4 +58,4 @@ std::string RaftStatus::ToString() const {
 }
 
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

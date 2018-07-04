@@ -33,7 +33,7 @@
 sf_socket_status_t manager_status = {0};
 sf_socket_status_t worker_status = {0};
 
-using namespace fbase::dataserver::common;
+using namespace sharkstore::dataserver::common;
 
 SocketServer ws_server;
 SocketServer ms_server;

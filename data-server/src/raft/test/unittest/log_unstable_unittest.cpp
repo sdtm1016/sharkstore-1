@@ -10,8 +10,8 @@ int main(int argc, char* argv[]) {
 
 namespace {
 
-using namespace fbase::raft::impl;
-using namespace fbase::raft::impl::testutil;
+using namespace sharkstore::raft::impl;
+using namespace sharkstore::raft::impl::testutil;
 
 TEST(Unstable, All) {
     UnstableLog log(100);
@@ -20,7 +20,7 @@ TEST(Unstable, All) {
     ASSERT_FALSE(log.maybeLastIndex(&last_index));
 
     std::vector<EntryPtr> entries;
-    RandEntries(100, 200, 64, &entries);
+    RandomEntries(100, 200, 64, &entries);
     log.truncateAndAppend(entries);
     ASSERT_TRUE(log.maybeLastIndex(&last_index));
     ASSERT_EQ(last_index, 199);
@@ -71,7 +71,7 @@ TEST(UnstableLog, Append) {
     UnstableLog log(100);
 
     std::vector<EntryPtr> ents1;
-    RandEntries(100, 200, 64, &ents1);
+    RandomEntries(100, 200, 64, &ents1);
     log.truncateAndAppend(ents1);
 
     std::vector<EntryPtr> ents;
@@ -80,7 +80,7 @@ TEST(UnstableLog, Append) {
     ASSERT_TRUE(s.ok()) << s.ToString();
 
     std::vector<EntryPtr> ents2;
-    RandEntries(50, 150, 64, &ents2);
+    RandomEntries(50, 150, 64, &ents2);
     log.truncateAndAppend(ents2);  // 50-150
     ASSERT_EQ(log.offset(), 50);
     ents.clear();
@@ -98,7 +98,7 @@ TEST(UnstableLog, Append) {
     ASSERT_TRUE(s.ok()) << s.ToString();
 
     std::vector<EntryPtr> ents5;
-    RandEntries(200, 250, 64, &ents5);
+    RandomEntries(200, 250, 64, &ents5);
     log.truncateAndAppend(ents5);
     ents.clear();
     log.entries(&ents);  // 50-250

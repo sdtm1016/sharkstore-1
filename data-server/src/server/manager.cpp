@@ -16,7 +16,7 @@
 #include "run_status.h"
 #include "server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace server {
 
@@ -136,4 +136,4 @@ void Manager::DealTask(common::ProtoMessage *task) {
 
 }  // namespace server
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

@@ -120,12 +120,12 @@ extern GetTableRequestDefaultTypeInternal _GetTableRequest_default_instance_;
 class GetTableResponse;
 class GetTableResponseDefaultTypeInternal;
 extern GetTableResponseDefaultTypeInternal _GetTableResponse_default_instance_;
+class LeaderHint;
+class LeaderHintDefaultTypeInternal;
+extern LeaderHintDefaultTypeInternal _LeaderHint_default_instance_;
 class MSLeader;
 class MSLeaderDefaultTypeInternal;
 extern MSLeaderDefaultTypeInternal _MSLeader_default_instance_;
-class MsLeader;
-class MsLeaderDefaultTypeInternal;
-extern MsLeaderDefaultTypeInternal _MsLeader_default_instance_;
 class NoLeader;
 class NoLeaderDefaultTypeInternal;
 extern NoLeaderDefaultTypeInternal _NoLeader_default_instance_;
@@ -144,9 +144,9 @@ extern NodeLoginResponseDefaultTypeInternal _NodeLoginResponse_default_instance_
 class NodeStats;
 class NodeStatsDefaultTypeInternal;
 extern NodeStatsDefaultTypeInternal _NodeStats_default_instance_;
-class PeerStats;
-class PeerStatsDefaultTypeInternal;
-extern PeerStatsDefaultTypeInternal _PeerStats_default_instance_;
+class PeerStatus;
+class PeerStatusDefaultTypeInternal;
+extern PeerStatusDefaultTypeInternal _PeerStatus_default_instance_;
 class RangeHeartbeatRequest;
 class RangeHeartbeatRequestDefaultTypeInternal;
 extern RangeHeartbeatRequestDefaultTypeInternal _RangeHeartbeatRequest_default_instance_;
@@ -296,12 +296,19 @@ class MSLeader : public ::google::protobuf::Message /* @@protoc_insertion_point(
   ::google::protobuf::uint64 id() const;
   void set_id(::google::protobuf::uint64 value);
 
+  // uint64 term = 3;
+  void clear_term();
+  static const int kTermFieldNumber = 3;
+  ::google::protobuf::uint64 term() const;
+  void set_term(::google::protobuf::uint64 value);
+
   // @@protoc_insertion_point(class_scope:mspb.MSLeader)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::internal::ArenaStringPtr address_;
   ::google::protobuf::uint64 id_;
+  ::google::protobuf::uint64 term_;
   mutable int _cached_size_;
   friend struct protobuf_mspb_2eproto::TableStruct;
 };
@@ -517,24 +524,24 @@ class GetMSLeaderResponse : public ::google::protobuf::Message /* @@protoc_inser
 };
 // -------------------------------------------------------------------
 
-class PeerStats : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:mspb.PeerStats) */ {
+class PeerStatus : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:mspb.PeerStatus) */ {
  public:
-  PeerStats();
-  virtual ~PeerStats();
+  PeerStatus();
+  virtual ~PeerStatus();
 
-  PeerStats(const PeerStats& from);
+  PeerStatus(const PeerStatus& from);
 
-  inline PeerStats& operator=(const PeerStats& from) {
+  inline PeerStatus& operator=(const PeerStatus& from) {
     CopyFrom(from);
     return *this;
   }
   #if LANG_CXX11
-  PeerStats(PeerStats&& from) noexcept
-    : PeerStats() {
+  PeerStatus(PeerStatus&& from) noexcept
+    : PeerStatus() {
     *this = ::std::move(from);
   }
 
-  inline PeerStats& operator=(PeerStats&& from) noexcept {
+  inline PeerStatus& operator=(PeerStatus&& from) noexcept {
     if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
       if (this != &from) InternalSwap(&from);
     } else {
@@ -544,29 +551,29 @@ class PeerStats : public ::google::protobuf::Message /* @@protoc_insertion_point
   }
   #endif
   static const ::google::protobuf::Descriptor* descriptor();
-  static const PeerStats& default_instance();
+  static const PeerStatus& default_instance();
 
-  static inline const PeerStats* internal_default_instance() {
-    return reinterpret_cast<const PeerStats*>(
-               &_PeerStats_default_instance_);
+  static inline const PeerStatus* internal_default_instance() {
+    return reinterpret_cast<const PeerStatus*>(
+               &_PeerStatus_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
     3;
 
-  void Swap(PeerStats* other);
-  friend void swap(PeerStats& a, PeerStats& b) {
+  void Swap(PeerStatus* other);
+  friend void swap(PeerStatus& a, PeerStatus& b) {
     a.Swap(&b);
   }
 
   // implements Message ----------------------------------------------
 
-  inline PeerStats* New() const PROTOBUF_FINAL { return New(NULL); }
+  inline PeerStatus* New() const PROTOBUF_FINAL { return New(NULL); }
 
-  PeerStats* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  PeerStatus* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
   void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
   void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
-  void CopyFrom(const PeerStats& from);
-  void MergeFrom(const PeerStats& from);
+  void CopyFrom(const PeerStatus& from);
+  void MergeFrom(const PeerStatus& from);
   void Clear() PROTOBUF_FINAL;
   bool IsInitialized() const PROTOBUF_FINAL;
 
@@ -582,7 +589,7 @@ class PeerStats : public ::google::protobuf::Message /* @@protoc_insertion_point
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const PROTOBUF_FINAL;
-  void InternalSwap(PeerStats* other);
+  void InternalSwap(PeerStatus* other);
   private:
   inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
     return NULL;
@@ -607,18 +614,39 @@ class PeerStats : public ::google::protobuf::Message /* @@protoc_insertion_point
   ::metapb::Peer* release_peer();
   void set_allocated_peer(::metapb::Peer* peer);
 
-  // uint64 down_seconds = 2;
+  // uint64 index = 2;
+  void clear_index();
+  static const int kIndexFieldNumber = 2;
+  ::google::protobuf::uint64 index() const;
+  void set_index(::google::protobuf::uint64 value);
+
+  // uint64 commit = 3;
+  void clear_commit();
+  static const int kCommitFieldNumber = 3;
+  ::google::protobuf::uint64 commit() const;
+  void set_commit(::google::protobuf::uint64 value);
+
+  // uint64 down_seconds = 4;
   void clear_down_seconds();
-  static const int kDownSecondsFieldNumber = 2;
+  static const int kDownSecondsFieldNumber = 4;
   ::google::protobuf::uint64 down_seconds() const;
   void set_down_seconds(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:mspb.PeerStats)
+  // bool snapshotting = 5;
+  void clear_snapshotting();
+  static const int kSnapshottingFieldNumber = 5;
+  bool snapshotting() const;
+  void set_snapshotting(bool value);
+
+  // @@protoc_insertion_point(class_scope:mspb.PeerStatus)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::metapb::Peer* peer_;
+  ::google::protobuf::uint64 index_;
+  ::google::protobuf::uint64 commit_;
   ::google::protobuf::uint64 down_seconds_;
+  bool snapshotting_;
   mutable int _cached_size_;
   friend struct protobuf_mspb_2eproto::TableStruct;
 };
@@ -830,29 +858,17 @@ class RangeHeartbeatRequest : public ::google::protobuf::Message /* @@protoc_ins
 
   // accessors -------------------------------------------------------
 
-  // repeated .mspb.PeerStats down_peers = 4;
-  int down_peers_size() const;
-  void clear_down_peers();
-  static const int kDownPeersFieldNumber = 4;
-  const ::mspb::PeerStats& down_peers(int index) const;
-  ::mspb::PeerStats* mutable_down_peers(int index);
-  ::mspb::PeerStats* add_down_peers();
-  ::google::protobuf::RepeatedPtrField< ::mspb::PeerStats >*
-      mutable_down_peers();
-  const ::google::protobuf::RepeatedPtrField< ::mspb::PeerStats >&
-      down_peers() const;
-
-  // repeated .metapb.Peer pending_peers = 5;
-  int pending_peers_size() const;
-  void clear_pending_peers();
-  static const int kPendingPeersFieldNumber = 5;
-  const ::metapb::Peer& pending_peers(int index) const;
-  ::metapb::Peer* mutable_pending_peers(int index);
-  ::metapb::Peer* add_pending_peers();
-  ::google::protobuf::RepeatedPtrField< ::metapb::Peer >*
-      mutable_pending_peers();
-  const ::google::protobuf::RepeatedPtrField< ::metapb::Peer >&
-      pending_peers() const;
+  // repeated .mspb.PeerStatus peers_status = 5;
+  int peers_status_size() const;
+  void clear_peers_status();
+  static const int kPeersStatusFieldNumber = 5;
+  const ::mspb::PeerStatus& peers_status(int index) const;
+  ::mspb::PeerStatus* mutable_peers_status(int index);
+  ::mspb::PeerStatus* add_peers_status();
+  ::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >*
+      mutable_peers_status();
+  const ::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >&
+      peers_status() const;
 
   // .mspb.RequestHeader header = 1;
   bool has_header() const;
@@ -890,16 +906,22 @@ class RangeHeartbeatRequest : public ::google::protobuf::Message /* @@protoc_ins
   ::mspb::RangeStats* release_stats();
   void set_allocated_stats(::mspb::RangeStats* stats);
 
+  // uint64 term = 4;
+  void clear_term();
+  static const int kTermFieldNumber = 4;
+  ::google::protobuf::uint64 term() const;
+  void set_term(::google::protobuf::uint64 value);
+
   // @@protoc_insertion_point(class_scope:mspb.RangeHeartbeatRequest)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  ::google::protobuf::RepeatedPtrField< ::mspb::PeerStats > down_peers_;
-  ::google::protobuf::RepeatedPtrField< ::metapb::Peer > pending_peers_;
+  ::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus > peers_status_;
   ::mspb::RequestHeader* header_;
   ::metapb::Range* range_;
   ::metapb::Peer* leader_;
   ::mspb::RangeStats* stats_;
+  ::google::protobuf::uint64 term_;
   mutable int _cached_size_;
   friend struct protobuf_mspb_2eproto::TableStruct;
 };
@@ -1028,12 +1050,6 @@ class RangeHeartbeatResponse : public ::google::protobuf::Message /* @@protoc_in
   ::google::protobuf::uint64 range_id() const;
   void set_range_id(::google::protobuf::uint64 value);
 
-  // uint64 commit_id = 6;
-  void clear_commit_id();
-  static const int kCommitIdFieldNumber = 6;
-  ::google::protobuf::uint64 commit_id() const;
-  void set_commit_id(::google::protobuf::uint64 value);
-
   // @@protoc_insertion_point(class_scope:mspb.RangeHeartbeatResponse)
  private:
 
@@ -1043,7 +1059,6 @@ class RangeHeartbeatResponse : public ::google::protobuf::Message /* @@protoc_in
   ::metapb::Peer* target_peer_;
   ::taskpb::Task* task_;
   ::google::protobuf::uint64 range_id_;
-  ::google::protobuf::uint64 commit_id_;
   mutable int _cached_size_;
   friend struct protobuf_mspb_2eproto::TableStruct;
 };
@@ -5407,24 +5422,24 @@ class ResponseHeader : public ::google::protobuf::Message /* @@protoc_insertion_
 };
 // -------------------------------------------------------------------
 
-class MsLeader : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:mspb.MsLeader) */ {
+class LeaderHint : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:mspb.LeaderHint) */ {
  public:
-  MsLeader();
-  virtual ~MsLeader();
+  LeaderHint();
+  virtual ~LeaderHint();
 
-  MsLeader(const MsLeader& from);
+  LeaderHint(const LeaderHint& from);
 
-  inline MsLeader& operator=(const MsLeader& from) {
+  inline LeaderHint& operator=(const LeaderHint& from) {
     CopyFrom(from);
     return *this;
   }
   #if LANG_CXX11
-  MsLeader(MsLeader&& from) noexcept
-    : MsLeader() {
+  LeaderHint(LeaderHint&& from) noexcept
+    : LeaderHint() {
     *this = ::std::move(from);
   }
 
-  inline MsLeader& operator=(MsLeader&& from) noexcept {
+  inline LeaderHint& operator=(LeaderHint&& from) noexcept {
     if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
       if (this != &from) InternalSwap(&from);
     } else {
@@ -5434,29 +5449,29 @@ class MsLeader : public ::google::protobuf::Message /* @@protoc_insertion_point(
   }
   #endif
   static const ::google::protobuf::Descriptor* descriptor();
-  static const MsLeader& default_instance();
+  static const LeaderHint& default_instance();
 
-  static inline const MsLeader* internal_default_instance() {
-    return reinterpret_cast<const MsLeader*>(
-               &_MsLeader_default_instance_);
+  static inline const LeaderHint* internal_default_instance() {
+    return reinterpret_cast<const LeaderHint*>(
+               &_LeaderHint_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
     44;
 
-  void Swap(MsLeader* other);
-  friend void swap(MsLeader& a, MsLeader& b) {
+  void Swap(LeaderHint* other);
+  friend void swap(LeaderHint& a, LeaderHint& b) {
     a.Swap(&b);
   }
 
   // implements Message ----------------------------------------------
 
-  inline MsLeader* New() const PROTOBUF_FINAL { return New(NULL); }
+  inline LeaderHint* New() const PROTOBUF_FINAL { return New(NULL); }
 
-  MsLeader* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  LeaderHint* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
   void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
   void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
-  void CopyFrom(const MsLeader& from);
-  void MergeFrom(const MsLeader& from);
+  void CopyFrom(const LeaderHint& from);
+  void MergeFrom(const LeaderHint& from);
   void Clear() PROTOBUF_FINAL;
   bool IsInitialized() const PROTOBUF_FINAL;
 
@@ -5472,7 +5487,7 @@ class MsLeader : public ::google::protobuf::Message /* @@protoc_insertion_point(
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const PROTOBUF_FINAL;
-  void InternalSwap(MsLeader* other);
+  void InternalSwap(LeaderHint* other);
   private:
   inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
     return NULL;
@@ -5488,25 +5503,32 @@ class MsLeader : public ::google::protobuf::Message /* @@protoc_insertion_point(
 
   // accessors -------------------------------------------------------
 
-  // string ms_leader = 1;
-  void clear_ms_leader();
-  static const int kMsLeaderFieldNumber = 1;
-  const ::std::string& ms_leader() const;
-  void set_ms_leader(const ::std::string& value);
+  // string address = 1;
+  void clear_address();
+  static const int kAddressFieldNumber = 1;
+  const ::std::string& address() const;
+  void set_address(const ::std::string& value);
   #if LANG_CXX11
-  void set_ms_leader(::std::string&& value);
+  void set_address(::std::string&& value);
   #endif
-  void set_ms_leader(const char* value);
-  void set_ms_leader(const char* value, size_t size);
-  ::std::string* mutable_ms_leader();
-  ::std::string* release_ms_leader();
-  void set_allocated_ms_leader(::std::string* ms_leader);
+  void set_address(const char* value);
+  void set_address(const char* value, size_t size);
+  ::std::string* mutable_address();
+  ::std::string* release_address();
+  void set_allocated_address(::std::string* address);
 
-  // @@protoc_insertion_point(class_scope:mspb.MsLeader)
+  // uint64 term = 2;
+  void clear_term();
+  static const int kTermFieldNumber = 2;
+  ::google::protobuf::uint64 term() const;
+  void set_term(::google::protobuf::uint64 value);
+
+  // @@protoc_insertion_point(class_scope:mspb.LeaderHint)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  ::google::protobuf::internal::ArenaStringPtr ms_leader_;
+  ::google::protobuf::internal::ArenaStringPtr address_;
+  ::google::protobuf::uint64 term_;
   mutable int _cached_size_;
   friend struct protobuf_mspb_2eproto::TableStruct;
 };
@@ -5683,14 +5705,14 @@ class Error : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
 
   // accessors -------------------------------------------------------
 
-  // .mspb.MsLeader ms_leader = 2;
-  bool has_ms_leader() const;
-  void clear_ms_leader();
-  static const int kMsLeaderFieldNumber = 2;
-  const ::mspb::MsLeader& ms_leader() const;
-  ::mspb::MsLeader* mutable_ms_leader();
-  ::mspb::MsLeader* release_ms_leader();
-  void set_allocated_ms_leader(::mspb::MsLeader* ms_leader);
+  // .mspb.LeaderHint new_leader = 2;
+  bool has_new_leader() const;
+  void clear_new_leader();
+  static const int kNewLeaderFieldNumber = 2;
+  const ::mspb::LeaderHint& new_leader() const;
+  ::mspb::LeaderHint* mutable_new_leader();
+  ::mspb::LeaderHint* release_new_leader();
+  void set_allocated_new_leader(::mspb::LeaderHint* new_leader);
 
   // .mspb.NoLeader no_leader = 3;
   bool has_no_leader() const;
@@ -5705,7 +5727,7 @@ class Error : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  ::mspb::MsLeader* ms_leader_;
+  ::mspb::LeaderHint* new_leader_;
   ::mspb::NoLeader* no_leader_;
   mutable int _cached_size_;
   friend struct protobuf_mspb_2eproto::TableStruct;
@@ -5787,6 +5809,20 @@ inline void MSLeader::set_allocated_address(::std::string* address) {
   }
   address_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), address);
   // @@protoc_insertion_point(field_set_allocated:mspb.MSLeader.address)
+}
+
+// uint64 term = 3;
+inline void MSLeader::clear_term() {
+  term_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 MSLeader::term() const {
+  // @@protoc_insertion_point(field_get:mspb.MSLeader.term)
+  return term_;
+}
+inline void MSLeader::set_term(::google::protobuf::uint64 value) {
+  
+  term_ = value;
+  // @@protoc_insertion_point(field_set:mspb.MSLeader.term)
 }
 
 // -------------------------------------------------------------------
@@ -5919,38 +5955,38 @@ inline void GetMSLeaderResponse::set_allocated_leader(::mspb::MSLeader* leader) 
 
 // -------------------------------------------------------------------
 
-// PeerStats
+// PeerStatus
 
 // .metapb.Peer peer = 1;
-inline bool PeerStats::has_peer() const {
+inline bool PeerStatus::has_peer() const {
   return this != internal_default_instance() && peer_ != NULL;
 }
-inline void PeerStats::clear_peer() {
+inline void PeerStatus::clear_peer() {
   if (GetArenaNoVirtual() == NULL && peer_ != NULL) delete peer_;
   peer_ = NULL;
 }
-inline const ::metapb::Peer& PeerStats::peer() const {
+inline const ::metapb::Peer& PeerStatus::peer() const {
   const ::metapb::Peer* p = peer_;
-  // @@protoc_insertion_point(field_get:mspb.PeerStats.peer)
+  // @@protoc_insertion_point(field_get:mspb.PeerStatus.peer)
   return p != NULL ? *p : *reinterpret_cast<const ::metapb::Peer*>(
       &::metapb::_Peer_default_instance_);
 }
-inline ::metapb::Peer* PeerStats::mutable_peer() {
+inline ::metapb::Peer* PeerStatus::mutable_peer() {
   
   if (peer_ == NULL) {
     peer_ = new ::metapb::Peer;
   }
-  // @@protoc_insertion_point(field_mutable:mspb.PeerStats.peer)
+  // @@protoc_insertion_point(field_mutable:mspb.PeerStatus.peer)
   return peer_;
 }
-inline ::metapb::Peer* PeerStats::release_peer() {
-  // @@protoc_insertion_point(field_release:mspb.PeerStats.peer)
+inline ::metapb::Peer* PeerStatus::release_peer() {
+  // @@protoc_insertion_point(field_release:mspb.PeerStatus.peer)
   
   ::metapb::Peer* temp = peer_;
   peer_ = NULL;
   return temp;
 }
-inline void PeerStats::set_allocated_peer(::metapb::Peer* peer) {
+inline void PeerStatus::set_allocated_peer(::metapb::Peer* peer) {
   delete peer_;
   peer_ = peer;
   if (peer) {
@@ -5958,21 +5994,63 @@ inline void PeerStats::set_allocated_peer(::metapb::Peer* peer) {
   } else {
     
   }
-  // @@protoc_insertion_point(field_set_allocated:mspb.PeerStats.peer)
+  // @@protoc_insertion_point(field_set_allocated:mspb.PeerStatus.peer)
 }
 
-// uint64 down_seconds = 2;
-inline void PeerStats::clear_down_seconds() {
+// uint64 index = 2;
+inline void PeerStatus::clear_index() {
+  index_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 PeerStatus::index() const {
+  // @@protoc_insertion_point(field_get:mspb.PeerStatus.index)
+  return index_;
+}
+inline void PeerStatus::set_index(::google::protobuf::uint64 value) {
+  
+  index_ = value;
+  // @@protoc_insertion_point(field_set:mspb.PeerStatus.index)
+}
+
+// uint64 commit = 3;
+inline void PeerStatus::clear_commit() {
+  commit_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 PeerStatus::commit() const {
+  // @@protoc_insertion_point(field_get:mspb.PeerStatus.commit)
+  return commit_;
+}
+inline void PeerStatus::set_commit(::google::protobuf::uint64 value) {
+  
+  commit_ = value;
+  // @@protoc_insertion_point(field_set:mspb.PeerStatus.commit)
+}
+
+// uint64 down_seconds = 4;
+inline void PeerStatus::clear_down_seconds() {
   down_seconds_ = GOOGLE_ULONGLONG(0);
 }
-inline ::google::protobuf::uint64 PeerStats::down_seconds() const {
-  // @@protoc_insertion_point(field_get:mspb.PeerStats.down_seconds)
+inline ::google::protobuf::uint64 PeerStatus::down_seconds() const {
+  // @@protoc_insertion_point(field_get:mspb.PeerStatus.down_seconds)
   return down_seconds_;
 }
-inline void PeerStats::set_down_seconds(::google::protobuf::uint64 value) {
+inline void PeerStatus::set_down_seconds(::google::protobuf::uint64 value) {
   
   down_seconds_ = value;
-  // @@protoc_insertion_point(field_set:mspb.PeerStats.down_seconds)
+  // @@protoc_insertion_point(field_set:mspb.PeerStatus.down_seconds)
+}
+
+// bool snapshotting = 5;
+inline void PeerStatus::clear_snapshotting() {
+  snapshotting_ = false;
+}
+inline bool PeerStatus::snapshotting() const {
+  // @@protoc_insertion_point(field_get:mspb.PeerStatus.snapshotting)
+  return snapshotting_;
+}
+inline void PeerStatus::set_snapshotting(bool value) {
+  
+  snapshotting_ = value;
+  // @@protoc_insertion_point(field_set:mspb.PeerStatus.snapshotting)
 }
 
 // -------------------------------------------------------------------
@@ -6173,64 +6251,48 @@ inline void RangeHeartbeatRequest::set_allocated_leader(::metapb::Peer* leader) 
   // @@protoc_insertion_point(field_set_allocated:mspb.RangeHeartbeatRequest.leader)
 }
 
-// repeated .mspb.PeerStats down_peers = 4;
-inline int RangeHeartbeatRequest::down_peers_size() const {
-  return down_peers_.size();
+// uint64 term = 4;
+inline void RangeHeartbeatRequest::clear_term() {
+  term_ = GOOGLE_ULONGLONG(0);
 }
-inline void RangeHeartbeatRequest::clear_down_peers() {
-  down_peers_.Clear();
+inline ::google::protobuf::uint64 RangeHeartbeatRequest::term() const {
+  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.term)
+  return term_;
 }
-inline const ::mspb::PeerStats& RangeHeartbeatRequest::down_peers(int index) const {
-  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.down_peers)
-  return down_peers_.Get(index);
-}
-inline ::mspb::PeerStats* RangeHeartbeatRequest::mutable_down_peers(int index) {
-  // @@protoc_insertion_point(field_mutable:mspb.RangeHeartbeatRequest.down_peers)
-  return down_peers_.Mutable(index);
-}
-inline ::mspb::PeerStats* RangeHeartbeatRequest::add_down_peers() {
-  // @@protoc_insertion_point(field_add:mspb.RangeHeartbeatRequest.down_peers)
-  return down_peers_.Add();
-}
-inline ::google::protobuf::RepeatedPtrField< ::mspb::PeerStats >*
-RangeHeartbeatRequest::mutable_down_peers() {
-  // @@protoc_insertion_point(field_mutable_list:mspb.RangeHeartbeatRequest.down_peers)
-  return &down_peers_;
-}
-inline const ::google::protobuf::RepeatedPtrField< ::mspb::PeerStats >&
-RangeHeartbeatRequest::down_peers() const {
-  // @@protoc_insertion_point(field_list:mspb.RangeHeartbeatRequest.down_peers)
-  return down_peers_;
+inline void RangeHeartbeatRequest::set_term(::google::protobuf::uint64 value) {
+  
+  term_ = value;
+  // @@protoc_insertion_point(field_set:mspb.RangeHeartbeatRequest.term)
 }
 
-// repeated .metapb.Peer pending_peers = 5;
-inline int RangeHeartbeatRequest::pending_peers_size() const {
-  return pending_peers_.size();
+// repeated .mspb.PeerStatus peers_status = 5;
+inline int RangeHeartbeatRequest::peers_status_size() const {
+  return peers_status_.size();
 }
-inline void RangeHeartbeatRequest::clear_pending_peers() {
-  pending_peers_.Clear();
+inline void RangeHeartbeatRequest::clear_peers_status() {
+  peers_status_.Clear();
 }
-inline const ::metapb::Peer& RangeHeartbeatRequest::pending_peers(int index) const {
-  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.pending_peers)
-  return pending_peers_.Get(index);
+inline const ::mspb::PeerStatus& RangeHeartbeatRequest::peers_status(int index) const {
+  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.peers_status)
+  return peers_status_.Get(index);
 }
-inline ::metapb::Peer* RangeHeartbeatRequest::mutable_pending_peers(int index) {
-  // @@protoc_insertion_point(field_mutable:mspb.RangeHeartbeatRequest.pending_peers)
-  return pending_peers_.Mutable(index);
+inline ::mspb::PeerStatus* RangeHeartbeatRequest::mutable_peers_status(int index) {
+  // @@protoc_insertion_point(field_mutable:mspb.RangeHeartbeatRequest.peers_status)
+  return peers_status_.Mutable(index);
 }
-inline ::metapb::Peer* RangeHeartbeatRequest::add_pending_peers() {
-  // @@protoc_insertion_point(field_add:mspb.RangeHeartbeatRequest.pending_peers)
-  return pending_peers_.Add();
+inline ::mspb::PeerStatus* RangeHeartbeatRequest::add_peers_status() {
+  // @@protoc_insertion_point(field_add:mspb.RangeHeartbeatRequest.peers_status)
+  return peers_status_.Add();
 }
-inline ::google::protobuf::RepeatedPtrField< ::metapb::Peer >*
-RangeHeartbeatRequest::mutable_pending_peers() {
-  // @@protoc_insertion_point(field_mutable_list:mspb.RangeHeartbeatRequest.pending_peers)
-  return &pending_peers_;
+inline ::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >*
+RangeHeartbeatRequest::mutable_peers_status() {
+  // @@protoc_insertion_point(field_mutable_list:mspb.RangeHeartbeatRequest.peers_status)
+  return &peers_status_;
 }
-inline const ::google::protobuf::RepeatedPtrField< ::metapb::Peer >&
-RangeHeartbeatRequest::pending_peers() const {
-  // @@protoc_insertion_point(field_list:mspb.RangeHeartbeatRequest.pending_peers)
-  return pending_peers_;
+inline const ::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >&
+RangeHeartbeatRequest::peers_status() const {
+  // @@protoc_insertion_point(field_list:mspb.RangeHeartbeatRequest.peers_status)
+  return peers_status_;
 }
 
 // .mspb.RangeStats stats = 6;
@@ -6449,20 +6511,6 @@ inline void RangeHeartbeatResponse::set_allocated_task(::taskpb::Task* task) {
     
   }
   // @@protoc_insertion_point(field_set_allocated:mspb.RangeHeartbeatResponse.task)
-}
-
-// uint64 commit_id = 6;
-inline void RangeHeartbeatResponse::clear_commit_id() {
-  commit_id_ = GOOGLE_ULONGLONG(0);
-}
-inline ::google::protobuf::uint64 RangeHeartbeatResponse::commit_id() const {
-  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatResponse.commit_id)
-  return commit_id_;
-}
-inline void RangeHeartbeatResponse::set_commit_id(::google::protobuf::uint64 value) {
-  
-  commit_id_ = value;
-  // @@protoc_insertion_point(field_set:mspb.RangeHeartbeatResponse.commit_id)
 }
 
 // -------------------------------------------------------------------
@@ -9889,59 +9937,73 @@ inline void ResponseHeader::set_allocated_error(::mspb::Error* error) {
 
 // -------------------------------------------------------------------
 
-// MsLeader
+// LeaderHint
 
-// string ms_leader = 1;
-inline void MsLeader::clear_ms_leader() {
-  ms_leader_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+// string address = 1;
+inline void LeaderHint::clear_address() {
+  address_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline const ::std::string& MsLeader::ms_leader() const {
-  // @@protoc_insertion_point(field_get:mspb.MsLeader.ms_leader)
-  return ms_leader_.GetNoArena();
+inline const ::std::string& LeaderHint::address() const {
+  // @@protoc_insertion_point(field_get:mspb.LeaderHint.address)
+  return address_.GetNoArena();
 }
-inline void MsLeader::set_ms_leader(const ::std::string& value) {
+inline void LeaderHint::set_address(const ::std::string& value) {
   
-  ms_leader_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:mspb.MsLeader.ms_leader)
+  address_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:mspb.LeaderHint.address)
 }
 #if LANG_CXX11
-inline void MsLeader::set_ms_leader(::std::string&& value) {
+inline void LeaderHint::set_address(::std::string&& value) {
   
-  ms_leader_.SetNoArena(
+  address_.SetNoArena(
     &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:mspb.MsLeader.ms_leader)
+  // @@protoc_insertion_point(field_set_rvalue:mspb.LeaderHint.address)
 }
 #endif
-inline void MsLeader::set_ms_leader(const char* value) {
+inline void LeaderHint::set_address(const char* value) {
   GOOGLE_DCHECK(value != NULL);
   
-  ms_leader_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:mspb.MsLeader.ms_leader)
+  address_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:mspb.LeaderHint.address)
 }
-inline void MsLeader::set_ms_leader(const char* value, size_t size) {
+inline void LeaderHint::set_address(const char* value, size_t size) {
   
-  ms_leader_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+  address_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:mspb.MsLeader.ms_leader)
+  // @@protoc_insertion_point(field_set_pointer:mspb.LeaderHint.address)
 }
-inline ::std::string* MsLeader::mutable_ms_leader() {
+inline ::std::string* LeaderHint::mutable_address() {
   
-  // @@protoc_insertion_point(field_mutable:mspb.MsLeader.ms_leader)
-  return ms_leader_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  // @@protoc_insertion_point(field_mutable:mspb.LeaderHint.address)
+  return address_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline ::std::string* MsLeader::release_ms_leader() {
-  // @@protoc_insertion_point(field_release:mspb.MsLeader.ms_leader)
+inline ::std::string* LeaderHint::release_address() {
+  // @@protoc_insertion_point(field_release:mspb.LeaderHint.address)
   
-  return ms_leader_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  return address_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline void MsLeader::set_allocated_ms_leader(::std::string* ms_leader) {
-  if (ms_leader != NULL) {
+inline void LeaderHint::set_allocated_address(::std::string* address) {
+  if (address != NULL) {
     
   } else {
     
   }
-  ms_leader_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ms_leader);
-  // @@protoc_insertion_point(field_set_allocated:mspb.MsLeader.ms_leader)
+  address_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), address);
+  // @@protoc_insertion_point(field_set_allocated:mspb.LeaderHint.address)
+}
+
+// uint64 term = 2;
+inline void LeaderHint::clear_term() {
+  term_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 LeaderHint::term() const {
+  // @@protoc_insertion_point(field_get:mspb.LeaderHint.term)
+  return term_;
+}
+inline void LeaderHint::set_term(::google::protobuf::uint64 value) {
+  
+  term_ = value;
+  // @@protoc_insertion_point(field_set:mspb.LeaderHint.term)
 }
 
 // -------------------------------------------------------------------
@@ -9952,44 +10014,44 @@ inline void MsLeader::set_allocated_ms_leader(::std::string* ms_leader) {
 
 // Error
 
-// .mspb.MsLeader ms_leader = 2;
-inline bool Error::has_ms_leader() const {
-  return this != internal_default_instance() && ms_leader_ != NULL;
+// .mspb.LeaderHint new_leader = 2;
+inline bool Error::has_new_leader() const {
+  return this != internal_default_instance() && new_leader_ != NULL;
 }
-inline void Error::clear_ms_leader() {
-  if (GetArenaNoVirtual() == NULL && ms_leader_ != NULL) delete ms_leader_;
-  ms_leader_ = NULL;
+inline void Error::clear_new_leader() {
+  if (GetArenaNoVirtual() == NULL && new_leader_ != NULL) delete new_leader_;
+  new_leader_ = NULL;
 }
-inline const ::mspb::MsLeader& Error::ms_leader() const {
-  const ::mspb::MsLeader* p = ms_leader_;
-  // @@protoc_insertion_point(field_get:mspb.Error.ms_leader)
-  return p != NULL ? *p : *reinterpret_cast<const ::mspb::MsLeader*>(
-      &::mspb::_MsLeader_default_instance_);
+inline const ::mspb::LeaderHint& Error::new_leader() const {
+  const ::mspb::LeaderHint* p = new_leader_;
+  // @@protoc_insertion_point(field_get:mspb.Error.new_leader)
+  return p != NULL ? *p : *reinterpret_cast<const ::mspb::LeaderHint*>(
+      &::mspb::_LeaderHint_default_instance_);
 }
-inline ::mspb::MsLeader* Error::mutable_ms_leader() {
+inline ::mspb::LeaderHint* Error::mutable_new_leader() {
   
-  if (ms_leader_ == NULL) {
-    ms_leader_ = new ::mspb::MsLeader;
+  if (new_leader_ == NULL) {
+    new_leader_ = new ::mspb::LeaderHint;
   }
-  // @@protoc_insertion_point(field_mutable:mspb.Error.ms_leader)
-  return ms_leader_;
+  // @@protoc_insertion_point(field_mutable:mspb.Error.new_leader)
+  return new_leader_;
 }
-inline ::mspb::MsLeader* Error::release_ms_leader() {
-  // @@protoc_insertion_point(field_release:mspb.Error.ms_leader)
+inline ::mspb::LeaderHint* Error::release_new_leader() {
+  // @@protoc_insertion_point(field_release:mspb.Error.new_leader)
   
-  ::mspb::MsLeader* temp = ms_leader_;
-  ms_leader_ = NULL;
+  ::mspb::LeaderHint* temp = new_leader_;
+  new_leader_ = NULL;
   return temp;
 }
-inline void Error::set_allocated_ms_leader(::mspb::MsLeader* ms_leader) {
-  delete ms_leader_;
-  ms_leader_ = ms_leader;
-  if (ms_leader) {
+inline void Error::set_allocated_new_leader(::mspb::LeaderHint* new_leader) {
+  delete new_leader_;
+  new_leader_ = new_leader;
+  if (new_leader) {
     
   } else {
     
   }
-  // @@protoc_insertion_point(field_set_allocated:mspb.Error.ms_leader)
+  // @@protoc_insertion_point(field_set_allocated:mspb.Error.new_leader)
 }
 
 // .mspb.NoLeader no_leader = 3;

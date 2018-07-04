@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "raft/src/impl/storage/storage_disk.h"
 #include "raft/src/impl/raft_log.h"
+#include "raft/src/impl/storage/storage_disk.h"
 #include "test_util.h"
 
 int main(int argc, char* argv[]) {
@@ -11,21 +11,20 @@ int main(int argc, char* argv[]) {
 
 namespace {
 
-using namespace fbase::raft::impl;
-using namespace fbase::raft::impl::storage;
-using namespace fbase::raft::impl::testutil;
+using namespace sharkstore::raft::impl;
+using namespace sharkstore::raft::impl::storage;
+using namespace sharkstore::raft::impl::testutil;
 
 class RaftLogTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        char path[] = "/tmp/fbase_raft_storage_test_XXXXXX";
+        char path[] = "/tmp/sharkstore_raft_storage_test_XXXXXX";
         char* tmp = mkdtemp(path);
         ASSERT_TRUE(tmp != NULL);
         tmp_dir_ = tmp;
 
         Open();
     }
-
 
     void TearDown() override {
         if (storage_) {
@@ -52,13 +51,13 @@ private:
 protected:
     std::string tmp_dir_;
     std::shared_ptr<Storage> storage_;
-    RaftLog *raft_log_ = nullptr;
+    RaftLog* raft_log_ = nullptr;
 };
 
 TEST_F(RaftLogTest, Truncate) {
     uint64_t lo = 1, hi = 70;
     std::vector<EntryPtr> wents1;
-    RandEntries(lo, hi, 256, &wents1);
+    RandomEntries(lo, hi, 256, &wents1);
     raft_log_->append(wents1);
 
     std::vector<EntryPtr> pents;
@@ -66,16 +65,16 @@ TEST_F(RaftLogTest, Truncate) {
     auto s = storage_->StoreEntries(pents);
     ASSERT_TRUE(s.ok());
 
-    lo = 70; hi = 100;
+    lo = 70;
+    hi = 100;
     std::vector<EntryPtr> wents2;
-    RandEntries(lo, hi, 256, &wents2);
+    RandomEntries(lo, hi, 256, &wents2);
     raft_log_->append(wents2);
 
-
-    lo = 50; 
+    lo = 50;
     hi = 61;
     std::vector<EntryPtr> wents3;
-    RandEntries(lo, hi, 256, &wents3);
+    RandomEntries(lo, hi, 256, &wents3);
     uint64_t new_index = 0;
     ASSERT_TRUE(raft_log_->maybeAppend(49, wents1[48]->term(), 50, wents3, &new_index));
     ASSERT_EQ(new_index, 60);
@@ -91,5 +90,4 @@ TEST_F(RaftLogTest, Truncate) {
     ASSERT_TRUE(s.ok()) << s.ToString();
     ASSERT_EQ(index, 60);
 }
-
 };

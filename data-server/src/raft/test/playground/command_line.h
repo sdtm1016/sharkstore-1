@@ -3,7 +3,7 @@ _Pragma("once");
 #include <stdint.h>
 #include <vector>
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace playground {
 
@@ -15,4 +15,4 @@ void checkCommandLineValid();
 
 } /* namespace playground */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

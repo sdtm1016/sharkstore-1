@@ -6,7 +6,7 @@ _Pragma("once");
 #include "raft/raft.h"
 #include "raft/server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace bench {
 
@@ -72,4 +72,4 @@ private:
 
 } /* namespace bench */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

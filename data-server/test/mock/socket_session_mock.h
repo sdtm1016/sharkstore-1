@@ -5,8 +5,8 @@
 
 #include "common/socket_session.h"
 
-using namespace fbase;
-using namespace fbase::dataserver::common;
+using namespace sharkstore;
+using namespace sharkstore::dataserver::common;
 
 class SocketSessionMock : public SocketSession {
 public:

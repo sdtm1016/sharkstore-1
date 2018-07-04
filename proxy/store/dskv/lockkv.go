@@ -69,6 +69,24 @@ func (p *KvProxy) UnlockForce(req *kvrpcpb.UnlockForceRequest) (*kvrpcpb.LockRes
 	}
 	return resp.GetUnlockForceResp().GetResp(), nil
 }
+
+func (p *KvProxy) LockScan(req *kvrpcpb.LockScanRequest) (*kvrpcpb.LockScanResponse, error) {
+	in := GetRequest()
+	defer PutRequest(in)
+	in.Type = Type_LockScan
+	in.LockScanReq = &kvrpcpb.DsLockScanRequest{
+		Header: &kvrpcpb.RequestHeader{},
+		Req:    req,
+	}
+
+	bo := NewBackoffer(RawkvMaxBackoff, context.Background())
+	resp, _, err := p.do(bo, in, req.GetStart())
+	if err != nil {
+		return nil, err
+	}
+	return resp.GetLockScanResp().GetResp(), nil
+}
+
 func (p *KvProxy) ConditionUpdate(req *kvrpcpb.LockUpdateRequest) (*kvrpcpb.LockResponse, error) {
 	in := GetRequest()
 	defer PutRequest(in)

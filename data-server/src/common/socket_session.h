@@ -1,9 +1,9 @@
 #ifndef __SOCKET_SESSION_H__
 #define __SOCKET_SESSION_H__
 
+#include <fastcommon/fast_task_queue.h>
 #include <stdint.h>
 #include <vector>
-#include <fastcommon/fast_task_queue.h>
 #include "frame/sf_socket_buff.h"
 #include "proto/gen/errorpb.pb.h"
 #include "proto/gen/kvrpcpb.pb.h"
@@ -11,7 +11,7 @@
 #include "ds_proto.h"
 #include "socket_base.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace common {
 
@@ -47,6 +47,6 @@ public:
 
 }  // namespace common
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore
 
 #endif  //__SOCKET_SESSION_H__

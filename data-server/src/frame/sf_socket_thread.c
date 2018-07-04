@@ -311,7 +311,7 @@ static int sf_socket_data_init(struct nio_thread_data *thread_data) {
     }
 
     int fd_flags = O_NONBLOCK;
-#if !defined(OS_LINUX)
+#if defined(OS_LINUX)
     fd_flags |= O_NOATIME;
 #endif
     if ((result = fd_add_flags(thread_data->pipe_fds[0], fd_flags)) != 0) {

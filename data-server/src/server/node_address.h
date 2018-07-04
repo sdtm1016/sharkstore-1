@@ -7,7 +7,7 @@
 
 #include "raft/options.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace server {
 
@@ -29,6 +29,6 @@ private:
 
 }//namespace server
 }//namespace dataserver
-}//namespace fbase
+}//namespace sharkstore
 
 #endif//__NODE_ADDRESS_H__

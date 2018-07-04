@@ -92,6 +92,14 @@ app.controller('mySchedulerInfo', function($rootScope, $scope, $http, $timeout) 
                  });
         });
 	 };
-
-
+    $scope.detailScheduler = function(schedulerName){
+        var clusterId = $('#clusterId').val();
+        $http.get('/scheduler/getDetail?clusterId=' + clusterId +"&name=" + schedulerName).success(function(data){
+            if(data.code === 0){
+                swal("获取worker信息成功！", data.data, "success");
+            }else {
+                swal("获取失败", data.msg, "error");
+            }
+        });
+    };
 });

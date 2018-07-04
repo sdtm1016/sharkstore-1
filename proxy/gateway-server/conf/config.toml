@@ -1,0 +1,55 @@
+# GS Configuration.
+
+#http port
+http-port = 8080
+
+#distributed lock grpc service port
+lock-port = 8090
+
+#mysql port
+mysql-port = 6060
+
+#max client connection number allowed for sql port
+max-clients = 10000
+#max limit number for row record
+max-record-limit = 10000
+#mysql login user
+user = "test"
+password = "123456"
+#mysql connect property
+charset = "utf8"
+
+
+[performance]
+#proxy concurrency number
+max-work-num = 100
+#task queue size
+max-task-queue-len = 10000
+#keep connect size for each ds
+grpc-pool-size = 10
+# 128 KB
+grpc-win-size = 131072
+#be identified to 'slow command' when time consuming is greater than the value, unit: millisecond
+slow-insert = "20ms"
+slow-select = "100ms"
+slow-delete = "20ms"
+
+
+[cluster]
+id = 1
+address = ["127.0.165.52:8887"]
+token = "xxxx"
+
+
+[log]
+dir = "./log"
+module = "gateway"
+# log level debug, info, warn, error
+level = "debug"
+
+
+[metric]
+# metric client push interval, set "0s" to disable metric.
+interval = "15s"
+# receive metric address, leaves it empty will disable metric.
+address = ""

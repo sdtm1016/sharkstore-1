@@ -2,15 +2,14 @@
 
 #include "server/range_server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace range {
 
-bool Range::RawPutSubmit(common::ProtoMessage *msg,
-                         kvrpcpb::DsKvRawPutRequest &req) {
+bool Range::RawPutSubmit(common::ProtoMessage *msg, kvrpcpb::DsKvRawPutRequest &req) {
     auto &key = req.req().key();
 
-    if (is_leader && KeyInRange(key)) {
+    if (is_leader_ && KeyInRange(key)) {
         auto ret = SubmitCmd(msg, req, [&req](raft_cmdpb::Command &cmd) {
             cmd.set_cmd_type(raft_cmdpb::CmdType::RawPut);
             cmd.set_allocated_kv_raw_put_req(req.release_req());
@@ -22,8 +21,7 @@ bool Range::RawPutSubmit(common::ProtoMessage *msg,
     return false;
 }
 
-bool Range::RawPutTry(common::ProtoMessage *msg,
-                      kvrpcpb::DsKvRawPutRequest &req) {
+bool Range::RawPutTry(common::ProtoMessage *msg, kvrpcpb::DsKvRawPutRequest &req) {
     auto rng = context_->range_server->find(split_range_id_);
     if (rng == nullptr) {
         return false;
@@ -36,8 +34,7 @@ void Range::RawPut(common::ProtoMessage *msg, kvrpcpb::DsKvRawPutRequest &req) {
     errorpb::Error *err = nullptr;
 
     auto btime = get_micro_second();
-    context_->run_status->PushTime(monitor::PrintTag::Qwait,
-                                   btime - msg->begin_time);
+    context_->run_status->PushTime(monitor::PrintTag::Qwait, btime - msg->begin_time);
 
     FLOG_DEBUG("range[%" PRIu64 "] RawPut begin", meta_.id());
 
@@ -103,8 +100,7 @@ Status Range::ApplyRawPut(const raft_cmdpb::Command &cmd) {
     do {
         if (!KeyInRange(req.key(), err)) {
             FLOG_WARN("Apply RawPut failed, epoch is changed");
-            ret = std::move(
-                Status(Status::kInvalidArgument, "key not int range", ""));
+            ret = std::move(Status(Status::kInvalidArgument, "key not int range", ""));
             break;
         }
 
@@ -137,4 +133,4 @@ Status Range::ApplyRawPut(const raft_cmdpb::Command &cmd) {
 
 }  // namespace range
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

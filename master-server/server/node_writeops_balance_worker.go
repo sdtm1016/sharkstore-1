@@ -1,10 +1,10 @@
 package server
 
 import (
-	"util/log"
+	"context"
 	"model/pkg/metapb"
 	"time"
-	"context"
+	"util/log"
 )
 
 type balanceNodeOpsWorker struct {
@@ -35,13 +35,13 @@ func (w *balanceNodeOpsWorker) Work(cluster *Cluster) {
 	cluster.metric.CollectScheduleCounter(w.GetName(), "schedule")
 	// Select a peer from the node with most regions.
 	rng, oldPeer := scheduleRemoveMaxOpsPeer(cluster, w.GetName())
-	if rng == nil {
+	if rng == nil || oldPeer == nil {
 		log.Debug("%s: no range need balance", w.GetName())
 		return
 	}
 
 	sourceNode := cluster.FindNodeById(oldPeer.GetNodeId())
-	newPeer, err := cluster.allocPeerAndSelectNode(rng)
+	newPeer, err := cluster.allocPeerAndSelectNode(rng, true)
 	if newPeer == nil || err != nil {
 		cluster.metric.CollectScheduleCounter(w.GetName(), "no_peer")
 		log.Error("alloc peer failure rngId:%d err:%s", rng.GetId(), err.Error())
@@ -60,7 +60,9 @@ func (w *balanceNodeOpsWorker) Work(cluster *Cluster) {
 	cluster.metric.CollectScheduleCounter(w.GetName(), "new_operator")
 	log.Debug("start to balance region and transfer peer, region:[%v], old peer:[%v], old node:[%v], new node:[%v]",
 		rng.GetId(), oldPeer.GetId(), oldPeer.GetNodeId(), newPeer.GetNodeId())
-	cluster.eventDispatcher.pushEvent(NewChangePeerEvent(taskID, rng, oldPeer, newPeer, w.GetName()))
+	tc := NewTransferPeerTasks(taskID, rng, "ops-range-tranfer", oldPeer)
+	// TODO: check return
+	cluster.taskManager.Add(tc)
 	return
 }
 
@@ -90,7 +92,7 @@ func scheduleRemoveMaxOpsPeer(cluster *Cluster, workerName string) (*Range, *met
 	var rng *Range
 	for _, peer := range sourceNode.GetAllRanges() {
 		r := cluster.FindRange(peer.GetId())
-		if r == nil || !r.require(cluster){
+		if r == nil || !r.require(cluster) {
 			continue
 		}
 		if rng == nil || (r.opsStat.hit > 10 && rng.opsStat.GetMax() < r.opsStat.GetMax()) {
@@ -107,7 +109,7 @@ func scheduleRemoveMaxOpsPeer(cluster *Cluster, workerName string) (*Range, *met
 }
 
 func (w *balanceNodeOpsWorker) AllowWork(cluster *Cluster) bool {
-	if cluster.autoFailoverUnable {
+	if cluster.autoTransferUnable {
 		return false
 	}
 	return true

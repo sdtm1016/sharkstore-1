@@ -10,7 +10,7 @@
 #include "common/ds_config.h"
 #include "frame/sf_logger.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace master {
 
@@ -220,4 +220,4 @@ bool Worker::pushCall(AsyncRPCTask *task) {
 
 }  // namespace master
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

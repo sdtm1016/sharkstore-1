@@ -10,7 +10,7 @@ _Pragma("once");
 #include "base/status.h"
 #include "rpc_types.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace master {
 
@@ -73,4 +73,4 @@ private:
 
 }  // namespace master
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

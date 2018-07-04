@@ -9,11 +9,12 @@
 #include <math.h>
 
 #include "linuxstatus.h"
+#include "mac_status.h"
 #include "datacacl.h"
 #include "encodedata.h"
 #include "rangedata.h"
 
-namespace fbase
+namespace sharkstore
 {
     namespace monitor
     {
@@ -27,7 +28,13 @@ namespace fbase
         {
             if (nullptr == statusPtr_)
             {
+#ifdef __linux__
                 this->statusPtr_ = std::make_shared<LinuxStatus>();
+#elif defined(__APPLE__)
+                this->statusPtr_ = std::make_shared<MacStatus>();
+#else
+#error unsupport platform
+#endif
             }
 
             if (nullptr == cacl_)

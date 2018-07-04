@@ -3,7 +3,7 @@
 #include <sstream>
 #include "raft_exception.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
@@ -44,21 +44,8 @@ void Inflight::reset() {
     start_ = 0;
 }
 
-Replica::Replica(const pb::Peer& peer, int max_inflight)
-    : peer_(peer),
-      inflight_(max_inflight),
-      last_active_(std::chrono::steady_clock::now()) {}
-
-void Replica::set_active() {
-    active_ = true;
-    last_active_ = std::chrono::steady_clock::now();
-}
-
-int Replica::inactive_seconds() const {
-    return std::chrono::duration_cast<std::chrono::seconds>(
-               std::chrono::steady_clock::now() - last_active_)
-        .count();
-}
+Replica::Replica(const Peer& peer, int max_inflight)
+    : peer_(peer), inflight_(max_inflight) {}
 
 void Replica::resetState(ReplicaState state) {
     paused_ = false;
@@ -160,11 +147,11 @@ bool Replica::isPaused() const {
 std::string Replica::ToString() const {
     std::ostringstream ss;
     ss << "next=" << next_ << ", match=" << match_ << ", commit=" << committed_
-       << ", state=" << ReplicateStateName(state_) << ", waiting=" << pending_
+       << ", state=" << ReplicateStateName(state_)
        << ", pendingSnapshot=" << pendingSnap_;
     return ss.str();
 }
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

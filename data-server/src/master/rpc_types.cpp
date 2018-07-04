@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace master {
 
@@ -34,4 +34,4 @@ std::string AsyncCallTypeName(AsyncCallType type) {
 
 }  // namespace master
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

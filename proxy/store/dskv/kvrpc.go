@@ -39,6 +39,7 @@ const (
 	Type_LockUpdate 	Type = 21
 	Type_Unlock 		Type = 22
 	Type_UnlockForce 	Type = 23
+	Type_LockScan 		Type = 24
 )
 
 var Type_name = map[int32]string{
@@ -81,6 +82,7 @@ type Request struct {
 	LockUpdateReq 	*kvrpcpb.DsLockUpdateRequest
 	UnlockReq 	*kvrpcpb.DsUnlockRequest
 	UnlockForceReq 	*kvrpcpb.DsUnlockForceRequest
+	LockScanReq 	*kvrpcpb.DsLockScanRequest
 
 	KvSetReq      *kvrpcpb.DsKvSetRequest
 	KvBatchSetReq *kvrpcpb.DsKvBatchSetRequest
@@ -131,6 +133,12 @@ func (m *Request) GetUnlockReq() *kvrpcpb.DsUnlockRequest {
 func (m *Request) GetUnlockForceReq() *kvrpcpb.DsUnlockForceRequest {
 	if m != nil {
 		return m.UnlockForceReq
+	}
+	return nil
+}
+func (m *Request) GetLockScanReq() *kvrpcpb.DsLockScanRequest {
+	if m != nil {
+		return m.LockScanReq
 	}
 	return nil
 }
@@ -249,6 +257,7 @@ type Response struct {
 	LockUpdateResp  *kvrpcpb.DsLockUpdateResponse
 	UnlockResp      *kvrpcpb.DsUnlockResponse
 	UnlockForceResp *kvrpcpb.DsUnlockForceResponse
+	LockScanResp 	*kvrpcpb.DsLockScanResponse
 
 	KvSetResp      *kvrpcpb.DsKvSetResponse
 	KvBatchSetResp *kvrpcpb.DsKvBatchSetResponse
@@ -340,6 +349,12 @@ func (m *Response) GetUnlockForceResp() *kvrpcpb.DsUnlockForceResponse {
 	}
 	return nil
 }
+func (m *Response) GetLockScanResp() *kvrpcpb.DsLockScanResponse {
+	if m != nil {
+		return m.LockScanResp
+	}
+	return nil
+}
 func (m *Response) GetKvSetResp() *kvrpcpb.DsKvSetResponse {
 	if m != nil {
 		return m.KvSetResp
@@ -418,6 +433,8 @@ func (resp *Response) GetErr() (pErr *errorpb.Error, err error) {
 		pErr = resp.UnlockResp.GetHeader().GetError()
 	case Type_UnlockForce:
 		pErr = resp.UnlockForceResp.GetHeader().GetError()
+	case Type_LockScan:
+		pErr = resp.LockScanResp.GetHeader().GetError()
 	case Type_KvSet:
 		pErr = resp.KvSetResp.GetHeader().GetError()
 	case Type_KvBatchSet:

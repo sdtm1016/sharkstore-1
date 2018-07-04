@@ -6,7 +6,7 @@
 #include <asio/write.hpp>
 #include "server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace playground {
 
@@ -58,4 +58,4 @@ void TelnetSession::do_write(const std::string& s) {
 
 }  // namespace playground
 }  // namespace raft
-} /* namespace fbase */
+} /* namespace sharkstore */

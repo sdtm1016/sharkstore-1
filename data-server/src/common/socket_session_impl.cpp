@@ -7,7 +7,7 @@
 
 #include "ds_proto.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace common {
 
@@ -100,4 +100,4 @@ void SocketSessionImpl::SetResponseHeader(const kvrpcpb::RequestHeader &req,
 
 }  // namespace common
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

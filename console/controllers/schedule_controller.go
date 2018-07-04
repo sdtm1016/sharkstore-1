@@ -12,6 +12,7 @@ import (
 
 const (
 	REQURI_SCHEDULER_GETALL = "/scheduler/getAll"
+	REQURI_SCHEDULER_GETDETAIL = "/scheduler/getDetail"
 	REQURI_SCHEDULER_ADJUST = "/scheduler/adjust"
 
 	REQURI_TASK_GETTASKTYPEALL="/task/getTypeAll"
@@ -39,7 +40,25 @@ func (ctrl *SchedulerAllAction)Execute(c *gin.Context) (interface{}, error) {
 	return service.NewService().GetSchedulerAll(cId)
 }
 
-
+type SchedulerDetailAction struct {
+}
+func NewSchedulerDetailAction() *SchedulerDetailAction {
+	return &SchedulerDetailAction{
+	}
+}
+func (ctrl *SchedulerDetailAction)Execute(c *gin.Context) (interface{}, error) {
+	log.Debug("start to query scheduler detail")
+	cIdStr := c.Query("clusterId")
+	schedulerName := c.Query("name")
+	if cIdStr == "" {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	cId, err := strconv.Atoi(cIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+	return service.NewService().GetSchedulerDetail(cId, schedulerName)
+}
 
 /**
  * 集群scheduler调整

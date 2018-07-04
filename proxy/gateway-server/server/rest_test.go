@@ -18,17 +18,24 @@ func TestRestKVHttp(t *testing.T) {
 	// load config file
 	conf := &Config{
 		//Addr:              ":33600",
-		LogDir:            "./log",
-		LogModule:         "gateway",
-		LogLevel:          "debug",
-		MasterServerAddrs: []string{"192.168.211.149:8887"},
+		Log: LogConfig{
+			Dir:            "./log",
+			Module:         "gateway",
+			Level:          "debug",
+		},
+		Cluster: ClusterConfig{
+			ID: 1,
+			ServerAddr: []string{"192.168.211.149:8887"},
+		},
+		Performance: PerformConfig{
+			GrpcInitWinSize:   1024 * 1024 * 10,
+			GrpcPoolSize:      1,
+		},
 		MaxClients:        10000,
 		User:              "fbase",
 		Password:          "123123",
 		Charset:           "utf8",
 		HttpPort:          3360,
-		GrpcInitWinSize:   1024 * 1024 * 10,
-		GrpcPoolSize:      1,
 	}
 	s, err := NewServer(conf)
 	if err != nil {

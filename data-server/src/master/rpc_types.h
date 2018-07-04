@@ -4,7 +4,7 @@ _Pragma("once");
 
 #include "proto/gen/mspb.grpc.pb.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace master {
 
@@ -42,4 +42,4 @@ public:
 
 }  // namespace master
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

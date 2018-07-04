@@ -6,10 +6,11 @@ _Pragma("once");
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <functional>
 #include <unordered_map>
 #include "raft_types.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace impl {
 
@@ -67,4 +68,4 @@ private:
 
 } /* namespace impl */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */

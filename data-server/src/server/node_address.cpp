@@ -5,7 +5,7 @@
 #include "master/worker.h"
 #include "server.h"
 
-namespace fbase {
+namespace sharkstore {
 namespace dataserver {
 namespace server {
 
@@ -34,4 +34,4 @@ std::string NodeAddress::GetNodeAddress(uint64_t node_id) {
 
 }  // namespace server
 }  // namespace dataserver
-}  // namespace fbase
+}  // namespace sharkstore

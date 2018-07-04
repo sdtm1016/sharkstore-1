@@ -5,7 +5,7 @@ _Pragma("once");
 #include <asio/ip/tcp.hpp>
 #include <asio/streambuf.hpp>
 
-namespace fbase {
+namespace sharkstore {
 namespace raft {
 namespace playground {
 
@@ -29,9 +29,8 @@ private:
     Server* server_;
     asio::ip::tcp::socket socket_;
     asio::streambuf buffer_;
-    char data_[1024];
 };
 
 } /* namespace playground */
 } /* namespace raft */
-} /* namespace fbase */
+} /* namespace sharkstore */
