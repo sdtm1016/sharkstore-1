@@ -393,6 +393,41 @@ func (s *Service) EditTable(cId int, dbName, tableName, rangeKeys string, column
 	return nil
 }
 
+func (s *Service) EditTablePolicy(cId int, dbName, tableName string, readPolicy int32) error {
+	info, err := s.selectClusterById(cId)
+	if err != nil {
+		return err
+	}
+	if info == nil {
+		return common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(info.Id, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["dbName"] = dbName
+	reqParams["tableName"] = tableName
+	reqParams["readPolicy"] = readPolicy
+
+	var editTablePolicyResp = struct {
+		Code int         `json:"code"`
+		Msg  string      `json:"message"`
+		Data interface{} `json:"data"`
+	}{}
+	if err := sendPostReqStrBody(info.MasterUrl, "/manage/table/editPolicy", reqParams, &editTablePolicyResp); err != nil {
+		return err
+	}
+	if editTablePolicyResp.Code != 0 {
+		log.Error("master editTablePolicy is failed. err:[%v]", editTablePolicyResp)
+		return common.INTERNAL_ERROR
+	}
+
+	return nil
+}
+
 func (s *Service) getTableRanges(dbName, tName string, clusterId uint64) ([]*models.Route, error) {
 	log.Debug("//getTableRanges")
 	info, err := s.selectClusterById(int(clusterId))

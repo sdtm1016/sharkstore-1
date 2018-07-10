@@ -65,6 +65,7 @@ func (service *Server) initHttpHandler() (){
 
 	s.Handle("/manage/table/cancel", NewHandler(service.validRequest, service.handleTableCancel))
 	s.Handle("/manage/table/edit", NewHandler(service.validRequest, service.handleTableEdit))
+	s.Handle("/manage/table/editPolicy", NewHandler(service.validRequest, service.handleTableEditPolicy))
 	s.Handle("/manage/table/delete", NewHandler(service.validRequest, service.handleTableDelete))
 	s.Handle("/manage/table/delete/fast", NewHandler(service.validRequest, service.handleTableFastDelete))
 	s.Handle("/manage/node/login", NewHandler(service.validRequest, service.handleHttpNodeLogin))

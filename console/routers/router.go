@@ -663,6 +663,9 @@ func (r *Router)StartRouter() *gin.Engine {
 	router.POST(controllers.REQURL_META_EDITTABLE, func(c *gin.Context) {
 		handleAction(c, controllers.NewEditTableAction())
 	})
+	router.POST(controllers.REQURL_META_TABLERWPOLICY, func(c *gin.Context) {
+		handleAction(c, controllers.NewEditTablePolicy())
+	})
 	router.POST(controllers.REQURL_META_GETTABLECOLUMNS, func(c *gin.Context) {
 		handleAction(c, controllers.NewGetTableColumns())
 	})

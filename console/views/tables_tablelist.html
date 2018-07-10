@@ -62,6 +62,7 @@
                 </div>
             </td>-->
             <td style="vertical-align:middle; text-align:center;">
+                <div>{{table.read_from_node}}}</div>
                 <div>
                     <select id="rwPolicy" ng-change="rwPolicys(table)" ng-model="table.RwPolicy.policy">
                         <option value="1" ng-selected="table.RwPolicy.policy==1">读写分离</option>

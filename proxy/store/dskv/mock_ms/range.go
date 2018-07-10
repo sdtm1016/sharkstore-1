@@ -5,14 +5,13 @@ import (
 	"sync"
 
 	"model/pkg/metapb"
-	"model/pkg/mspb"
 )
 
 type Range struct {
 	lock sync.RWMutex
 	*metapb.Range
 	Leader      *metapb.Peer
-	PeersStatus []*mspb.PeerStatus
+	PeersStatus []*metapb.PeerStatus
 
 	State metapb.RangeState
 }

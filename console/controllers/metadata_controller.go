@@ -20,6 +20,7 @@ const (
 	REQURL_META_GETALLTABLE = "/metadata/dbTablesDataGetByDbName"
 	REQURL_META_DELTABLE  = "/metadata/delTable"
 	REQURL_META_EDITTABLE = "/metadata/editTable"
+	REQURL_META_TABLERWPOLICY = "/metadata/tableRwPolicy"
 	REQURL_META_GETTABLECOLUMNS = "/metadata/getTableColumns"
 
 	RANGE_GETRANGEBYDBTABLE = "/range/getRangeByBbTable"
@@ -317,6 +318,46 @@ func (ctrl *EditTableAction)Execute(c *gin.Context) (interface{}, error) {
 
 	return nil, service.NewService().EditTable(cId, dbName, tableName, rangeKeys, &columnJsonArray, &regxsJsonArray)
 }
+
+
+type EditTablePolicy struct {
+}
+func NewEditTablePolicy() *EditTablePolicy {
+	return &EditTablePolicy{}
+}
+func (ctrl *EditTablePolicy) Execute(c *gin.Context) (interface{}, error) {
+	cIdStr := c.PostForm("clusterId")
+	if cIdStr == "" {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	log.Debug("-----------EditTablePolicy clusterid:[%v]", cIdStr)
+	cId, err := strconv.Atoi(cIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+	dbName := c.PostForm("dbName")
+	if dbName == "" {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	log.Debug("-----------EditTablePolicy dbname:[%v]", dbName)
+	tableName := c.PostForm("name")
+	if tableName == "" {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	log.Debug("-----------EditTablePolicy table name:[%v]", tableName)
+	readPolicyStr := c.PostForm("policy")
+	if readPolicyStr == "" {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	log.Debug("-----------EditTablePolicy readPolicyStr:[%v]", readPolicyStr)
+	readPolicy, err := strconv.Atoi(readPolicyStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	return nil, service.NewService().EditTablePolicy(cId, dbName, tableName, readPolicy)
+}
+
 
 type RangeViewInfo struct {
 

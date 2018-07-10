@@ -342,10 +342,21 @@ func encodeSplitKeys(keys [][]byte, columns []*metapb.Column) ([][]byte, error) 
 	return ret, nil
 }
 
+func (c *Cluster) int2ReadFromNode(v int32) metapb.ReadFromNode {
+	if v == 0 {
+		return metapb.ReadFromNode_ReadFromLeader
+	}
+	if v == 1 {
+		return metapb.ReadFromNode_ReadFromFollower
+	}
+	return metapb.ReadFromNode_ReadFromAnyNode
+}
+
 // step 1. create table
 // step 2. create range in remote
 // step 3. add range in cache and disk
-func (c *Cluster) CreateTable(dbName, tableName, isolationLabel string, columns, regxs []*metapb.Column, pkDupCheck bool, sliceKeys [][]byte) (*Table, error) {
+func (c *Cluster) CreateTable(dbName, tableName, isolationLabel string, readPoint int32, columns, regxs []*metapb.Column, pkDupCheck bool, sliceKeys [][]byte) (*Table, error) {
+	readFromNode := c.int2ReadFromNode(readPoint)
 	for _, col := range columns {
 		if isSqlReservedWord(col.Name) {
 			log.Warn("col[%s] is sql reserved word", col.Name)
@@ -387,6 +398,7 @@ func (c *Cluster) CreateTable(dbName, tableName, isolationLabel string, columns,
 		CreateTime: time.Now().Unix(),
 		PkDupCheck: pkDupCheck,
 		IsolationLabel: isolationLabel,
+		ReadFromNode: readFromNode,
 	}
 
 	var sharingKeys [][]byte

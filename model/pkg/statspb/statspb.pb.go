@@ -42,6 +42,7 @@ import (
 	proto "github.com/golang/protobuf/proto"
 
 	_ "github.com/gogo/protobuf/gogoproto"
+
 	mspb "model/pkg/mspb"
 
 	binary "encoding/binary"

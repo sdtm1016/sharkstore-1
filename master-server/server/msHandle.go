@@ -57,6 +57,7 @@ func (service *Server) handleGetRoute(ctx context.Context, req *mspb.GetRouteReq
 			routes = append(routes, &metapb.Route{
 				Range:  deepcopy.Iface(rng.Range).(*metapb.Range),
 				Leader: leader,
+				PeerStatus: rng.PeersStatus,
 			})
 
 			if ind == 0 {
@@ -642,7 +643,7 @@ func (service *Server) handleCreateTable(ctx context.Context, req *mspb.CreateTa
 		err = errors.New("invalid properties")
 		return
 	}
-	if _, err = service.cluster.CreateTable(req.GetDbName(), req.GetTableName(), "", columns, regxs, false, nil); err != nil {
+	if _, err = service.cluster.CreateTable(req.GetDbName(), req.GetTableName(), "", 0, columns, regxs, false, nil); err != nil {
 		log.Error("http sql table create : %v", err)
 		return
 	}

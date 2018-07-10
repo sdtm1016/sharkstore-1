@@ -178,29 +178,39 @@ app.controller('mytables', function($rootScope, $scope, $http, $timeout) {
     $scope.rwPolicys = function(table) {
     	var policyObject = {};
     	policyObject.policy = parseInt(table.RwPolicy.policy);
-    	$.ajax({
-			url:"/metadata/tableRwPolicy",
-			type:"post",
-	        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-	        dataType:"json",
-	        data:{
-	        	"option":"set",
-	        	"clusterId":clusterId,
-	        	"dbName":table.db_name,
-	        	"tableName":table.name,
-	        	"policy":JSON.stringify(policyObject)
-	        },
-			success: function(data){
-				if(data.attach.code === 0){
-					swal("设置成功!", data.attach.message, "success");
-				}else {
-					swal("设置失败", data.attach.message, "error");
-				}
-	        },
-	        error: function(res){
-	        	swal("设置失败", res, "error");
-	        }
-		});
+        swal({
+                title: "确定修改Table读取策略?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "修改",
+                closeOnConfirm: false
+            },
+			function() {
+                $.ajax({
+                    url:"/metadata/tableRwPolicy",
+                    type:"post",
+                    contentType:"application/x-www-form-urlencoded; charset=UTF-8",
+                    dataType:"json",
+                    data:{
+                        "option":"set",
+                        "clusterId":clusterId,
+                        "dbName":table.db_name,
+                        "tableName":table.name,
+                        "policy":JSON.stringify(policyObject)
+                    },
+                    success: function(data){
+                        if(data.attach.code === 0){
+                            swal("设置成功!", data.attach.message, "success");
+                        }else {
+                            swal("设置失败", data.attach.message, "error");
+                        }
+                    },
+                    error: function(res){
+                        swal("设置失败", res, "error");
+                    }
+                });
+            });
     };
 });
 

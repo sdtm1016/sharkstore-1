@@ -145,6 +145,7 @@ func (p *Proxy) doSelect(t *Table, fieldList []*kvrpcpb.SelectField, matches []M
 		WhereFilters: pbMatches,
 		Limit:        pbLimit,
 		Timestamp:    &timestamp.Timestamp{WallTime: now.WallTime, Logical: now.Logical},
+		ReadPoint:    t.ReadFromNode,
 	}
 	return p.selectRemote(t, sreq)
 }

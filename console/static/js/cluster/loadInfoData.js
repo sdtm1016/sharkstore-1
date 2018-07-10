@@ -634,20 +634,23 @@ function updateIsolationLabel(nodeId) {
             closeOnConfirm: false
         },
         function (inputValue) {
-            if (inputValue === false) return;
-            if (inputValue === "") {
-                swal.showInputError("不能为空字符");
-                return
-            }
-
             var clusterId = $('#clusterId').val();
             var isolationLabel = inputValue;
             if (isolationLabel == "" || isolationLabel == null) {
-                swal("请输入IsolationLabel");
-                return
+                swal({
+                        title: "Node隔离标志",
+                        text: "为空则代表公共Node，是否继续？",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "继续修改",
+                        closeOnConfirm: false
+                    },
+                    goAndUpdateNodeIsolationLabel(clusterId, nodeId, isolationLabel)
+                );
+
+            } else {
+                goAndUpdateNodeIsolationLabel(clusterId, nodeId, isolationLabel)
             }
-            window.location.href = "/node/updateIsolationLabel?clusterId=" + clusterId + "&nodeId=" + nodeId + "&isolationLabel=" + isolationLabel;
-            window.location.reload();
         }
     );
 }
@@ -864,6 +867,11 @@ function showTabs(tabsId, url) {
 
 function getMonitorUrl(dashboardName, panelId, clusterId, startTime, endTime, type){
     return "/page/monitor/cluster?clusterId="+clusterId+"&dashboardName="+dashboardName+"&panelId=" + panelId + "&startTime="+ startTime + "&endTime=" + endTime + "&type=" + type;
+}
+
+function goAndUpdateNodeIsolationLabel(clusterId, nodeId, isolationLabel) {
+    window.location.href = "/node/updateIsolationLabel?clusterId=" + clusterId + "&nodeId=" + nodeId + "&isolationLabel=" + isolationLabel;
+    window.location.reload();
 }
 
 

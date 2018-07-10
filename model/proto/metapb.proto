@@ -85,6 +85,14 @@ message Peer {
     // more attributes......
 }
 
+message PeerStatus {
+    Peer peer           = 1;
+    uint64 index        = 2;
+    uint64 commit       = 3;
+    uint64 down_seconds = 4;
+    bool snapshotting   = 5;
+}
+
 message Replica {
     uint64 range_id      = 1;
     Peer   peer          = 2;
@@ -118,8 +126,9 @@ message Leader {
 }
 
 message Route {
-    Range range                = 1;
-    Peer leader                = 2;
+    Range range                        = 1;
+    Peer leader                        = 2;
+    repeated PeerStatus peer_status    = 3;
 }
 
 message DataBase {
@@ -213,6 +222,15 @@ enum TableStatus {
     TableDeleting      = 5;
 }
 
+enum ReadFromNode {
+    // 仅 master 读
+    ReadFromLeader   = 0;
+    // 读写分离(leader写，follower读)
+    ReadFromFollower = 1;
+    // 混合读(leader\follower都可读)
+    ReadFromAnyNode  = 2;
+}
+
 message Table {
     string name                 = 1;
     string db_name              = 2;
@@ -232,6 +250,7 @@ message Table {
     // table expand area
     // now when status is TableDelete, expand is the delete flag time
     bytes expand                = 12;
-    string isolation_label       = 13;
+    string isolation_label      = 13;
+    ReadFromNode read_from_node = 14;
 }
 

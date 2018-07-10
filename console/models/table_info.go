@@ -24,7 +24,8 @@ type TableInfo struct {
 	Epoch      Epoch        `json:"epoch"`
 	CreateTime int64        `json:"create_time"`
 	Status     int          `json:"status"`
-	IsolationLabel string `json:"isolation_label"`
+	IsolationLabel string 	`json:"isolation_label"`
+	ReadFromNode metapb.ReadFromNode `json:"read_from_node"`
 }
 
 type Peer struct {

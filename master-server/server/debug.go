@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"model/pkg/metapb"
-	"model/pkg/mspb"
 	"model/pkg/taskpb"
 	"util/deepcopy"
 	"util/log"
@@ -23,7 +22,7 @@ type NodeDebug struct {
 type RangeDebug struct {
 	*metapb.Range
 	Leader      *metapb.Peer       `json:"leader,omitempty"`
-	PeersStatus []*mspb.PeerStatus `json:"peers_status,omitempty"`
+	PeersStatus []*metapb.PeerStatus `json:"peers_status,omitempty"`
 	LastHbTime  time.Time          `json:"last_hb_time,omitempty"`
 	Task        *taskpb.Task       `json:"task,omitempty"`
 }

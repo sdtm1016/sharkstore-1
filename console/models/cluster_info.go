@@ -52,13 +52,14 @@ type MsNode struct {
 }
 
 type DsNode struct {
-	Id uint64 			`json:"id,omitempty"`
+	Id uint64 				`json:"id,omitempty"`
 	// rpc 服务地址
-	ServerAddr string 	`json:"server_addr,omitempty"`
+	ServerAddr string 		`json:"server_addr,omitempty"`
 	// raft　服务地址
-	RaftAddr string 	`json:"raft_addr,omitempty"`
+	RaftAddr string 		`json:"raft_addr,omitempty"`
 	// http 管理地址
-	HttpAddr string     `json:"http_addr,omitempty"`
-	State    int32 		`json:"state,omitempty"`
-	Version  string     `json:"version,omitempty"`
+	HttpAddr string     	`json:"http_addr,omitempty"`
+	State    int32 			`json:"state,omitempty"`
+	Version  string     	`json:"version,omitempty"`
+	IsolationLabel string 	`json:"isolation_label,omitempty"`
 }

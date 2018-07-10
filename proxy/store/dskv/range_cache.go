@@ -258,6 +258,7 @@ func (c *RangeCache) loadRegion(bo *Backoffer, key []byte) ([]*Range, error) {
 			region := &Range{
 				meta: r.Range,
 				peer: r.Range.Peers[0],
+				peerStatus: r.PeerStatus,
 			}
 			if r.Leader != nil {
 				region.SwitchPeer(r.Leader.GetNodeId())
@@ -355,6 +356,7 @@ func (item *llrbItem) Less(other llrb.Item) bool {
 type Range struct {
 	meta             *metapb.Range
 	peer             *metapb.Peer
+	peerStatus       []*metapb.PeerStatus
 	unreachableNodes []uint64
 }
 

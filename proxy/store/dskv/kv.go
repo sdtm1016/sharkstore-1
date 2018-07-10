@@ -298,13 +298,31 @@ func (p *KvProxy) do(bo *Backoffer, req *Request, key []byte) (resp *Response, l
 		metricLoop++
 
 		l, err = p.RangeCache.LocateKey(bo, key)
+
+		readNodeId := l.NodeId
+		if req.Type == Type_Select && req.SelectReq.Req.ReadPoint == metapb.ReadFromNode_ReadFromFollower {
+			foundRange := p.RangeCache.getRegionByIDFromCache(l.Region.Id)
+			for _, _p := range foundRange.meta.Peers {
+				if  _p.NodeId != l.NodeId {
+					readNodeId = _p.NodeId
+					for _, peer_status := range foundRange.peerStatus {
+						if _p.Id == peer_status.Peer.Id {
+							// todo the period of updating peer index
+							req.SelectReq.Req.PeerStatus = peer_status
+							break
+						}
+					}
+					break
+				}
+			}
+		}
 		if err != nil {
 			log.Error("locate key=%v failed, err=%v", key, err)
 			return
 		}
-		addr, err = p.RangeCache.GetNodeAddr(bo, l.NodeId)
+		addr, err = p.RangeCache.GetNodeAddr(bo, readNodeId)
 		if err != nil {
-			log.Error("locate node=%d failed, err=%v", l.NodeId, err)
+			log.Error("locate node=%d failed, err=%v", readNodeId, err)
 			return
 		}
 		log.Debug("key: %v, addr: %v", string(key), addr)
@@ -314,7 +332,7 @@ func (p *KvProxy) do(bo *Backoffer, req *Request, key []byte) (resp *Response, l
 			return
 		}
 		metricSend := time.Now().UnixNano()
-		ctx := &Context{VID: l.Region, NodeId: l.NodeId, NodeAddr: addr, RequestHeader: reqHeader, Timeout: timeout}
+		ctx := &Context{VID: l.Region, NodeId: readNodeId, NodeAddr: addr, RequestHeader: reqHeader, Timeout: timeout}
 		resp, err = p.sendReq(bo, ctx, req)
 		sendDelay := (time.Now().UnixNano() - metricSend) / int64(time.Millisecond)
 		if sendDelay <= 50 {
@@ -369,6 +387,7 @@ func (p *KvProxy) sendReq(bo *Backoffer, ctx *Context, req *Request) (resp *Resp
 			return
 		}
 		if pErr != nil {
+			// todo handle error when reading from follower
 			retry, err = p.doRangeError(bo, pErr, ctx)
 			if err != nil {
 				return

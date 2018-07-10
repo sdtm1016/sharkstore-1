@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"model/pkg/metapb"
-	"model/pkg/mspb"
 	"sync/atomic"
 	"util/deepcopy"
 )
@@ -22,7 +21,7 @@ type Range struct {
 	*metapb.Range
 	Leader      *metapb.Peer
 	Term        uint64
-	PeersStatus []*mspb.PeerStatus
+	PeersStatus []*metapb.PeerStatus
 
 	BytesWritten uint64
 	BytesRead    uint64
@@ -119,7 +118,7 @@ func (r *Range) GetPeer(peerID uint64) *metapb.Peer {
 }
 
 // GetStatus return peer's status
-func (r *Range) GetStatus(peerID uint64) *mspb.PeerStatus {
+func (r *Range) GetStatus(peerID uint64) *metapb.PeerStatus {
 	if r == nil || peerID == 0 {
 		return nil
 	}
