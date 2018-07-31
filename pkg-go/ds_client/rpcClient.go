@@ -1184,7 +1184,7 @@ func (c *DSRpcClient) recvWork() {
 				log.Error("%s hb clientId %d response too long %d ms", c.addr, c.GetClientId(), delay)
 			}
 			//临时打开：
-			log.Info("%s clientId %d delay %d ,wait msgId size :%d", c.addr, c.GetClientId(), delay, c.waitList.ElemSize())
+			log.Debug("%s clientId %d delay %d ,wait msgId size :%d", c.addr, c.GetClientId(), delay, c.waitList.ElemSize())
 			// 空闲超时,主动断开链接
 			if time.Duration(c.heartbeatCount)*HeartbeatInterval > DefaultIdleTimeout {
 				c.closeLink(ErrConnIdleTimeout)

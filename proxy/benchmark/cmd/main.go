@@ -52,7 +52,14 @@ func main() {
 		return
 	}
 
-	go benchmark(srv)
+	benchType := conf.BenchConfig.Type
+	if benchType > 0 {
+		go benchmark(srv)
+	} else if benchType < 0 {
+		go checkSelectWhenDsRestarting(srv)
+	} else {
+		go rangeChecking(srv)
+	}
 
 	go gogc.TickerPrintGCSummary(log.GetFileLogger(), "info")
 	srv.Run()
@@ -140,6 +147,7 @@ func benchmark(s *server.Server) {
 		for concur := 0; concur < s.GetCfg().BenchConfig.Threads; concur++ {
 			go insertTestData(s, concur, 10000, ip)
 		}
+		log.Info("insert completed.")
 	}
 	//select data
 	if s.GetCfg().BenchConfig.Type == 2 {
@@ -559,15 +567,117 @@ func insertTestData(s *server.Server, threadNo, total int, ip string) {
 			row := createRow(h, fmt.Sprintf("%s-%d", user_name, b), pass_word, real_name)
 			rows = append(rows, row)
 		}
-		reply := api.Insert(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields, rows)
-		log.Debug("%v", reply)
-		if reply.Code == 0 {
-			atomic.AddInt64(&stat.lastCount, 1)
-		} else {
-			atomic.AddInt64(&stat.errCount, 1)
-			i = i - 1
-			log.Warn("%v", reply)
+
+		for {
+			reply := api.Insert(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields, rows)
+			log.Debug("%v", reply)
+
+			if reply != nil && reply.Code == 0 {
+				atomic.AddInt64(&stat.lastCount, 1)
+				break
+			} else {
+				atomic.AddInt64(&stat.errCount, 1)
+				i = i - 1
+				log.Warn("insert err: %v, will retry in 2s...", reply)
+				time.Sleep(time.Duration(2000) * time.Millisecond)
+			}
 		}
+
+	}
+
+}
+
+
+func rangeChecking(s *server.Server) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	no := r.Intn(s.GetCfg().BenchConfig.SendNum)
+
+	pks := make(map[string]interface{})
+
+	var threadNo = 1
+	ip := getIp()
+	user_name := getUserName(no, ip, threadNo)
+	h := hash(user_name) % 16384
+	pks["user_name"] = user_name
+	pks["h"] = h
+
+	reply := api.Select(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields, pks, nil)
+	log.Debug("%v", reply)
+	if reply.Code == 0 && len(reply.Values) > 0 {
+		log.Debug("found data.")
+	} else {
+		log.Error("no such data.")
+		return
+	}
+
+	api.DoMigration(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, s.GetCfg().Cluster, TableFields, pks)
+
+	rows := make([][]interface{}, 0)
+	row := make([]interface{}, 0)
+	row = append(row, h)
+	row = append(row, user_name)
+	row = append(row, "pass_word")
+	row = append(row, "real_name")
+	rows = append(rows, row)
+
+	time.Sleep(time.Duration(2000) * time.Millisecond)
+
+	api.DoMigrationAfterUpdating(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, s.GetCfg().Cluster, TableFields, pks, rows)
+
+}
+
+func checkSelectWhenDsRestarting(s *server.Server) {
+
+	total := s.GetCfg().BenchConfig.SendNum
+
+	pks := make(map[string]interface{})
+	ip := getIp()
+	user_name := getUserName(50451, ip, 1)
+	h := hash(user_name) % 16384 // h=10666, to fix rangeId=24
+	pks["user_name"] = user_name
+	pks["h"] = h
+
+	runType := s.GetCfg().BenchConfig.Type
+
+	if runType == -1 {
+		for i := 0; i < total; i++ {
+			reply := api.Select(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields, pks, nil)
+			if reply != nil {
+				log.Info("select from api, Reply.Message: %s", reply.Message)
+			}
+		}
+	}
+	if runType == -2 {
+		for i := 0; i < total; i++ {
+			api.DoDsSelect(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields, pks)
+		}
+	}
+	if runType == -3 {
+		var errNo = 0
+		// check all
+		for threadNo := 0; threadNo < s.GetCfg().BenchConfig.Threads; threadNo++ {
+			for sendNo := 0; sendNo < s.GetCfg().BenchConfig.SendNum; sendNo++ {
+				user_name := getUserName(sendNo, ip, threadNo)
+				h := hash(user_name) % 16384
+				pks["user_name"] = user_name
+				pks["h"] = h
+
+				var isErr = true
+				for i := 0; i < 10; i++ {
+					reply := api.Select(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields, pks, nil)
+					if reply != nil && reply.Code == 0 && len(reply.Values) > 0 {
+						isErr = false
+						break
+					}
+					log.Warn("select [%v] err, reply=[%v].", pks, reply)
+					time.Sleep(time.Duration(5) * time.Second)
+				}
+				if isErr {
+					errNo++
+				}
+			}
+		}
+		log.Info("select completed, error times: %d", errNo)
 	}
 
 }
