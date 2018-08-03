@@ -17,12 +17,17 @@ import (
 	"model/pkg/metapb"
 	"net"
 	"pkg-go/ds_client"
+	"console/models"
+	"util/deepcopy"
+	"bytes"
 )
 
 type SharkStoreApi struct {
 }
 
-func (api *SharkStoreApi) Insert(s *Server, dbName string, tableName string, fields []string, values [][]interface{}) *Reply {
+func (api *SharkStoreApi) Insert(s *Server, fields []string, values [][]interface{}) *Reply {
+	dbName := s.GetCfg().BenchConfig.DB
+	tableName := s.GetCfg().BenchConfig.Table
 
 	cmd := &Command{
 		Type:   "set",
@@ -37,7 +42,10 @@ func (api *SharkStoreApi) Insert(s *Server, dbName string, tableName string, fie
 
 }
 
-func (api *SharkStoreApi) Select(s *Server, dbName string, tableName string, fields []string, pks map[string]interface{}, limit_ *Limit_) *Reply {
+func (api *SharkStoreApi) Select(s *Server, fields []string, pks map[string]interface{}, limit_ *Limit_) *Reply {
+	dbName := s.GetCfg().BenchConfig.DB
+	tableName := s.GetCfg().BenchConfig.Table
+
 	ands := make([]*And, 0)
 	for k, v := range pks {
 		and := &And{
@@ -64,7 +72,10 @@ func (api *SharkStoreApi) Select(s *Server, dbName string, tableName string, fie
 	return api.execute(s, dbName, tableName, query)
 }
 
-func (api *SharkStoreApi) Delete(s *Server, dbName string, tableName string, fields []string, pks map[string]interface{}) *Reply {
+func (api *SharkStoreApi) Delete(s *Server, fields []string, pks map[string]interface{}) *Reply {
+	dbName := s.GetCfg().BenchConfig.DB
+	tableName := s.GetCfg().BenchConfig.Table
+
 	ands := make([]*And, 0)
 	for k, v := range pks {
 		and := &And{
@@ -153,8 +164,297 @@ func (api *SharkStoreApi) execute(s *Server, dbName string, tableName string, qu
 	return reply
 }
 
+func (api *SharkStoreApi) TransferCurrLeader(s *Server) {
+	dbName := s.GetCfg().BenchConfig.DB
+	tableName := s.GetCfg().BenchConfig.Table
+	clusterCf := s.GetCfg().Cluster
 
-func (api *SharkStoreApi) DoDsSelect(s *Server, dbName string, tableName string, fields []string, pks map[string]interface{}) {
+	if len(dbName) == 0 {
+		log.Error("args[dbName] wrong")
+		return
+	}
+	if len(tableName) == 0 {
+		log.Error("args[tableName] wrong")
+		return
+	}
+
+	routes, err := getAllRangesOfTable(clusterCf, dbName, tableName)
+	if err != nil {
+		log.Error("get ranges of table error: %v", err)
+		return
+	}
+
+	rangePeers := make(map[uint64]*models.Range)
+	for _, route := range routes {
+		rangeId := route.Range.Id
+		currLeaderPeerId := route.Leader.Id
+		rangePeers[rangeId] = deepcopy.Iface(route.Range).(*models.Range)
+
+		err = callHttpMigration(clusterCf, rangeId, currLeaderPeerId)
+		if err != nil {
+			log.Error("table[%s] - range[%d] callHttpMigration error: %v", tableName, rangeId, err)
+			return
+		}
+	}
+
+	log.Info("wait 10s to check if leader has changed.")
+	time.Sleep(time.Duration(10) * time.Second)
+
+	for {
+		routes, err := getAllRangesOfTable(s.GetCfg().Cluster, dbName, tableName)
+		if err != nil {
+			log.Warn("checking ranges of table error: %v", err)
+			continue
+		}
+
+		var changed = true
+		for _, route := range routes {
+			rng := rangePeers[route.Range.Id]
+			for _, peer := range rng.Peers {
+				if route.Leader.Id == peer.Id {
+					changed = false
+					break
+				}
+			}
+		}
+		if changed {
+			for _, route := range routes {
+				log.Info("range[%d], new leader [peerId=%d, NodeId=%d, NodeAddr=%s]",
+					route.Range.Id, route.Leader.Id, route.Leader.Node.Id, route.Leader.Node.ServerAddr)
+			}
+			break
+		}
+	}
+}
+
+func (api *SharkStoreApi) ChangeLeaderOfRange(s *Server, times int, preLeaderPeers map[uint64]uint64) map[uint64]uint64 {
+	dbName := s.GetCfg().BenchConfig.DB
+	tableName := s.GetCfg().BenchConfig.Table
+	clusterCf := s.GetCfg().Cluster
+
+	if len(dbName) == 0 {
+		log.Error("args[dbName] wrong")
+		return nil
+	}
+	if len(tableName) == 0 {
+		log.Error("args[tableName] wrong")
+		return nil
+	}
+
+	rangeLeaderPeers := make(map[uint64]uint64)
+	routes, err := getAllRangesOfTable(clusterCf, dbName, tableName)
+	if err != nil {
+		log.Error("get ranges of table error: %v", err)
+		return nil
+	}
+	for _, route := range routes {
+		log.Info("%d -- range[%d], curr leader [peerId=%d, NodeId=%d, NodeAddr=%s]",
+			times, route.Range.Id, route.Leader.Id, route.Leader.Node.Id, route.Leader.Node.ServerAddr)
+
+		currLeaderPeerId := route.Leader.Id
+		rangeLeaderPeers[route.Range.Id] = currLeaderPeerId
+
+		var newLeaderPeerId uint64
+		if preLeaderPeers != nil {
+			for _, peer := range route.Range.Peers {
+				if peer.Id != currLeaderPeerId && peer.Id != preLeaderPeers[route.Range.Id] {
+					newLeaderPeerId = peer.Id
+					break
+				}
+			}
+		} else {
+			for _, peer := range route.Range.Peers {
+				if peer.Id != currLeaderPeerId {
+					newLeaderPeerId = peer.Id
+					break
+				}
+			}
+		}
+
+		changeRangeLeader(s.GetCfg().Cluster, route.Range.Id, newLeaderPeerId)
+	}
+
+	log.Info("wait 10s to check if leader has changed.")
+	time.Sleep(time.Duration(10) * time.Second)
+
+	for {
+		routes, err := getAllRangesOfTable(s.GetCfg().Cluster, dbName, tableName)
+		if err != nil {
+			log.Warn("checking ranges of table error: %v", err)
+			continue
+		}
+
+		var changed = true
+		for _, route := range routes {
+			if route.Leader.Id != rangeLeaderPeers[route.Range.Id] {
+				log.Debug("%d -- range[%d], new leader [peerId=%d, NodeId=%d, NodeAddr=%s]",
+					times, route.Range.Id, route.Leader.Id, route.Leader.Node.Id, route.Leader.Node.ServerAddr)
+				continue
+			} else {
+				changed = false
+				break
+			}
+		}
+		if changed {
+			for _, route := range routes {
+				log.Info("%d -- range[%d], new leader [peerId=%d, NodeId=%d, NodeAddr=%s]",
+					times, route.Range.Id, route.Leader.Id, route.Leader.Node.Id, route.Leader.Node.ServerAddr)
+			}
+			break
+		}
+	}
+
+	return rangeLeaderPeers
+}
+
+func (api *SharkStoreApi) ComparePeerBytesOfRange(s *Server) {
+	dbName := s.GetCfg().BenchConfig.DB
+	tableName := s.GetCfg().BenchConfig.Table
+	clusterCf := s.GetCfg().Cluster
+
+	if len(dbName) == 0 {
+		log.Error("args[dbName] wrong")
+		return
+	}
+	if len(tableName) == 0 {
+		log.Error("args[tableName] wrong")
+		return
+	}
+
+	rangeData := make(map[uint64]*models.Route)
+	// rangeId ---> leaderPeerId
+	leaderPeerIds := make(map[uint64]uint64)
+	routes, err := getAllRangesOfTable(clusterCf, dbName, tableName)
+	if err != nil {
+		log.Error("get ranges of table error: %v", err)
+		return
+	}
+	for _, route := range routes {
+		currLeaderPeerId := route.Leader.Id
+
+		log.Info("[%d] time(s) -- range[%d], curr leader [peerId=%d, NodeId=%d, NodeAddr=%s]",
+			1, route.Range.Id, currLeaderPeerId, route.Leader.Node.Id, route.Leader.Node.ServerAddr)
+
+		rangeData[route.Range.Id] = deepcopy.Iface(route).(*models.Route)
+
+		var newLeaderPeerId uint64
+		for _, peer := range route.Range.Peers {
+			if peer.Id != currLeaderPeerId {
+				newLeaderPeerId = peer.Id
+				break
+			}
+		}
+
+		leaderPeerIds[route.Range.Id] = newLeaderPeerId
+		changeRangeLeader(s.GetCfg().Cluster, route.Range.Id, newLeaderPeerId)
+	}
+
+	log.Info("[1] wait 10s to check if leader has changed.")
+	time.Sleep(time.Duration(10) * time.Second)
+
+	for {
+		routes, err := getAllRangesOfTable(s.GetCfg().Cluster, dbName, tableName)
+		if err != nil {
+			log.Warn("[1] checking ranges of table error: %v", err)
+			continue
+		}
+
+		var changed = true
+		for _, route := range routes {
+			if route.Leader.Id == leaderPeerIds[route.Range.Id] {
+				log.Debug("[%d] time(s) -- range[%d], new leader [peerId=%d, NodeId=%d, NodeAddr=%s]",
+					1, route.Range.Id, route.Leader.Id, route.Leader.Node.Id, route.Leader.Node.ServerAddr)
+				continue
+			} else {
+				changed = false
+				break
+			}
+		}
+		if changed {
+			for _, route := range routes {
+				log.Info("%d -- range[%d], new leader [peerId=%d, NodeId=%d, NodeAddr=%s]",
+					1, route.Range.Id, route.Leader.Id, route.Leader.Node.Id, route.Leader.Node.ServerAddr)
+			}
+			break
+		}
+	}
+
+	routes, _ = getAllRangesOfTable(s.GetCfg().Cluster, dbName, tableName)
+	for _, route := range routes {
+		prevRange := rangeData[route.Range.Id].Range
+		if bytes.Compare(route.Range.StartKey, prevRange.StartKey) != 0 ||
+			bytes.Compare(route.Range.EndKey, prevRange.EndKey) != 0 {
+				log.Error("range[%d] bytes compare not equal.", route.Range.Id)
+				return
+		}
+	}
+	log.Info("[1] time(s) start/end key check passed.")
+
+	for _, route := range routes {
+		currLeaderPeerId := route.Leader.Id
+
+		log.Info("[%d] time(s) -- range[%d], curr leader [peerId=%d, NodeId=%d, NodeAddr=%s]",
+			2, route.Range.Id, currLeaderPeerId, route.Leader.Node.Id, route.Leader.Node.ServerAddr)
+
+		var newLeaderPeerId uint64
+		for _, peer := range route.Range.Peers {
+			if peer.Id != currLeaderPeerId && peer.Id != rangeData[route.Range.Id].Leader.Id {
+				newLeaderPeerId = peer.Id
+				break
+			}
+		}
+
+		leaderPeerIds[route.Range.Id] = newLeaderPeerId
+		changeRangeLeader(s.GetCfg().Cluster, route.Range.Id, newLeaderPeerId)
+	}
+
+	log.Info("[2] wait 10s to check if leader has changed.")
+	time.Sleep(time.Duration(10) * time.Second)
+
+	for {
+		routes, err := getAllRangesOfTable(s.GetCfg().Cluster, dbName, tableName)
+		if err != nil {
+			log.Warn("[2] checking ranges of table error: %v", err)
+			continue
+		}
+
+		var changed = true
+		for _, route := range routes {
+			if route.Leader.Id == leaderPeerIds[route.Range.Id] {
+				log.Debug("[%d] time(s) -- range[%d], new leader [peerId=%d, NodeId=%d, NodeAddr=%s]",
+					2, route.Range.Id, route.Leader.Id, route.Leader.Node.Id, route.Leader.Node.ServerAddr)
+				continue
+			} else {
+				changed = false
+				break
+			}
+		}
+		if changed {
+			for _, route := range routes {
+				log.Info("%d -- range[%d], new leader [peerId=%d, NodeId=%d, NodeAddr=%s]",
+					2, route.Range.Id, route.Leader.Id, route.Leader.Node.Id, route.Leader.Node.ServerAddr)
+			}
+			break
+		}
+	}
+
+	routes, _ = getAllRangesOfTable(s.GetCfg().Cluster, dbName, tableName)
+	for _, route := range routes {
+		prevRange := rangeData[route.Range.Id].Range
+		if bytes.Compare(route.Range.StartKey, prevRange.StartKey) != 0 ||
+			bytes.Compare(route.Range.EndKey, prevRange.EndKey) != 0 {
+			log.Error("range[%d] bytes compare not equal.", route.Range.Id)
+			return
+		}
+	}
+
+	log.Info("[2] time(s) start/end key check passed.")
+}
+
+func (api *SharkStoreApi) DoDsSelect(s *Server, fields []string, pks map[string]interface{}) {
+	dbName := s.GetCfg().BenchConfig.DB
+	tableName := s.GetCfg().BenchConfig.Table
+
 	if len(dbName) == 0 {
 		log.Error("args[dbName] wrong")
 		return
@@ -255,7 +555,11 @@ func (api *SharkStoreApi) DoDsSelect(s *Server, dbName string, tableName string,
 }
 
 
-func (api *SharkStoreApi) DoMigration(s *Server, dbName string, tableName string, clusterCf ClusterConfig, fields []string, pks map[string]interface{}) {
+func (api *SharkStoreApi) DoMigration(s *Server, fields []string, pks map[string]interface{}) {
+	dbName := s.GetCfg().BenchConfig.DB
+	tableName := s.GetCfg().BenchConfig.Table
+	clusterCf := s.GetCfg().Cluster
+
 	if len(dbName) == 0 {
 		log.Error("args[dbName] wrong")
 		return
@@ -391,7 +695,11 @@ func (api *SharkStoreApi) DoMigration(s *Server, dbName string, tableName string
 }
 
 
-func (api *SharkStoreApi) DoMigrationAfterUpdating(s *Server, dbName string, tableName string, clusterCf ClusterConfig, fields []string, pks map[string]interface{}, values [][]interface{}) {
+func (api *SharkStoreApi) DoMigrationAfterUpdating(s *Server, fields []string, pks map[string]interface{}, values [][]interface{}) {
+	dbName := s.GetCfg().BenchConfig.DB
+	tableName := s.GetCfg().BenchConfig.Table
+	clusterCf := s.GetCfg().Cluster
+
 	if len(dbName) == 0 {
 		log.Error("args[dbName] wrong")
 		return
@@ -473,7 +781,7 @@ func (api *SharkStoreApi) DoMigrationAfterUpdating(s *Server, dbName string, tab
 
 	log.Info("ready to update data before migration. values: %v", values)
 	// update
-	insertReply := api.Insert(s, dbName, tableName, fields, values)
+	insertReply := api.Insert(s, fields, values)
 	if insertReply == nil {
 		log.Error("update value err, reply is nil.")
 		return
@@ -485,7 +793,7 @@ func (api *SharkStoreApi) DoMigrationAfterUpdating(s *Server, dbName string, tab
 	}
 
 	// select to make sure it's changed before migration
-	selectReply := api.Select(s, dbName, tableName, fields, pks, nil)
+	selectReply := api.Select(s, fields, pks, nil)
 	if selectReply == nil {
 		log.Error("select error after updating, reply is nil.")
 		return
@@ -668,6 +976,68 @@ func callHttpMigration(clusterCf ClusterConfig, rangeId uint64, peerId uint64) e
 	return nil
 }
 
+func getAllRangesOfTable(clusterCf ClusterConfig, dbName, tableName string) ([]*models.Route, error) {
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(int(clusterCf.ID), clusterCf.Token, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["dbName"] = dbName
+	reqParams["tableName"] = tableName
+
+	var resp = struct {
+		Code int             `json:"code"`
+		Msg  string          `json:"message"`
+		Data []*models.Route `json:"data"`
+	}{}
+	ip, _, err  := net.SplitHostPort(clusterCf.ServerAddr[0])
+	if err != nil {
+		log.Error("parse ip/port err: ", err)
+		return nil, err
+	}
+	if err := sendGetReq("http://" + ip + ":8887", "/manage/table/route/get", reqParams, &resp); err != nil {
+		return nil, err
+	}
+	if resp.Code != 0 {
+		log.Error("get routes/ranges of db : table[%s : %s] is failed. err:[%v]", dbName, tableName, resp)
+		return nil, err
+	}
+
+	return resp.Data, nil
+}
+
+//切换主
+func changeRangeLeader(clusterCf ClusterConfig, rangeId, newLeaderPeerId uint64) error {
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(int(clusterCf.ID), clusterCf.Token, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["rangeId"] = rangeId
+	reqParams["peerId"] = newLeaderPeerId
+
+	var changeLeaderResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
+	}{}
+	ip, _, err  := net.SplitHostPort(clusterCf.ServerAddr[0])
+	if err != nil {
+		log.Error("parse ip/port err: ", err)
+		return err
+	}
+	if err := sendGetReq("http://" + ip + ":8887", "/manage/range/leader/change", reqParams, &changeLeaderResp); err != nil {
+		return err
+	}
+	if changeLeaderResp.Code != 0 {
+		log.Error("change range[%d] leader of cluster %d to %d failed. err:[%v]", rangeId, clusterCf.ID, newLeaderPeerId, changeLeaderResp)
+		return fmt.Errorf(changeLeaderResp.Msg)
+	}
+	return nil
+}
+
 func checkLeaderChanged(proxy *Proxy, table *Table, key []byte, preNodeId uint64) string {
 	for {
 		routes, err := proxy.router.cli.GetRoute(table.DbId, table.Id, key)
@@ -718,7 +1088,7 @@ func sendGetReq(host, uri string, params map[string]interface{}, result interfac
 
 	tGetStart := time.Now()
 	resp, err := http.Get(finalUrl)
-	log.Info("send get request token %v second", time.Since(tGetStart).Seconds())
+	log.Debug("send get request token %v second", time.Since(tGetStart).Seconds())
 	if err != nil {
 		log.Error("http get request failed. err:[%v]", err)
 		return common.HTTP_REQUEST_ERROR

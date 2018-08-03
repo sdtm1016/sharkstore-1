@@ -56,7 +56,7 @@ func main() {
 	if benchType > 0 {
 		go benchmark(srv)
 	} else if benchType < 0 {
-		go checkSelectWhenDsRestarting(srv)
+		go checkSelectMain(srv)
 	} else {
 		go rangeChecking(srv)
 	}
@@ -198,7 +198,7 @@ func selectTest(s *server.Server, threadNo, total int, ip string) {
 		h := hash(user_name) % 16384
 		pks["user_name"] = user_name
 		pks["h"] = h
-		reply := api.Select(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields, pks, nil)
+		reply := api.Select(s, TableFields, pks, nil)
 		log.Debug("%v", reply)
 		if reply.Code == 0 && len(reply.Values) > 0 {
 			atomic.AddInt64(&stat.lastSelCount, 1)
@@ -243,8 +243,7 @@ func correctCheck4Update(s *server.Server) {
 				log.Debug("h: %v update data scope between %v and %v", h, start, end)
 				subUserNames := userNames[start:end]
 				for i := 0; i < len(subUserNames); i++ {
-					reply := api.Insert(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields,
-						createRows(h, subUserNames[i], updateMsg, updateMsg))
+					reply := api.Insert(s, TableFields, createRows(h, subUserNames[i], updateMsg, updateMsg))
 					if reply.Code == 0 {
 						atomic.AddInt64(&stat.lastUpdCount, 1)
 						checkElapsedTime(s, h, subUserNames[i], updateMsg)
@@ -276,7 +275,7 @@ func correctCheck4DelAndInsert(s *server.Server) {
 
 		pks := make(map[string]interface{})
 		pks["h"] = h
-		reply := api.Delete(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, HField, pks)
+		reply := api.Delete(s, HField, pks)
 		if reply.Code != 0 {
 			log.Fatal("h: %v delete failed, %v", h, reply.Message)
 		}
@@ -308,8 +307,7 @@ func correctCheck4DelAndInsert(s *server.Server) {
 			go func() {
 				subUserNames := userNames[start:end]
 				for i := 0; i < len(subUserNames); i++ {
-					reply := api.Insert(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields,
-						createRows(h, subUserNames[i], insertMsg, insertMsg))
+					reply := api.Insert(s, TableFields, createRows(h, subUserNames[i], insertMsg, insertMsg))
 					if reply.Code == 0 {
 						atomic.AddInt64(&stat.lastUpdCount, 1)
 						checkElapsedTime(s, h, subUserNames[i], insertMsg)
@@ -452,7 +450,7 @@ func getKey(h uint32, userName string) ([]byte, error) {
 func deleteByH(s *server.Server, h uint32, sourceLength int) {
 	pks := make(map[string]interface{})
 	pks["h"] = h
-	reply := api.Delete(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, HField, pks)
+	reply := api.Delete(s, HField, pks)
 	if reply.Code != 0 {
 		log.Fatal("h: %v delete failed, %v", h, reply)
 	}
@@ -482,7 +480,7 @@ func selectSource(s *server.Server, h uint32) ([]string, error) {
 			Offset:   uint64(i * 10000),
 			RowCount: 10000,
 		}
-		reply := api.Select(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, UField, pks, limit_)
+		reply := api.Select(s, UField, pks, limit_)
 		if reply.Code != 0 {
 			return nil, errors.New(fmt.Sprintf("select h %v source data: %s", h, reply.Message))
 		}
@@ -508,7 +506,7 @@ func checkElapsedTime(s *server.Server, h uint32, userName, firstUpdate string) 
 		pks := make(map[string]interface{})
 		pks["h"] = h
 		pks["user_name"] = userName
-		selectReply := api.Select(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, PField, pks, nil)
+		selectReply := api.Select(s, PField, pks, nil)
 		if selectReply.Code == 0 && len(selectReply.Values) > 0 {
 			var passWords []string
 			for _, row := range selectReply.Values {
@@ -569,7 +567,7 @@ func insertTestData(s *server.Server, threadNo, total int, ip string) {
 		}
 
 		for {
-			reply := api.Insert(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields, rows)
+			reply := api.Insert(s, TableFields, rows)
 			log.Debug("%v", reply)
 
 			if reply != nil && reply.Code == 0 {
@@ -601,7 +599,7 @@ func rangeChecking(s *server.Server) {
 	pks["user_name"] = user_name
 	pks["h"] = h
 
-	reply := api.Select(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields, pks, nil)
+	reply := api.Select(s, TableFields, pks, nil)
 	log.Debug("%v", reply)
 	if reply.Code == 0 && len(reply.Values) > 0 {
 		log.Debug("found data.")
@@ -610,7 +608,7 @@ func rangeChecking(s *server.Server) {
 		return
 	}
 
-	api.DoMigration(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, s.GetCfg().Cluster, TableFields, pks)
+	api.DoMigration(s, TableFields, pks)
 
 	rows := make([][]interface{}, 0)
 	row := make([]interface{}, 0)
@@ -622,11 +620,74 @@ func rangeChecking(s *server.Server) {
 
 	time.Sleep(time.Duration(2000) * time.Millisecond)
 
-	api.DoMigrationAfterUpdating(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, s.GetCfg().Cluster, TableFields, pks, rows)
+	api.DoMigrationAfterUpdating(s, TableFields, pks, rows)
 
 }
 
-func checkSelectWhenDsRestarting(s *server.Server) {
+func checkSelectMain(s *server.Server) {
+
+	runType := s.GetCfg().BenchConfig.Type
+	// -1\-2\-3
+	if runType > -4 {
+		checkTableDataSelectApi(s)
+		return
+	} else if runType > -5 {
+		comparePeersDataInBytes(s)
+	} else if runType > -6 {
+		compareDataAfterTransferringLeader(s)
+	} else {
+		comparePeersDataInSelectApi(s)
+	}
+
+}
+
+func comparePeersDataInBytes(s *server.Server) {
+	api.ComparePeerBytesOfRange(s)
+}
+
+func comparePeersDataInSelectApi(s *server.Server)  {
+	s.GetCfg().BenchConfig.Type = -3
+
+	var times = 1
+	log.Info("select [%d] time(s).", times)
+	checkTableDataSelectApi(s)
+
+	times++
+	secondRangeLeaderPeers := api.ChangeLeaderOfRange(s, times, nil)
+	if secondRangeLeaderPeers == nil {
+		log.Error("[%d] time(s) change leader error, program exit.", times)
+		return
+	}
+	time.Sleep(time.Duration(2000) * time.Millisecond)
+	log.Info("select [%d] time(s).", times)
+	checkTableDataSelectApi(s)
+
+	times++
+	thirdRangeLeaderPeers := api.ChangeLeaderOfRange(s, times, secondRangeLeaderPeers)
+	if thirdRangeLeaderPeers == nil {
+		log.Error("[%d] time(s) change leader error, program exit.", times)
+		return
+	}
+	time.Sleep(time.Duration(2000) * time.Millisecond)
+	log.Info("select [%d] time(s).", times)
+	checkTableDataSelectApi(s)
+
+	log.Info("select completed, peers data are the same.")
+}
+
+func compareDataAfterTransferringLeader(s *server.Server)  {
+	s.GetCfg().BenchConfig.Type = -3
+
+	log.Info("select-check before transferring leader.")
+	checkTableDataSelectApi(s)
+
+	api.TransferCurrLeader(s)
+
+	log.Info("select-check after transferring leader.")
+	checkTableDataSelectApi(s)
+}
+
+func checkTableDataSelectApi(s *server.Server) {
 
 	total := s.GetCfg().BenchConfig.SendNum
 
@@ -641,7 +702,7 @@ func checkSelectWhenDsRestarting(s *server.Server) {
 
 	if runType == -1 {
 		for i := 0; i < total; i++ {
-			reply := api.Select(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields, pks, nil)
+			reply := api.Select(s, TableFields, pks, nil)
 			if reply != nil {
 				log.Info("select from api, Reply.Message: %s", reply.Message)
 			}
@@ -649,7 +710,7 @@ func checkSelectWhenDsRestarting(s *server.Server) {
 	}
 	if runType == -2 {
 		for i := 0; i < total; i++ {
-			api.DoDsSelect(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields, pks)
+			api.DoDsSelect(s, TableFields, pks)
 		}
 	}
 	if runType == -3 {
@@ -664,7 +725,7 @@ func checkSelectWhenDsRestarting(s *server.Server) {
 
 				var isErr = true
 				for i := 0; i < 10; i++ {
-					reply := api.Select(s, s.GetCfg().BenchConfig.DB, s.GetCfg().BenchConfig.Table, TableFields, pks, nil)
+					reply := api.Select(s, TableFields, pks, nil)
 					if reply != nil && reply.Code == 0 && len(reply.Values) > 0 {
 						isErr = false
 						break
