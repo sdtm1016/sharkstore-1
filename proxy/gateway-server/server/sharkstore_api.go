@@ -184,11 +184,11 @@ func (api *SharkStoreApi) TransferCurrLeader(s *Server) {
 		return
 	}
 
-	rangePeers := make(map[uint64]*models.Range)
+	rangePeers := make(map[uint64]*models.Route)
 	for _, route := range routes {
 		rangeId := route.Range.Id
 		currLeaderPeerId := route.Leader.Id
-		rangePeers[rangeId] = deepcopy.Iface(route.Range).(*models.Range)
+		rangePeers[rangeId] = deepcopy.Iface(route).(*models.Route)
 
 		err = callHttpMigration(clusterCf, rangeId, currLeaderPeerId)
 		if err != nil {
@@ -197,9 +197,70 @@ func (api *SharkStoreApi) TransferCurrLeader(s *Server) {
 		}
 	}
 
-	log.Info("wait 10s to check if leader has changed.")
+	log.Info("wait 10s to check if new peer has been added.")
 	time.Sleep(time.Duration(10) * time.Second)
 
+	// check new peer added (leader maybe changed too)
+	newPeerOfRange := make(map[uint64]*models.Peer)
+	for {
+		routes, err := getAllRangesOfTable(s.GetCfg().Cluster, dbName, tableName)
+		if err != nil {
+			log.Warn("checking ranges of table error: %v", err)
+			continue
+		}
+
+		var newPeerAllAdded = true
+		for _, route := range routes {
+			var newPeerOfRangeAdded = false
+			currRange := route.Range
+			prevRoute := rangePeers[currRange.Id]
+
+			// maybe still in process of transfer
+			if len(currRange.Peers) > 2 {
+				newPeerAllAdded = false
+				break
+			}
+
+			var prevAllPeers []*models.Peer
+			var currAllPeers []*models.Peer
+			prevAllPeers = append(prevAllPeers, prevRoute.Leader)
+			for _, prevPeer := range prevRoute.Range.Peers {
+				prevAllPeers = append(prevAllPeers, prevPeer)
+			}
+			currAllPeers = append(currAllPeers, route.Leader)
+			for _, currPeer := range currRange.Peers {
+				currAllPeers = append(currAllPeers, currPeer)
+			}
+
+			for _, currPeer := range currAllPeers {
+				var peerInPrev = false
+				for _, prevPeer := range prevAllPeers {
+					if currPeer.Id == prevPeer.Id {
+						peerInPrev = true
+						break
+					}
+				}
+				if !peerInPrev {
+					newPeerOfRangeAdded = true
+					newPeerOfRange[currRange.Id] = deepcopy.Iface(currPeer).(*models.Peer)
+					break
+				}
+			}
+
+			if !newPeerOfRangeAdded {
+				newPeerAllAdded = false
+			}
+		}
+		if newPeerAllAdded {
+			log.Info("peers added, new peer looks like below")
+			for rngId, peer := range newPeerOfRange {
+				log.Info("rangId: %d, new peer: %s", rngId, peer.Node.ServerAddr)
+			}
+			break
+		}
+	}
+
+	// check leader changed
 	for {
 		routes, err := getAllRangesOfTable(s.GetCfg().Cluster, dbName, tableName)
 		if err != nil {
@@ -209,12 +270,11 @@ func (api *SharkStoreApi) TransferCurrLeader(s *Server) {
 
 		var changed = true
 		for _, route := range routes {
-			rng := rangePeers[route.Range.Id]
-			for _, peer := range rng.Peers {
-				if route.Leader.Id == peer.Id {
-					changed = false
-					break
-				}
+			rngId := route.Range.Id
+			newLeaderPeerId := newPeerOfRange[rngId].Id
+			if route.Leader.Id != newLeaderPeerId {
+				changed = false
+				changeRangeLeader(s.cfg.Cluster, rngId, newLeaderPeerId)
 			}
 		}
 		if changed {
@@ -224,6 +284,8 @@ func (api *SharkStoreApi) TransferCurrLeader(s *Server) {
 			}
 			break
 		}
+		log.Info("leader not all changed, wait 5s.")
+		time.Sleep(time.Duration(5) * time.Second)
 	}
 }
 
