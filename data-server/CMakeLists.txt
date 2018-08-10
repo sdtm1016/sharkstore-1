@@ -188,6 +188,7 @@ set(SOURCES
 	src/watch/watcher_set.cpp
 	src/watch/watch_server.cpp
 	src/watch/watch_event_buffer.cpp
+    src/watch/watch_timer.cpp
 )
 
 if (APPLE)

@@ -1,103 +1,78 @@
-#ifndef _WATCHER_SET_H_
-#define _WATCHER_SET_H_
+_Pragma("once");
 
 #include <unordered_map>
-#include <vector>
-#include <queue>
-#include <condition_variable>
-#include <mutex>
-#include <thread>
 
-#include "watch.h"
 #include "watcher.h"
 
 namespace sharkstore {
 namespace dataserver {
 namespace watch {
 
+class WatcherList {
+public:
+    uint64_t Add(Watcher watcher);
+    Watcher Delete(uint64_t id);
+    void Swap(std::vector<Watcher>* watchers);
 
-
-typedef std::unordered_map<WatcherId, WatcherPtr> KeyWatcherMap;
-typedef struct WatcherValue_ {
-    int64_t key_version_{0};
-    KeyWatcherMap mapKeyWatcher;
-}WatcherValue;
-//typedef std::unordered_map<Key, KeyWatcherMap*> WatcherMap;
-typedef std::unordered_map<WatcherKey, WatcherValue*> WatcherMap;
-
-typedef std::unordered_map<WatcherKey, int64_t > WatcherKeyMap;
-typedef std::unordered_map<WatcherId, WatcherKeyMap*> KeyMap;
-
-template <typename T>
-struct PriorityQueue: public std::priority_queue<T, std::vector<T>, Greater<T>> {
-    const std::vector<T>& GetQueue() {
-        return this->c;
-    }
+private:
+    uint64_t last_id_ = 0;
+    std::unordered_map<uint64_t, Watcher> watchers_;
 };
 
 class WatcherSet {
 public:
-    WatcherSet();
-    WatcherSet(const WatcherSet&) = delete;
-    WatcherSet& operator=(const WatcherSet&) = delete;
-    ~WatcherSet();
+    virtual ~WatcherSet() = default;
 
-    WatchCode AddKeyWatcher(const WatcherKey&, WatcherPtr&, storage::Store *);
-    WatchCode DelKeyWatcher(const WatcherKey&, WatcherId);
-    WatchCode GetKeyWatchers(const watchpb::EventType &evtType, std::vector<WatcherPtr>& , const WatcherKey&, const int64_t &version);
-    WatchCode AddPrefixWatcher(const PrefixKey&, WatcherPtr&, storage::Store *);
-    WatchCode DelPrefixWatcher(const PrefixKey&, WatcherId);
-    WatchCode GetPrefixWatchers(const watchpb::EventType &evtType, std::vector<WatcherPtr>& , const PrefixKey&, const int64_t &version);
-    bool ChgGlobalVersion(const uint64_t &ver) noexcept {
-        if(ver <= global_version_)
-            return false;
-        else
-            global_version_ = ver;
+    // 尝试添加Watcher到Watcher列表，
+    // 1) 如果WatcherSet里已经有大于version的修改则不添加, 并通过event返回较新的修改
+    // 2）否则添加到WatcherSet中，并返回watcher_id
+    virtual Status AddWatcher(Watcher watcher, int64_t version,
+            std::vector<watchpb::Event>* events, uint64_t *watcher_id) = 0;
 
-        return true;
-    }
-    uint64_t getVersion() const {
-        return global_version_;
-    }
+    // 新事件发送
+    virtual void AddEvent(const watchpb::Event& event) = 0;
 
-    void WatchSetLock(uint16_t flag) {
-        if(flag) {
-            watcher_map_mutex_.lock();
-        } else {
-            watcher_map_mutex_.unlock();
-        }
-    }
+    // 删除id对应的watcher，并返回该watcher
+    Watcher Expire(uint64_t id) { return watchers_.Delete(id); }
+    void SwapAll(std::vector<Watcher> *watchers) { watchers_.Swap(watchers); }
 
-private:
-    WatcherMap              key_watcher_map_;
-    KeyMap                  key_map_;
-    WatcherMap              prefix_watcher_map_;
-    KeyMap                  prefix_map_;
-    PriorityQueue<WatcherPtr>   watcher_queue_;
-    std::mutex              watcher_map_mutex_;
-    std::mutex              watcher_queue_mutex_;
-    std::atomic<WatcherId>  watcher_id_ = {0};
-
-
-    std::thread                     watcher_timer_;
-    volatile bool                   watcher_timer_continue_flag_ = true;
-    std::condition_variable         watcher_expire_cond_;
-    uint64_t                global_version_{0};
-private:
-    WatchCode AddWatcher(const WatcherKey&, WatcherPtr&, WatcherMap&, KeyMap&, storage::Store *, bool prefixFlag = false);
-    WatchCode DelWatcher(const WatcherKey&, WatcherId, WatcherMap&, KeyMap&);
-    WatchCode GetWatchers(const watchpb::EventType &evtType, std::vector<WatcherPtr>& vec, const WatcherKey&, WatcherMap&, WatcherValue *watcherVal);
-
-public:
-    WatcherId GenWatcherId() {
-        watcher_id_.fetch_add(1, std::memory_order_relaxed);
-        return watcher_id_;
-    }
+protected:
+    WatcherList watchers_;
 };
 
+class KeyWatcherSet : public WatcherSet {
+public:
+    KeyWatcherSet() = default;
+
+    Status AddWatcher(Watcher watcher, int64_t version,
+                 std::vector<watchpb::Event>* events,
+                 uint64_t *watcher_id) override;
+
+    void AddEvent(const watchpb::Event& event) override;
+
+private:
+    std::unique_ptr<watchpb::Event> latest_;
+};
+
+class PrefixWatcherSet : public WatcherSet {
+public:
+    explicit PrefixWatcherSet(size_t max_history = 1000) :
+        capacity_(max_history) {}
+
+    Status AddWatcher(Watcher watcher, int64_t version,
+                  std::vector<watchpb::Event>* events,
+                  uint64_t *watcher_id) override;
+
+    void AddEvent(const watchpb::Event& event) override;
+
+private:
+    void getEvents(int64_t version, std::vector<watchpb::Event> *events);
+
+private:
+    const size_t capacity_ = 0;
+    std::deque<watchpb::Event> history_;
+};
 
 } // namespace watch
 }
 }
-
-#endif
