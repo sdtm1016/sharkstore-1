@@ -53,7 +53,7 @@ void KeyWatcherSet::AddEvent(const watchpb::Event& event) {
 
 void PrefixWatcherSet::getEvents(int64_t version,
                std::vector<watchpb::Event> *events) {
-    auto it = std::lower_bound(history_.cbegin(), history_.cend(), version,
+    auto it = std::lower_bound(history_.cbegin(), history_.cend(), version + 1,
                                [](const watchpb::Event& e, int64_t version) {
                                    return e.kv().version() < version;
                                });
@@ -87,7 +87,7 @@ void PrefixWatcherSet::AddEvent(const watchpb::Event& event) {
     assert(event.kv().version() > max);
     (void)max;
 
-    while (history_.size() > capacity_) {
+    while (history_.size() >= capacity_) {
         history_.pop_front();
     }
     history_.push_back(event);
