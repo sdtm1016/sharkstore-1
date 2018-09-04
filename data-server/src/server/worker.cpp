@@ -33,7 +33,6 @@ int Worker::Init(ContextServer *context) {
     socket_server_.set_send_done(ds_send_done_callback);
 
     context_ = context;
-    g_status.worker_socket_status = &worker_status_;
 
     FLOG_INFO("Worker Init end ...");
     return 0;
@@ -83,20 +82,20 @@ int Worker::Start() {
     StartWorker(fast_worker_, fast_queue_, ds_config.fast_worker_num);
 
     int i = 0;
-    char fast_name[16];
+    char fast_name[32] = {'\0'};
     for (auto &work : fast_worker_) {
         auto handle = work.native_handle();
-        sprintf(fast_name, "fast_worker:%d", i++);
+        snprintf(fast_name, 32, "fast_worker:%d", i++);
         AnnotateThread(handle, fast_name);
     }
     // start slow worker
     StartWorker(slow_worker_, slow_queue_, ds_config.slow_worker_num);
 
-    char slow_name[16];
+    char slow_name[32] = {'\0'};
     i = 0;
     for (auto &work : slow_worker_) {
         auto handle = work.native_handle();
-        sprintf(slow_name, "slow_worker:%d", i++);
+        snprintf(slow_name, 32, "slow_worker:%d", i++);
         AnnotateThread(handle, slow_name);
     }
 
@@ -151,23 +150,16 @@ void Worker::Push(common::ProtoMessage *task) {
         return;
     }
 
-    int type = FuncType(task);
-
-    if (type == 0) {
-        auto slot = ++slot_seed_ % ds_config.fast_worker_num;
-        auto mq = fast_queue_.msg_queue[slot];
-
-        mq->msg_queue.enqueue(task);
-
-        ++fast_queue_.all_msg_size;
-
-    } else if (type == 1) {
+    if (isSlow(task)) {
         auto slot = ++slot_seed_ % ds_config.slow_worker_num;
         auto mq = slow_queue_.msg_queue[slot];
-
         mq->msg_queue.enqueue(task);
-
         ++slow_queue_.all_msg_size;
+    } else {
+        auto slot = ++slot_seed_ % ds_config.fast_worker_num;
+        auto mq = fast_queue_.msg_queue[slot];
+        mq->msg_queue.enqueue(task);
+        ++fast_queue_.all_msg_size;
     }
 }
 
@@ -183,7 +175,7 @@ void Worker::DealTask(common::ProtoMessage *task) {
 
 void Worker::Clean(HashQueue &hash_queue) {
     for (auto mq : hash_queue.msg_queue) {
-        common::ProtoMessage *task;
+        common::ProtoMessage *task = nullptr;
         while (mq->msg_queue.try_dequeue(task)) {
             delete task;
         }
@@ -191,13 +183,42 @@ void Worker::Clean(HashQueue &hash_queue) {
     }
 }
 
-// 0: fast queue; 1: slow queue;
-int Worker::FuncType(common::ProtoMessage *msg) {
-    if (msg->header.func_id == funcpb::FunctionID::kFuncSelect) {
-        return 1;
+size_t Worker::ClearQueue(bool fast, bool slow) {
+    size_t count = 0;
+    if (fast) {
+        for (auto& q : fast_queue_.msg_queue) {
+            common::ProtoMessage *task;
+            while (q->msg_queue.try_dequeue(task)) {
+                delete task;
+                ++count;
+            }
+        }
     }
+    if (slow) {
+        for (auto& q : slow_queue_.msg_queue) {
+            common::ProtoMessage *task;
+            while (q->msg_queue.try_dequeue(task)) {
+                delete task;
+                ++count;
+            }
+        }
+    }
+    return count;
+}
 
-    return 0;
+bool Worker::isSlow(sharkstore::dataserver::common::ProtoMessage *msg) {
+    if ((msg->header.flags & FAST_WORKER_FLAG) != 0) {
+        return false;
+    }
+    switch (msg->header.func_id) {
+        case funcpb::FunctionID::kFuncSelect:
+        case funcpb::FunctionID::kFuncWatchGet:
+        case funcpb::FunctionID::kFuncKvRangeDel:
+        case funcpb::FunctionID::kFuncKvScan :
+            return true;
+        default:
+            return false;
+    }
 }
 
 void Worker::PrintQueueSize() {

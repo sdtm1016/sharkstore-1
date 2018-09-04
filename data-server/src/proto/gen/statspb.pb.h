@@ -1768,18 +1768,18 @@ class SlowLog : public ::google::protobuf::Message /* @@protoc_insertion_point(c
   ::std::string* release_slow_log();
   void set_allocated_slow_log(::std::string* slow_log);
 
-  // double lats = 2;
+  // int64 lats = 2;
   void clear_lats();
   static const int kLatsFieldNumber = 2;
-  double lats() const;
-  void set_lats(double value);
+  ::google::protobuf::int64 lats() const;
+  void set_lats(::google::protobuf::int64 value);
 
   // @@protoc_insertion_point(class_scope:statspb.SlowLog)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::internal::ArenaStringPtr slow_log_;
-  double lats_;
+  ::google::protobuf::int64 lats_;
   mutable int _cached_size_;
   friend struct protobuf_statspb_2eproto::TableStruct;
 };
@@ -5118,15 +5118,15 @@ inline void SlowLog::set_allocated_slow_log(::std::string* slow_log) {
   // @@protoc_insertion_point(field_set_allocated:statspb.SlowLog.slow_log)
 }
 
-// double lats = 2;
+// int64 lats = 2;
 inline void SlowLog::clear_lats() {
-  lats_ = 0;
+  lats_ = GOOGLE_LONGLONG(0);
 }
-inline double SlowLog::lats() const {
+inline ::google::protobuf::int64 SlowLog::lats() const {
   // @@protoc_insertion_point(field_get:statspb.SlowLog.lats)
   return lats_;
 }
-inline void SlowLog::set_lats(double value) {
+inline void SlowLog::set_lats(::google::protobuf::int64 value) {
   
   lats_ = value;
   // @@protoc_insertion_point(field_set:statspb.SlowLog.lats)

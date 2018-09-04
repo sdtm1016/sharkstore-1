@@ -3,12 +3,13 @@ package models
 import "model/pkg/metapb"
 
 type ColumnInfo struct {
-	Id         int    `json:"id"`
-	ColumnName string `json:"name"`
-	DataType   int    `json:"data_type"`
-	Unsigned   bool   `json:"unsigned"`
-	PrimaryKey int    `json:"primary_key"`
-	Index      bool   `json:"index"`
+	Id            int    `json:"id"`
+	ColumnName    string `json:"name"`
+	DataType      int    `json:"data_type"`
+	Unsigned      bool   `json:"unsigned"`
+	PrimaryKey    int    `json:"primary_key"`
+	Index         bool   `json:"index"`
+	AutoIncrement bool   `json:"auto_increment"`
 }
 
 type Epoch struct {

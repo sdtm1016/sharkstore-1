@@ -37,9 +37,7 @@ public:
 
     Status Close() override;
 
-    Status Destroy() override;
-
-    Status Backup() override;
+    Status Destroy(bool backup) override;
 
 private:
     uint64_t lastIndex() const;

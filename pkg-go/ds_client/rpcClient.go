@@ -5,17 +5,18 @@ import (
 	"errors"
 	"io"
 	"net"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"model/pkg/ds_admin"
 	"model/pkg/funcpb"
 	"model/pkg/kvrpcpb"
 	"model/pkg/schpb"
+	"model/pkg/watchpb"
 	"pkg-go/util"
 	"util/log"
-
-	"runtime"
 
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
@@ -75,13 +76,18 @@ func init() {
 	msgType[uint16(funcpb.FunctionID_kFuncKvScan)] = &MsgTypeGroup{0x02, 0x12}
 	msgType[uint16(funcpb.FunctionID_kFuncKvRangeDel)] = &MsgTypeGroup{0x02, 0x12}
 
+	msgType[uint16(funcpb.FunctionID_kFuncWatchGet)] = &MsgTypeGroup{0x02, 0x12}
+	msgType[uint16(funcpb.FunctionID_kFuncPureGet)] = &MsgTypeGroup{0x02, 0x12}
+	msgType[uint16(funcpb.FunctionID_kFuncWatchDel)] = &MsgTypeGroup{0x02, 0x12}
+	msgType[uint16(funcpb.FunctionID_kFuncWatchPut)] = &MsgTypeGroup{0x02, 0x12}
+
 	msgType[uint16(funcpb.FunctionID_kFuncLock)] = &MsgTypeGroup{0x02, 0x12}
 	msgType[uint16(funcpb.FunctionID_kFuncLockUpdate)] = &MsgTypeGroup{0x02, 0x12}
 	msgType[uint16(funcpb.FunctionID_kFuncUnlock)] = &MsgTypeGroup{0x02, 0x12}
 	msgType[uint16(funcpb.FunctionID_kFuncUnlockForce)] = &MsgTypeGroup{0x02, 0x12}
-	msgType[uint16(funcpb.FunctionID_kFuncLockScan)] = &MsgTypeGroup{0x02, 0x12}
 
 	msgType[uint16(funcpb.FunctionID_kFuncKvSet)] = &MsgTypeGroup{0x02, 0x12}
+
 	msgType[uint16(funcpb.FunctionID_kFuncCreateRange)] = &MsgTypeGroup{0x01, 0x11}
 	msgType[uint16(funcpb.FunctionID_kFuncDeleteRange)] = &MsgTypeGroup{0x01, 0x11}
 	msgType[uint16(funcpb.FunctionID_kFuncRangeTransferLeader)] = &MsgTypeGroup{0x01, 0x11}
@@ -90,6 +96,7 @@ func init() {
 	msgType[uint16(funcpb.FunctionID_kFuncSetNodeLogLevel)] = &MsgTypeGroup{0x01, 0x11}
 	msgType[uint16(funcpb.FunctionID_kFuncOfflineRange)] = &MsgTypeGroup{0x01, 0x11}
 	msgType[uint16(funcpb.FunctionID_kFuncReplaceRange)] = &MsgTypeGroup{0x01, 0x11}
+	msgType[uint16(funcpb.FunctionID_kFuncAdmin)] = &MsgTypeGroup{0x01, 0x11}
 }
 
 func getMsgType(funcId uint16) *MsgTypeGroup {
@@ -136,7 +143,6 @@ type RpcClient interface {
 	LockUpdate(ctx context.Context, in *kvrpcpb.DsLockUpdateRequest) (*kvrpcpb.DsLockUpdateResponse, error)
 	Unlock(ctx context.Context, in *kvrpcpb.DsUnlockRequest) (*kvrpcpb.DsUnlockResponse, error)
 	UnlockForce(ctx context.Context, in *kvrpcpb.DsUnlockForceRequest) (*kvrpcpb.DsUnlockForceResponse, error)
-	LockScan(ctx context.Context, in *kvrpcpb.DsLockScanRequest) (*kvrpcpb.DsLockScanResponse, error)
 
 	// kv
 	KvSet(ctx context.Context, in *kvrpcpb.DsKvSetRequest) (*kvrpcpb.DsKvSetResponse, error)
@@ -148,6 +154,12 @@ type RpcClient interface {
 	KvBatchDel(ctx context.Context, in *kvrpcpb.DsKvBatchDeleteRequest) (*kvrpcpb.DsKvBatchDeleteResponse, error)
 	KvRangeDel(ctx context.Context, in *kvrpcpb.DsKvRangeDeleteRequest) (*kvrpcpb.DsKvRangeDeleteResponse, error)
 
+	// watch
+	Watch(ctx context.Context, in *watchpb.DsWatchRequest) (*watchpb.DsWatchResponse, error)
+	WatchPut(ctx context.Context, in *watchpb.DsKvWatchPutRequest) (*watchpb.DsKvWatchPutResponse, error)
+	WatchDelete(ctx context.Context, in *watchpb.DsKvWatchDeleteRequest) (*watchpb.DsKvWatchDeleteResponse, error)
+	WatchGet(ctx context.Context, in *watchpb.DsKvWatchGetMultiRequest) (*watchpb.DsKvWatchGetMultiResponse, error)
+
 	// admin
 	CreateRange(ctx context.Context, in *schpb.CreateRangeRequest) (*schpb.CreateRangeResponse, error)
 	DeleteRange(ctx context.Context, in *schpb.DeleteRangeRequest) (*schpb.DeleteRangeResponse, error)
@@ -157,15 +169,19 @@ type RpcClient interface {
 	SetNodeLogLevel(ctx context.Context, in *schpb.SetNodeLogLevelRequest) (*schpb.SetNodeLogLevelResponse, error)
 	OfflineRange(ctx context.Context, in *schpb.OfflineRangeRequest) (*schpb.OfflineRangeResponse, error)
 	ReplaceRange(ctx context.Context, in *schpb.ReplaceRangeRequest) (*schpb.ReplaceRangeResponse, error)
+
+	// ds_admin
+	Admin(ctx context.Context, in *ds_adminpb.AdminRequest) (*ds_adminpb.AdminResponse, error)
+
 	Close()
 }
 
 type Message struct {
-	msgId      uint64
-	msgType    uint16
-	funcId     uint16
-	streamHash uint8
-	protoType  uint8
+	msgId     uint64
+	msgType   uint16
+	funcId    uint16
+	flags     uint8
+	protoType uint8
 	// 相对时间，单位毫秒
 	timeout uint32
 	data    []byte
@@ -198,12 +214,12 @@ func (m *Message) SetMsgId(msgId uint64) {
 	m.msgId = msgId
 }
 
-func (m *Message) GetStreamHash() uint8 {
-	return m.streamHash
+func (m *Message) GetFlags() uint8 {
+	return m.flags
 }
 
-func (m *Message) SetStreamHash(streamHash uint8) {
-	m.streamHash = streamHash
+func (m *Message) SetFlags(flags uint8) {
+	m.flags = flags
 }
 
 func (m *Message) GetProtoType() uint8 {
@@ -397,6 +413,10 @@ func (c *DSRpcClient) GetClientId() int64 {
 }
 
 func (c *DSRpcClient) execute(funId uint16, ctx context.Context, in proto.Message, out proto.Message) (uint64, error) {
+	return c.executeWithFlags(funId, ctx, in, out, 0)
+}
+
+func (c *DSRpcClient) executeWithFlags(funId uint16, ctx context.Context, in proto.Message, out proto.Message, flags uint8) (uint64, error) {
 	data, err := proto.Marshal(in)
 	if err != nil {
 		return 0, err
@@ -417,6 +437,7 @@ func (c *DSRpcClient) execute(funId uint16, ctx context.Context, in proto.Messag
 		msgType: getMsgType(funId).GetRequestMsgType(),
 		funcId:  uint16(funId),
 		timeout: uint32(timeout),
+		flags:   flags,
 		ctx:     ctx,
 		data:    data,
 	}
@@ -478,7 +499,11 @@ func (c *DSRpcClient) KvRawExecute(ctx context.Context, in *kvrpcpb.DsKvRawExecu
 
 func (c *DSRpcClient) Select(ctx context.Context, in *kvrpcpb.DsSelectRequest) (*kvrpcpb.DsSelectResponse, error) {
 	out := new(kvrpcpb.DsSelectResponse)
-	msgId, err := c.execute(uint16(funcpb.FunctionID_kFuncSelect), ctx, in, out)
+	var fastFlag uint8
+	if len(in.GetReq().GetKey()) > 0 {
+		fastFlag = 1
+	}
+	msgId, err := c.executeWithFlags(uint16(funcpb.FunctionID_kFuncSelect), ctx, in, out, fastFlag)
 	in.GetHeader().TraceId = msgId
 	if err != nil {
 		return nil, err
@@ -547,15 +572,6 @@ func (c *DSRpcClient) UnlockForce(ctx context.Context, in *kvrpcpb.DsUnlockForce
 		return nil, err
 	} else {
 		return out, nil
-	}
-}
-func (c *DSRpcClient) LockScan(ctx context.Context, in *kvrpcpb.DsLockScanRequest) (*kvrpcpb.DsLockScanResponse, error) {
-	out := new(kvrpcpb.DsLockScanResponse)
-		_, err := c.execute(uint16(funcpb.FunctionID_kFuncLockScan), ctx, in, out)
-	if err != nil {
-		return nil, err
-	} else {
-		return out, nil	
 	}
 }
 
@@ -632,6 +648,50 @@ func (c *DSRpcClient) KvBatchDel(ctx context.Context, in *kvrpcpb.DsKvBatchDelet
 func (c *DSRpcClient) KvRangeDel(ctx context.Context, in *kvrpcpb.DsKvRangeDeleteRequest) (*kvrpcpb.DsKvRangeDeleteResponse, error) {
 	out := new(kvrpcpb.DsKvRangeDeleteResponse)
 	msgId, err := c.execute(uint16(funcpb.FunctionID_kFuncKvRangeDel), ctx, in, out)
+	in.GetHeader().TraceId = msgId
+	if err != nil {
+		return nil, err
+	} else {
+		return out, nil
+	}
+}
+
+func (c *DSRpcClient) Watch(ctx context.Context, in *watchpb.DsWatchRequest) (*watchpb.DsWatchResponse, error) {
+	out := new(watchpb.DsWatchResponse)
+	msgId, err := c.execute(uint16(funcpb.FunctionID_kFuncWatchGet), ctx, in, out)
+	in.GetHeader().TraceId = msgId
+	if err != nil {
+		return nil, err
+	} else {
+		return out, nil
+	}
+}
+
+func (c *DSRpcClient) WatchPut(ctx context.Context, in *watchpb.DsKvWatchPutRequest) (*watchpb.DsKvWatchPutResponse, error) {
+	out := new(watchpb.DsKvWatchPutResponse)
+	msgId, err := c.execute(uint16(funcpb.FunctionID_kFuncWatchPut), ctx, in, out)
+	in.GetHeader().TraceId = msgId
+	if err != nil {
+		return nil, err
+	} else {
+		return out, nil
+	}
+}
+
+func (c *DSRpcClient) WatchDelete(ctx context.Context, in *watchpb.DsKvWatchDeleteRequest) (*watchpb.DsKvWatchDeleteResponse, error) {
+	out := new(watchpb.DsKvWatchDeleteResponse)
+	msgId, err := c.execute(uint16(funcpb.FunctionID_kFuncWatchDel), ctx, in, out)
+	in.GetHeader().TraceId = msgId
+	if err != nil {
+		return nil, err
+	} else {
+		return out, nil
+	}
+}
+
+func (c *DSRpcClient) WatchGet(ctx context.Context, in *watchpb.DsKvWatchGetMultiRequest) (*watchpb.DsKvWatchGetMultiResponse, error) {
+	out := new(watchpb.DsKvWatchGetMultiResponse)
+	msgId, err := c.execute(uint16(funcpb.FunctionID_kFuncPureGet), ctx, in, out)
 	in.GetHeader().TraceId = msgId
 	if err != nil {
 		return nil, err
@@ -722,6 +782,17 @@ func (c *DSRpcClient) ReplaceRange(ctx context.Context, in *schpb.ReplaceRangeRe
 	out := new(schpb.ReplaceRangeResponse)
 	_, err := c.execute(uint16(funcpb.FunctionID_kFuncReplaceRange), ctx, in, out)
 	//in.GetHeader().TraceId = msgId
+	if err != nil {
+		return nil, err
+	} else {
+		return out, nil
+	}
+}
+
+// Admin admin
+func (c *DSRpcClient) Admin(ctx context.Context, in *ds_adminpb.AdminRequest) (*ds_adminpb.AdminResponse, error) {
+	out := new(ds_adminpb.AdminResponse)
+	_, err := c.execute(uint16(funcpb.FunctionID_kFuncAdmin), ctx, in, out)
 	if err != nil {
 		return nil, err
 	} else {

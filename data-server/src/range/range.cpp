@@ -9,6 +9,7 @@
 #include "storage/meta_store.h"
 
 #include "snapshot.h"
+#include "range_logger.h"
 
 namespace sharkstore {
 namespace dataserver {
@@ -18,58 +19,75 @@ static const int kDownPeerThresholdSecs = 50;
 // 磁盘使用率大于百分之92停写
 static const uint64_t kStopWriteFsUsagePercent = 92;
 
-Range::Range(server::ContextServer *context, const metapb::Range &meta)
-    : context_(context), meta_(meta) {
-    node_id_ = context->node_id;
-
-    store_ = new storage::Store(meta, context->rocks_db);
+Range::Range(RangeContext* context, const metapb::Range &meta) :
+	context_(context),
+	node_id_(context_->GetNodeID()),
+	id_(meta.id()),
+	start_key_(meta.start_key()),
+	meta_(meta),
+	store_(new storage::Store(meta, context->DBInstance())) {
+    eventBuffer = new watch::CEventBuffer(ds_config.watch_config.buffer_map_size,
+                                        ds_config.watch_config.buffer_queue_size);
 }
 
-Range::~Range() { delete store_; }
 
-Status Range::Initialize(range_status_t *status, uint64_t leader) {
+Range::~Range() {
+    delete eventBuffer;
+}
+
+Status Range::Initialize(uint64_t leader, uint64_t log_start_index) {
     // 加载apply位置
-    auto s = context_->meta_store->LoadApplyIndex(meta_.id(), &apply_index_);
+    auto s = context_->MetaStore()->LoadApplyIndex(id_, &apply_index_);
     if (!s.ok()) {
         return Status(Status::kCorruption, "load applied", s.ToString());
     }
 
+    // 创建起始日志之前的日志都算作被应用过的
+    if (log_start_index > 1 && log_start_index - 1 > apply_index_) {
+        apply_index_ = log_start_index - 1;
+        s = context_->MetaStore()->SaveApplyIndex(id_, apply_index_);
+        if (!s.ok()) {
+            return Status(Status::kCorruption, "save applied", s.ToString());
+        }
+    }
+
     // 初始化raft
     raft::RaftOptions options;
-    options.id = meta_.id();
+    options.id = id_;
     options.leader = leader;
     options.applied = apply_index_;
     options.statemachine = shared_from_this();
     options.log_file_size = ds_config.raft_config.log_file_size;
     options.max_log_files = ds_config.raft_config.max_log_files;
-    options.allow_log_corrupt = ds_config.raft_config.allow_log_corrupt;
+    options.allow_log_corrupt = ds_config.raft_config.allow_log_corrupt > 0;
+    options.initial_first_index = log_start_index;
     options.storage_path = JoinFilePath(std::vector<std::string>{
-        std::string(ds_config.raft_config.log_path), std::to_string(meta_.table_id()),
-        std::to_string(meta_.id())});
-    // meta_.peers
-    // 有可能有多个，如果该range的副本数量在master上有多个，通过该字段下发已经有的副本
-    const auto &peers = meta_.peers();
-    for (auto it = peers.begin(); it != peers.end(); ++it) {
-        raft::Peer p;
-        p.type = it->type() == metapb::PeerType_Learner ? raft::PeerType::kLearner
+        std::string(ds_config.raft_config.log_path), std::to_string(meta_.GetTableID()),
+        std::to_string(id_)});
+
+    // init raft peers
+    auto peers = meta_.GetAllPeers();
+    for (const auto&peer : peers) {
+        raft::Peer raft_peer;
+        raft_peer.type = peer.type() == metapb::PeerType_Learner ? raft::PeerType::kLearner
                                                         : raft::PeerType::kNormal;
-        p.node_id = it->node_id();
-        p.peer_id = it->id();
-        options.peers.push_back(p);
+        raft_peer.node_id = peer.node_id();
+        raft_peer.peer_id = peer.id();
+        options.peers.push_back(raft_peer);
     }
 
     if (leader != 0) {
         options.term = 1;
     }
 
-    range_status_ = status;
     // create raft group
-    s = context_->raft_server->CreateRaft(options, &raft_);
+    s = context_->RaftServer()->CreateRaft(options, &raft_);
     if (!s.ok()) {
         return Status(Status::kInvalidArgument, "create raft", s.ToString());
     }
 
     if (leader == node_id_) {
+        context_->Statistics()->ReportLeader(id_, true);
         is_leader_ = true;
     }
 
@@ -79,13 +97,13 @@ Status Range::Initialize(range_status_t *status, uint64_t leader) {
 Status Range::Shutdown() {
     valid_ = false;
 
-    // 删除raft
-    auto s = context_->raft_server->RemoveRaft(meta_.id());
-    if (!s.ok()) {
-        FLOG_WARN("range[%" PRIu64 "] remove raft failed: %s", meta_.id(),
-                  s.ToString().c_str());
-    }
+    context_->Statistics()->ReportLeader(id_, false);
 
+    // 删除raft
+    auto s = context_->RaftServer()->RemoveRaft(id_);
+    if (!s.ok()) {
+        RANGE_LOG_WARN("remove raft failed: %s", s.ToString().c_str());
+    }
     raft_.reset();
 
     ClearExpiredContext();
@@ -94,8 +112,7 @@ Status Range::Shutdown() {
 
 void Range::Heartbeat() {
     if (PushHeartBeatMessage()) {
-        context_->range_server->LeaderQueuePush(
-            meta_.id(), ds_config.hb_config.range_interval * 1000 + getticks());
+        context_->ScheduleHeartbeat(id_, true);
     }
 
     // clear async apply expired task
@@ -107,33 +124,27 @@ bool Range::PushHeartBeatMessage() {
         return false;
     }
 
-    FLOG_DEBUG("range[%" PRIu64 "] heartbeat. epoch[%" PRIu64 " : %" PRIu64
-               "], key range[%s - %s]",
-               meta_.id(), meta_.range_epoch().version(), meta_.range_epoch().conf_ver(),
-               EncodeToHexString(meta_.start_key()).c_str(),
-               EncodeToHexString(meta_.end_key()).c_str());
+    RANGE_LOG_DEBUG(
+            "heartbeat. epoch[%" PRIu64 " : %" PRIu64 "], key range[%s - %s]",
+            meta_.GetVersion(), meta_.GetConfVer(), EncodeToHex(start_key_).c_str(),
+            EncodeToHex(meta_.GetEndKey()).c_str());
 
     mspb::RangeHeartbeatRequest req;
 
     // 设置meta
-    {
-        sharkstore::shared_lock<sharkstore::shared_mutex> lock(meta_lock_);
-        req.set_allocated_range(new metapb::Range(meta_));
-    }
+    meta_.Get(req.mutable_range());
 
     // 设置leader
     auto leader_peer = req.mutable_leader();
-    if (!FindPeerByNodeID(node_id_, leader_peer)) {
-        FLOG_ERROR("range[%" PRIu64 "] heartbeat not found leader: %" PRIu64, meta_.id(),
-                   node_id_);
+    if (!meta_.FindPeerByNodeID(node_id_, leader_peer)) {
+        RANGE_LOG_ERROR("heartbeat not found leader: %" PRIu64, node_id_);
         return false;
     }
 
     raft::RaftStatus rs;
     raft_->GetStatus(&rs);
     if (rs.leader != node_id_) {
-        FLOG_ERROR("range[%" PRIu64 "] heartbeat raft say not leader, leader=%" PRIu64,
-                   meta_.id(), rs.leader);
+        RANGE_LOG_ERROR("heartbeat raft say not leader, leader=%" PRIu64, rs.leader);
         return false;
     }
     // 设置leader term
@@ -143,9 +154,8 @@ bool Range::PushHeartBeatMessage() {
         auto peer_status = req.add_peers_status();
 
         auto peer = peer_status->mutable_peer();
-        if (!FindPeerByNodeID(pr.first, peer)) {
-            FLOG_ERROR("range[%" PRIu64 "] heartbeat not found peer: %" PRIu64,
-                       meta_.id(), pr.first);
+        if (!meta_.FindPeerByNodeID(pr.first, peer)) {
+            RANGE_LOG_ERROR("heartbeat not found peer: %" PRIu64, pr.first);
             continue;
         }
 
@@ -153,7 +163,8 @@ bool Range::PushHeartBeatMessage() {
         peer_status->set_commit(pr.second.commit);
         // 检查down peers
         if (pr.second.inactive_seconds > kDownPeerThresholdSecs) {
-            peer_status->set_down_seconds(pr.second.inactive_seconds);
+            peer_status->set_down_seconds(
+                    static_cast<uint64_t>(pr.second.inactive_seconds));
         }
         peer_status->set_snapshotting(pr.second.snapshotting);
     }
@@ -169,7 +180,7 @@ bool Range::PushHeartBeatMessage() {
     stats->set_keys_written(store_stat.keys_write_per_sec);
     stats->set_bytes_written(store_stat.bytes_write_per_sec);
 
-    context_->master_worker->AsyncRangeHeartbeat(req);
+    context_->MasterClient()->AsyncRangeHeartbeat(req);
 
     return true;
 }
@@ -207,28 +218,30 @@ Status Range::Apply(const raft_cmdpb::Command &cmd, uint64_t index) {
             return ApplyKVBatchDelete(cmd);
         case raft_cmdpb::CmdType::KvRangeDel:
             return ApplyKVRangeDelete(cmd);
+        case raft_cmdpb::CmdType::KvWatchPut:
+            return ApplyWatchPut(cmd, index);
+        case raft_cmdpb::CmdType::KvWatchDel:
+            return ApplyWatchDel(cmd, index);
         default:
-            FLOG_ERROR("range[%" PRIu64 "] Apply cmd type error %s", meta_.id(),
-                       CmdType_Name(cmd.cmd_type()).c_str());
+            RANGE_LOG_ERROR("Apply cmd type error %s", CmdType_Name(cmd.cmd_type()).c_str());
             return Status(Status::kNotSupported, "cmd type not supported", "");
     }
 }
 
 Status Range::Apply(const std::string &cmd, uint64_t index) {
-    auto start = std::chrono::system_clock::now();
-
-    raft_cmdpb::Command raft_cmd;
-    context_->socket_session->GetMessage(cmd.data(), cmd.size(), &raft_cmd);
-
     if (!valid_) {
-        FLOG_ERROR("range[%" PRIu64 "] is invalid!", meta_.id());
-        DelContext(raft_cmd.cmd_id().seq());
+        RANGE_LOG_ERROR("is invalid!");
         return Status(Status::kInvalid, "range is invalid", "");
     }
 
+    auto start = std::chrono::system_clock::now();
+
+    raft_cmdpb::Command raft_cmd;
+    common::GetMessage(cmd.data(), cmd.size(), &raft_cmd);
+
     Status ret;
     if (raft_cmd.cmd_type() == raft_cmdpb::CmdType::AdminSplit) {
-        ret = ApplySplit(raft_cmd);
+        ret = ApplySplit(raft_cmd, index);
     } else {
         auto ret = Apply(raft_cmd, index);
         // 非IO错误(致命），不给raft返回错误，不然raft会停止自己
@@ -241,10 +254,9 @@ Status Range::Apply(const std::string &cmd, uint64_t index) {
     }
 
     apply_index_ = index;
-    auto s = context_->meta_store->SaveApplyIndex(meta_.id(), apply_index_);
+    auto s = context_->MetaStore()->SaveApplyIndex(id_, apply_index_);
     if (!s.ok()) {
-        FLOG_ERROR("range[%" PRIu64 "] save apply index error %s", meta_.id(),
-                   s.ToString().c_str());
+        RANGE_LOG_ERROR("save apply index error %s", s.ToString().c_str());
         return s;
     }
 
@@ -252,8 +264,7 @@ Status Range::Apply(const std::string &cmd, uint64_t index) {
     auto elapsed_usec =
         std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     if (elapsed_usec > kTimeTakeWarnThresoldUSec) {
-        FLOG_WARN("range[%lu] apply takes too long(%ld ms), type: %s.", meta_.id(),
-                  elapsed_usec / 1000,
+        RANGE_LOG_WARN("apply takes too long(%ld ms), type: %s.", elapsed_usec / 1000,
                   raft_cmdpb::CmdType_Name(raft_cmd.cmd_type()).c_str());
     }
 
@@ -273,55 +284,59 @@ Status Range::Submit(const raft_cmdpb::Command &cmd) {
     }
 }
 
+Status Range::SubmitCmd(common::ProtoMessage *msg, const kvrpcpb::RequestHeader& header,
+                 const std::function<void(raft_cmdpb::Command &cmd)> &init) {
+    raft_cmdpb::Command cmd;
+    init(cmd);
+
+    // set verify epoch
+    auto epoch = new metapb::RangeEpoch(header.range_epoch());
+    cmd.set_allocated_verify_epoch(epoch);
+
+    // add to queue
+    auto seq = submit_queue_.Add(header, cmd.cmd_type(), msg);
+    cmd.mutable_cmd_id()->set_node_id(node_id_);
+    cmd.mutable_cmd_id()->set_seq(seq);
+
+    auto ret = Submit(cmd);
+    if (!ret.ok()) {
+        submit_queue_.Remove(cmd.cmd_id().seq());
+    }
+
+    return ret;
+}
+
 void Range::OnLeaderChange(uint64_t leader, uint64_t term) {
-    FLOG_INFO("range[%" PRIu64 "] Leader Change to Node %" PRIu64, meta_.id(), leader);
+    RANGE_LOG_INFO("Leader Change to Node %" PRIu64, leader);
 
     if (!valid_) {
-        FLOG_ERROR("range[%" PRIu64 "] is invalid!", meta_.id());
+        RANGE_LOG_ERROR("is invalid!");
         return;
     }
 
-    if (leader == node_id_) {
-        if (!is_leader_) {  // check leader to leader
-            is_leader_ = true;
-
+    bool prev_is_leader = is_leader_;
+    is_leader_ = (leader == node_id_);
+    if (is_leader_) {
+        if (!prev_is_leader) {
             store_->ResetMetric();
-
-            context_->range_server->LeaderQueuePush(meta_.id(), getticks());
-            range_status_->range_leader_count++;
-
-            context_->run_status->PushRange(monitor::RangeTag::LeaderCount,
-                                            range_status_->range_leader_count);
         }
-
-    } else {
-        if (is_leader_) {
-            is_leader_ = false;
-            range_status_->range_leader_count--;
-
-            context_->run_status->PushRange(monitor::RangeTag::LeaderCount,
-                                            range_status_->range_leader_count);
-        }
+        context_->ScheduleHeartbeat(id_, false);
     }
+    context_->Statistics()->ReportLeader(id_, is_leader_.load());
 }
 
 std::shared_ptr<raft::Snapshot> Range::GetSnapshot() {
     raft_cmdpb::SnapshotContext ctx;
-    auto meta = ctx.mutable_meta();
-    {
-        sharkstore::shared_lock<sharkstore::shared_mutex> lock(meta_lock_);
-        meta->CopyFrom(meta_);
-    }
-
+    meta_.Get(ctx.mutable_meta());
     return std::shared_ptr<raft::Snapshot>(
         new Snapshot(apply_index_, std::move(ctx), store_->NewIterator()));
 }
 
 Status Range::ApplySnapshotStart(const std::string &context) {
-    FLOG_INFO("Range %" PRIu64 " apply snapshot begin", meta_.id());
+    RANGE_LOG_INFO("apply snapshot begin");
 
     if (!valid_) {
-        FLOG_ERROR("range[%" PRIu64 "] is invalid!", meta_.id());
+        RANGE_LOG_ERROR("is invalid!");
         return Status(Status::kInvalid, "range is invalid", "");
     }
 
@@ -335,20 +350,21 @@ Status Range::ApplySnapshotStart(const std::string &context) {
         return Status(Status::kCorruption, "parse snapshot context", "pb return false");
     }
 
-    {
-        std::unique_lock<sharkstore::shared_mutex> lock(meta_lock_);
-        meta_ = ctx.meta();
-    }
-
-    if (!SaveMeta(ctx.meta())) {
+    meta_.Set(ctx.meta());
+    s = SaveMeta(ctx.meta()) ;
+    if (!s.ok()) {
+        RANGE_LOG_ERROR("save snapshot meta failed: %s", s.ToString().c_str());
         return Status(Status::kIOError, "save range meta", "");
     }
+
+    RANGE_LOG_INFO("meta update to %s", ctx.meta().ShortDebugString().c_str());
+
     return Status::OK();
 }
 
 Status Range::ApplySnapshotData(const std::vector<std::string> &datas) {
     if (!valid_) {
-        FLOG_ERROR("range[%" PRIu64 "] is invalid!", meta_.id());
+        RANGE_LOG_ERROR("is invalid!");
         return Status(Status::kInvalid, "range is invalid", "");
     }
 
@@ -356,79 +372,75 @@ Status Range::ApplySnapshotData(const std::vector<std::string> &datas) {
 }
 
 Status Range::ApplySnapshotFinish(uint64_t index) {
-    FLOG_INFO("Range %" PRIu64 " finish apply snapshot. index:%lu", meta_.id(), index);
+    RANGE_LOG_INFO("finish apply snapshot. index: %" PRIu64, index);
 
     if (!valid_) {
-        FLOG_ERROR("range[%" PRIu64 "] is invalid!", meta_.id());
+        RANGE_LOG_ERROR("is invalid!");
         return Status(Status::kInvalid, "range is invalid", "");
     }
 
     apply_index_ = index;
-    auto s = context_->meta_store->SaveApplyIndex(meta_.id(), index);
+    auto s = context_->MetaStore()->SaveApplyIndex(id_, index);
     if (!s.ok()) {
-        FLOG_ERROR("range[%" PRIu64 "] save snapshot applied index failed(%s)!",
-                   meta_.id(), s.ToString().c_str());
+        RANGE_LOG_ERROR("save snapshot applied index failed(%s)!", s.ToString().c_str());
         return s;
     } else {
         return Status::OK();
     }
 }
 
-bool Range::SaveMeta(const metapb::Range &meta) {
-    std::string value;
-    if (!meta.SerializeToString(&value)) {
-        FLOG_ERROR("save range mate seriaize failed");
-        return false;
-    }
-
-    auto ms = context_->range_server->meta_store();
-    auto ret = ms->AddRange(meta_.id(), value);
-    if (!ret.ok()) {
-        FLOG_ERROR("save range meta failed");
-        return false;
-    }
-
-    return true;
+Status Range::SaveMeta(const metapb::Range &meta) {
+    return context_->MetaStore()->AddRange(meta);
 }
 
-Status Range::Truncate() {
-    auto s = store_->Truncate();
+Status Range::Destroy() {
+    valid_ = false;
+
+    ClearExpiredContext();
+
+    context_->Statistics()->ReportLeader(id_, false);
+
+    // 销毁raft
+    auto s = context_->RaftServer()->DestroyRaft(id_);
     if (!s.ok()) {
-        FLOG_ERROR("Range %" PRIu64 " truncate store fail: %s", meta_.id(),
-                   s.ToString().c_str());
+        RANGE_LOG_WARN("destroy raft failed: %s", s.ToString().c_str());
+    }
+    raft_.reset();
+
+    s = store_->Truncate();
+    if (!s.ok()) {
+        RANGE_LOG_ERROR("truncate store fail: %s", s.ToString().c_str());
         return s;
     }
-    s = context_->meta_store->DeleteApplyIndex(meta_.id());
+    s = context_->MetaStore()->DeleteApplyIndex(id_);
     if (!s.ok()) {
-        FLOG_ERROR("Range %" PRIu64 " truncate delete apply fail: %s", meta_.id(),
-                   s.ToString().c_str());
+        RANGE_LOG_ERROR("truncate delete apply fail: %s", s.ToString().c_str());
     }
     return s;
 }
 
 void Range::TransferLeader() {
     if (!valid_) {
-        FLOG_ERROR("range[%" PRIu64 "] is invalid!", meta_.id());
+        RANGE_LOG_ERROR("is invalid!");
         return;
     }
 
-    FLOG_INFO("range[%" PRIu64 "] receive TransferLeader, try to leader.", meta_.id());
+    RANGE_LOG_INFO("receive TransferLeader, try to leader.");
 
     auto s = raft_->TryToLeader();
     if (!s.ok()) {
-        FLOG_ERROR("Range %" PRIu64 " TransferLeader fail, %s", meta_.id(),
-                   s.ToString().c_str());
+        RANGE_LOG_ERROR("TransferLeader fail, %s", s.ToString().c_str());
     }
 }
 
 void Range::GetPeerInfo(raft::RaftStatus *raft_status) { raft_->GetStatus(raft_status); }
 
 void Range::GetReplica(metapb::Replica *rep) {
-    rep->set_range_id(meta_.id());
-    rep->set_start_key(meta_.start_key());
-    rep->set_end_key(meta_.end_key());
+    rep->set_range_id(id_);
+    rep->set_start_key(start_key_);
+    rep->set_end_key(meta_.GetEndKey());
     auto peer = new metapb::Peer;
-    FindPeerByNodeID(node_id_, peer);
+    meta_.FindPeerByNodeID(node_id_, peer);
     rep->set_allocated_peer(peer);
 }
 
@@ -440,7 +452,7 @@ bool Range::VerifyLeader(errorpb::Error *&err) {
     if (leader == node_id_) return true;
 
     metapb::Peer peer;
-    if (leader == 0 || !FindPeerByNodeID(leader, &peer)) {
+    if (leader == 0 || !meta_.FindPeerByNodeID(leader, &peer)) {
         err = NoLeaderError();
     } else {
         err = NotLeaderError(std::move(peer));
@@ -449,11 +461,11 @@ bool Range::VerifyLeader(errorpb::Error *&err) {
 }
 
 bool Range::CheckWriteable() {
-    if (server::RunStatus::fs_usage_percent_ >= kStopWriteFsUsagePercent) {
-        FLOG_ERROR("range[%lu] filesystem usage percent(%lu > %lu) limit "
-                   "reached, reject write request",
-                   meta_.id(), server::RunStatus::fs_usage_percent_.load(),
-                   kStopWriteFsUsagePercent);
+    auto percent = context_->GetFSUsagePercent();
+    if (percent > kStopWriteFsUsagePercent) {
+        RANGE_LOG_ERROR(
+                "filesystem usage percent(%" PRIu64 "> %" PRIu64 ") limit reached, reject write request",
+                percent, kStopWriteFsUsagePercent);
         return false;
     } else {
         return true;
@@ -461,18 +473,16 @@ bool Range::CheckWriteable() {
 }
 
 bool Range::KeyInRange(const std::string &key) {
-    if (key < meta_.start_key()) {
-        FLOG_WARN("key: %s less than start_key:%s, out of range %" PRIu64,
-                  EncodeToHexString(key).c_str(),
-                  EncodeToHexString(meta_.start_key()).c_str(), meta_.id());
+    if (key < start_key_) {
+        RANGE_LOG_WARN("key: %s less than start_key:%s, out of range",
+                  EncodeToHex(key).c_str(), EncodeToHex(start_key_).c_str());
         return false;
     }
 
-    sharkstore::shared_lock<sharkstore::shared_mutex> lock(meta_lock_);
-    if (key >= meta_.end_key()) {
-        FLOG_WARN("key: %s greater than end_key:%s, out of range %" PRIu64,
-                  EncodeToHexString(key).c_str(),
-                  EncodeToHexString(meta_.end_key()).c_str(), meta_.id());
+    auto end_key = meta_.GetEndKey();
+    if (key >= end_key) {
+        RANGE_LOG_WARN("key: %s greater than end_key:%s, out of range",
+                  EncodeToHex(key).c_str(), EncodeToHex(end_key).c_str());
         return false;
     }
 
@@ -489,13 +499,7 @@ bool Range::KeyInRange(const std::string &key, errorpb::Error *&err) {
 }
 
 bool Range::EpochIsEqual(const metapb::RangeEpoch &epoch) {
-    sharkstore::shared_lock<sharkstore::shared_mutex> lock(meta_lock_);
-
-    if (meta_.range_epoch().version() == epoch.version()) {
-        return true;
-    }
-
-    return false;
+    return meta_.GetVersion() == epoch.version();
 }
 
 bool Range::EpochIsEqual(const metapb::RangeEpoch &epoch, errorpb::Error *&err) {
@@ -503,90 +507,26 @@ bool Range::EpochIsEqual(const metapb::RangeEpoch &epoch, errorpb::Error *&err) 
         err = StaleEpochError(epoch);
         return false;
     }
-
     return true;
 }
 
-Range::AsyncContext *Range::AddContext(uint64_t id, raft_cmdpb::CmdType type,
-                                       common::ProtoMessage *msg,
-                                       kvrpcpb::RequestHeader *req) {
-    AsyncContext *context = new AsyncContext(type, context_, msg, req);
-
-    std::lock_guard<std::mutex> lock(submit_mutex_);
-    submit_map_[id] = context;
-    submit_queue_.emplace(msg->expire_time, id);
-    return context;
-}
-
-void Range::DelContext(uint64_t seq_id) {
-    std::lock_guard<std::mutex> lock(submit_mutex_);
-    auto it = submit_map_.find(seq_id);
-    if (it != submit_map_.end()) {
-        delete it->second;
-        submit_map_.erase(it);
-    }
-}
-
-Range::AsyncContext *Range::ReleaseContext(uint64_t seq_id) {
-    std::lock_guard<std::mutex> lock(submit_mutex_);
-    auto it = submit_map_.find(seq_id);
-    if (it != submit_map_.end()) {
-        auto context = it->second;
-        submit_map_.erase(it);
-        return context;
-    }
-
-    return nullptr;
-}
-
-std::tuple<bool, uint64_t> Range::GetExpiredContext() {
-    std::lock_guard<std::mutex> lock(submit_mutex_);
-    if (submit_queue_.empty()) {
-        return std::make_tuple(true, 0);
-    }
-    auto ts = submit_queue_.top();
-    if (valid_) {
-        time_t now = getticks();
-        if (ts.first > now) {
-            return std::make_tuple(false, 0);
-        }
-    }
-
-    submit_queue_.pop();
-    return std::make_tuple(false, ts.second);
-}
-
 void Range::ClearExpiredContext() {
-    bool empty = false;
-    uint64_t seq_id = -1;
-
-    while (true) {
-        do {
-            std::tie(empty, seq_id) = GetExpiredContext();
-            if (empty || seq_id == 0) {
-                break;
-            }
-
-            Range::AsyncContext *context = ReleaseContext(seq_id);
-            if (context != nullptr) {
-                SendTimeOutError(context);
-            }
-
-        } while (seq_id > 0);
-
-        if (empty || is_leader_) {
-            break;
+    auto expired_seqs = submit_queue_.GetExpired();
+    for (auto seq: expired_seqs) {
+        auto ctx = submit_queue_.Remove(seq);
+        if (ctx) {
+            ctx->SendTimeout(context_->SocketSession());
         }
     }
 }
+
 
 errorpb::Error *Range::NoLeaderError() {
     errorpb::Error *err = new errorpb::Error;
 
     err->set_message("no leader");
-    err->mutable_not_leader()->set_range_id(meta_.id());
-    err->mutable_not_leader()->set_allocated_epoch(
-        new metapb::RangeEpoch(meta_.range_epoch()));
+    err->mutable_not_leader()->set_range_id(id_);
+    meta_.GetEpoch(err->mutable_not_leader()->mutable_epoch());
 
     return err;
 }
@@ -595,10 +535,9 @@ errorpb::Error *Range::NotLeaderError(metapb::Peer &&peer) {
     errorpb::Error *err = new errorpb::Error;
 
     err->set_message("not leader");
-    err->mutable_not_leader()->set_range_id(meta_.id());
-    err->mutable_not_leader()->set_allocated_epoch(
-        new metapb::RangeEpoch(meta_.range_epoch()));
+    err->mutable_not_leader()->set_range_id(id_);
     err->mutable_not_leader()->set_allocated_leader(new metapb::Peer(std::move(peer)));
+    meta_.GetEpoch(err->mutable_not_leader()->mutable_epoch());
 
     return err;
 }
@@ -607,21 +546,13 @@ errorpb::Error *Range::KeyNotInRange(const std::string &key) {
     errorpb::Error *err = new errorpb::Error;
 
     err->set_message("key not in range");
-    err->mutable_key_not_in_range()->set_range_id(meta_.id());
+    err->mutable_key_not_in_range()->set_range_id(id_);
     err->mutable_key_not_in_range()->set_key(key);
-    err->mutable_key_not_in_range()->set_start_key(meta_.start_key());
+    err->mutable_key_not_in_range()->set_start_key(start_key_);
 
     // end_key change at range split time
-    sharkstore::shared_lock<sharkstore::shared_mutex> lock(meta_lock_);
-    err->mutable_key_not_in_range()->set_end_key(meta_.end_key());
+    err->mutable_key_not_in_range()->set_end_key(meta_.GetEndKey());
 
-    return err;
-}
-
-errorpb::Error *Range::TimeOutError() {
-    errorpb::Error *err = new errorpb::Error;
-    err->set_message("requset timeout");
-    err->mutable_timeout();
     return err;
 }
 
@@ -637,49 +568,21 @@ errorpb::Error *Range::StaleEpochError(const metapb::RangeEpoch &epoch) {
     std::string msg = "stale epoch, req version:";
     msg += std::to_string(epoch.version());
     msg += " cur version:";
-    msg += std::to_string(meta_.range_epoch().version());
+    msg += std::to_string(meta_.GetVersion());
 
     err->set_message(std::move(msg));
     auto stale_epoch = err->mutable_stale_epoch();
-    stale_epoch->set_allocated_old_range(new metapb::Range(meta_));
+    meta_.Get(stale_epoch->mutable_old_range());
 
     if (split_range_id_ > 0) {
-        auto new_meta = context_->range_server->GetRangeMeta(split_range_id_);
-        if (new_meta != nullptr) {
-            stale_epoch->set_allocated_new_range(new_meta);
+        auto split_range = context_->FindRange(split_range_id_);
+        if (split_range) {
+            auto split_meta = split_range->options();
+            stale_epoch->set_allocated_new_range(new metapb::Range(std::move(split_meta)));
         }
     }
 
     return err;
-}
-
-void Range::SendTimeOutError(AsyncContext *context) {
-    FLOG_WARN("range[%lu] deal %s timeout. sid=%ld, msgid=%ld", meta_.id(),
-              raft_cmdpb::CmdType_Name(context->cmd_type_).c_str(),
-              context->proto_message->session_id, context->proto_message->msg_id);
-
-    auto err = TimeOutError();
-    switch (context->cmd_type_) {
-        case raft_cmdpb::CmdType::RawPut:
-            SendError(context, new kvrpcpb::DsKvRawPutResponse, err);
-            break;
-        case raft_cmdpb::CmdType::RawDelete:
-            SendError(context, new kvrpcpb::DsKvRawDeleteResponse, err);
-            break;
-        case raft_cmdpb::CmdType::Insert:
-            SendError(context, new kvrpcpb::DsInsertResponse, err);
-            break;
-        case raft_cmdpb::CmdType::Delete:
-            SendError(context, new kvrpcpb::DsDeleteResponse, err);
-            break;
-
-        default:
-            FLOG_ERROR("range[%" PRIu64 "] Apply cmd type error %d", meta_.id(),
-                       context->cmd_type_);
-            delete err;
-    }
-
-    delete context;
 }
 
 }  // namespace range

@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	REQURI_MASTER_All= "/master/queryAll"
-	REQURI_MASTER_Leader= "/master/queryLeader"
+	REQURI_MASTER_All             = "/master/queryAll"
+	REQURI_MASTER_LEADER          = "/master/queryLeader"
 	REQURI_MASTER_LOGLEVEL_UPDATE = "/master/logLevelUpdate"
 )
 
@@ -21,11 +21,12 @@ const (
  */
 type MasterAllAction struct {
 }
+
 func NewMasterAllAction() *MasterAllAction {
 	return &MasterAllAction{
 	}
 }
-func (ctrl *MasterAllAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *MasterAllAction) Execute(c *gin.Context) (interface{}, error) {
 	cIdStr := c.PostForm("clusterId")
 	if cIdStr == "" {
 		return nil, common.PARSE_PARAM_ERROR
@@ -46,11 +47,12 @@ func (ctrl *MasterAllAction)Execute(c *gin.Context) (interface{}, error) {
  */
 type MasterLeaderAction struct {
 }
+
 func NewMasterLeaderAction() *MasterLeaderAction {
 	return &MasterLeaderAction{
 	}
 }
-func (ctrl *MasterLeaderAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *MasterLeaderAction) Execute(c *gin.Context) (interface{}, error) {
 	cIdStr := c.PostForm("clusterId")
 	if cIdStr == "" {
 		return nil, common.PARSE_PARAM_ERROR
@@ -69,13 +71,13 @@ func (ctrl *MasterLeaderAction)Execute(c *gin.Context) (interface{}, error) {
 type MasterLogLevelUpdate struct {
 }
 
-func NewMasterLogLevelUpdate () *MasterLogLevelUpdate{
+func NewMasterLogLevelUpdate() *MasterLogLevelUpdate {
 	return &MasterLogLevelUpdate{}
 }
 func (ctrl *MasterLogLevelUpdate) Execute(c *gin.Context) (interface{}, error) {
 	cIdStr := c.PostForm("clusterId")
 	logLevel := c.PostForm("logLevel")
-	if cIdStr == "" || logLevel == ""{
+	if cIdStr == "" || logLevel == "" {
 		return nil, common.PARSE_PARAM_ERROR
 	}
 	clusterId, err := strconv.Atoi(cIdStr)

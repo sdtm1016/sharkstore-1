@@ -8,7 +8,6 @@ import (
 	"util/log"
 	"time"
 	"errors"
-	"fmt"
 	"io/ioutil"
 )
 
@@ -35,14 +34,12 @@ type MessageTo struct {
 }
 
 type MessageGateway struct {
-	address string
 	client *http.Client // direct push to message gateway
 
 	alarmServerAddress string // alarm server address
 	pusher *http.Client // direct to alarm server
 
 	messages chan Message
-	receiver MessageReceiver
 
 	ctx context.Context
 }
@@ -51,9 +48,8 @@ const (
 	MESSAGEGATEWAY_WAIT_QUEUE_LENGTH = 10000
 )
 
-func NewMessageGateway(ctx context.Context, addr, alarmServerAddr string, receiver MessageReceiver) *MessageGateway {
+func NewMessageGateway(ctx context.Context, alarmServerAddr string) *MessageGateway {
 	gw := &MessageGateway{
-		address: addr,
 		client: &http.Client{
 			Timeout: time.Second*3,
 		},
@@ -74,7 +70,6 @@ func NewMessageGateway(ctx context.Context, addr, alarmServerAddr string, receiv
 			//},
 		},
 		messages: make(chan Message, MESSAGEGATEWAY_WAIT_QUEUE_LENGTH),
-		receiver: receiver,
 		ctx: ctx,
 	}
 
@@ -83,22 +78,22 @@ func NewMessageGateway(ctx context.Context, addr, alarmServerAddr string, receiv
 }
 
 func (gw *MessageGateway) send_(msg string) error {
-	req, err := http.NewRequest("POST", gw.address, strings.NewReader(msg))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("len", fmt.Sprint(len(msg)))
-	req.Header.Add("User-Agent", "Jimdb-Message-Sender")
-	req.Header.Set("Content-Type", "application/json;charset=utf-8")
-	req.Header.Set("Accept", "application/json,text/html,text/plain")
-	req.Header.Set("Accept-Charset", "utf-8,GBK")
-
-	resp, err := gw.client.Do(req)
-	//_, err = gw.client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
+	//req, err := http.NewRequest("POST", gw.address, strings.NewReader(msg))
+	//if err != nil {
+	//	return err
+	//}
+	//req.Header.Set("len", fmt.Sprint(len(msg)))
+	//req.Header.Add("User-Agent", "Jimdb-Message-Sender")
+	//req.Header.Set("Content-Type", "application/json;charset=utf-8")
+	//req.Header.Set("Accept", "application/json,text/html,text/plain")
+	//req.Header.Set("Accept-Charset", "utf-8,GBK")
+	//
+	//resp, err := gw.client.Do(req)
+	////_, err = gw.client.Do(req)
+	//if err != nil {
+	//	return err
+	//}
+	//defer resp.Body.Close()
 	return nil
 }
 
@@ -119,16 +114,17 @@ func (gw *MessageGateway) wait() {
 	for {
 		select {
 		case msg := <-gw.messages:
-			mailTo := gw.receiver.GetMailList(msg.ClusterId, msg.Level)
-			smsTo := gw.receiver.GetSmsList(msg.ClusterId, msg.Level)
-			log.Info("message: %v, mail to: %v, sms to: %v", msg, mailTo, smsTo)
-			if err := gw.send(msg.Title, msg.Content, mailTo, smsTo); err != nil {
-				log.Error("alarm message send: %v", err)
-			}
+			//mailTo := gw.receiver.GetMailList(msg.ClusterId, msg.Level)
+			//smsTo := gw.receiver.GetSmsList(msg.ClusterId, msg.Level)
+			//log.Debug("message: %v, mail to: %v, sms to: %v", msg, mailTo, smsTo)
+			//if err := gw.send(msg.Title, msg.Content, mailTo, smsTo); err != nil {
+			//	log.Error("alarm message send: %v", err)
+			//}
+
 			// to alarm server
 			for _, sample := range msg.samples {
 				if err := gw.PushSampleJson(sample); err != nil {
-					log.Error("push to remote alarm server error: ", err)
+					log.Error("push to remote alarm server error: %v", err)
 				}
 			}
 		case <-gw.ctx.Done():
@@ -150,6 +146,9 @@ func (gw *MessageGateway) notify(message Message, timeout time.Duration) (err er
 }
 
 func (gw *MessageGateway) PushSampleJson(sample string) error {
+	if len(gw.alarmServerAddress) == 0 {
+		return errors.New("alarm server address is not config")
+	}
 	req, _ := http.NewRequest("POST", gw.alarmServerAddress, strings.NewReader(sample))
 	req.Header.Add("User-Agent", "AlarmPusher-Agent")
 	req.Header.Set("Connection", "close")

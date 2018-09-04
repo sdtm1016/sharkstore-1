@@ -32,6 +32,10 @@ public:
         kInvalid = 20,
         kResourceExhaust = 21,
         kNoLeftSpace = 22,
+        kUnexpected = 23,
+        kOutOfBound = 24,
+
+        kNotChange = 25,
 
         kUnknown = 255,
     };

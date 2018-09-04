@@ -32,7 +32,7 @@ func (m *TaskManager) Add(tc *TaskChain) bool {
 }
 
 // Remove remove
-func (m *TaskManager) Remove(tc *TaskChain) bool {
+func (m *TaskManager) Remove(tc *TaskChain, cluster *Cluster) bool {
 	m.Lock()
 	defer m.Unlock()
 
@@ -44,6 +44,7 @@ func (m *TaskManager) Remove(tc *TaskChain) bool {
 		return false
 	}
 	delete(m.tasks, tc.GetRangeID())
+	cluster.metric.CollectEvent(tc)
 	return true
 }
 

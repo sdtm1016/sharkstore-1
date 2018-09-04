@@ -6,7 +6,7 @@ import (
 )
 
 func TestNodeLogin(t *testing.T) {
-	cluster := newLocalCluster(newMockIDAllocator())
+	cluster := newBoltDbCluster(t, newMockIDAllocator())
 	if cluster == nil {
 		return
 	}
@@ -47,20 +47,25 @@ func TestNodeLogin(t *testing.T) {
 	// 模拟invalid node
 	err = cluster.NodeLogin(10000)
 	if err == nil {
-		t.Error("test failed")
+		t.Errorf("test failed, %v", err)
 		return
 	}
 	// 模拟node logout
 	node1.State = metapb.NodeState_N_Logout
+	node1, clean, err := cluster.GetNodeId("127.0.0.1:6060", "127.0.0.1:6061", "127.0.0.1:6062", "v1")
+	if err != nil || !clean {
+		t.Errorf("get node ID failed, err %v", err)
+		return
+	}
 	err = cluster.NodeLogin(node1.GetId())
-	if err == nil {
+	if err != nil {
 		t.Error("test failed")
 		return
 	}
 }
 
 func TestDeleteNode(t *testing.T) {
-	cluster := newLocalCluster(newMockIDAllocator())
+	cluster := newBoltDbCluster(t, newMockIDAllocator())
 	if cluster == nil {
 		return
 	}
@@ -98,6 +103,12 @@ func TestDeleteNode(t *testing.T) {
 		return
 	}
 
+	if node1M, err := cluster.loadNode(node1.GetId()); err != nil {
+		t.Error("test failed")
+		return
+	} else {
+		t.Logf("node1 info %v", node1M)
+	}
 	err = cluster.DeleteNodeById(node1.GetId())
 	if err != nil {
 		t.Errorf("delete node by ID failed, err %v", err)
@@ -121,7 +132,7 @@ func TestDeleteNode(t *testing.T) {
 }
 
 func TestFindNode(t *testing.T) {
-	cluster := newLocalCluster(newMockIDAllocator())
+	cluster := newBoltDbCluster(t, newMockIDAllocator())
 	defer closeLocalCluster(cluster)
 
 	// 第一步.　添加新的节点

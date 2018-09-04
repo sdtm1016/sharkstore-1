@@ -10,13 +10,16 @@ import (
 	"model/pkg/kvrpcpb"
 	"bufio"
 	"time"
-	"model/pkg/funcpb"
 	"model/pkg/metapb"
 	"model/pkg/schpb"
 	"model/pkg/errorpb"
 	"proxy/store/localstore/engine"
 	"proxy/store/localstore/goleveldb"
+	commonUtil "util"
 	"os"
+	"util/log"
+	"util/encoding"
+	"model/pkg/funcpb"
 )
 
 //启动参数： 端口 CPU数
@@ -56,6 +59,7 @@ type DsRpcServer struct {
 	l           net.Listener
 	rLock       sync.RWMutex
 	rngs        map[uint64]*metapb.Range
+	childRngs   map[uint64]*metapb.Range //store childRange after old range was splited key:old range id; value:new child range
 
 	store       engine.Driver
 	//msAddr      []string
@@ -63,12 +67,16 @@ type DsRpcServer struct {
 }
 
 func NewDsRpcServer(addr string, path string) *DsRpcServer {
+
 	store, err := goleveldb.NewLevelDBDriver(path)
 	if err != nil {
 		os.Exit(-1)
 		return nil
 	}
-	return &DsRpcServer{rpcAddr: addr, conns: make(map[uint64]net.Conn), rngs: make(map[uint64]*metapb.Range), store:store}
+
+	return &DsRpcServer{rpcAddr: addr, conns: make(map[uint64]net.Conn), rngs: make(map[uint64]*metapb.Range),
+			childRngs: make(map[uint64]*metapb.Range),
+			store:store}
 }
 
 func (svr *DsRpcServer) SetRange(r *metapb.Range) {
@@ -76,6 +84,26 @@ func (svr *DsRpcServer) SetRange(r *metapb.Range) {
 	defer svr.rLock.Unlock()
 	if _, find := svr.rngs[r.GetId()]; !find {
 		svr.rngs[r.GetId()] = r
+	}else{
+		svr.rngs[r.GetId()] = r
+	}
+}
+
+func (svr *DsRpcServer) GetRange(id uint64)(*metapb.Range) {
+	svr.rLock.Lock()
+	defer svr.rLock.Unlock()
+	if r, find := svr.rngs[id]; find {
+		return r
+	}else{
+		return nil
+	}
+}
+
+func (svr *DsRpcServer) DelRange(id uint64){
+	svr.rLock.Lock()
+	defer svr.rLock.Unlock()
+	if _, find := svr.rngs[id]; find {
+		delete(svr.rngs, id)
 	}
 }
 
@@ -135,6 +163,13 @@ func (svr *DsRpcServer) Start() {
 	}
 }
 
+func (svr *DsRpcServer) RangeSplit(oldRng  *metapb.Range,newRng *metapb.Range){
+
+	svr.SetRange(oldRng)
+	svr.SetRange(newRng)
+	svr.childRngs[oldRng.GetId()] = newRng
+}
+
 func (svr *DsRpcServer) Stop() {
 	if svr == nil{
 		return
@@ -151,6 +186,8 @@ func (svr *DsRpcServer) Stop() {
 	svr.wg.Wait()
 
 	// TODO clear data
+	svr.store.Close()
+
 }
 
 const (
@@ -215,21 +252,187 @@ func (svr *DsRpcServer) insert(msg *dsClient.Message) {
 	req := new(kvrpcpb.DsInsertRequest)
 	err := proto.Unmarshal(msg.GetData(), req)
 	if err != nil {
-		resp = &kvrpcpb.DsInsertResponse{Header: &kvrpcpb.ResponseHeader{Error: &errorpb.Error{Message: "insert failed"}}}
+		resp = &kvrpcpb.DsInsertResponse{Header: &kvrpcpb.ResponseHeader{Error: &errorpb.Error{Message: "decode insert failed"}}}
 	} else {
-		// TODO insert
-		resp = &kvrpcpb.DsInsertResponse{Header: &kvrpcpb.ResponseHeader{}, Resp: &kvrpcpb.InsertResponse{Code: 0, AffectedKeys: uint64(len(req.GetReq().GetRows()))}}
+		rangeId := req.Header.GetRangeId()
+		rng :=svr.GetRange(rangeId)
+		if rng == nil {
+			resp = &kvrpcpb.DsInsertResponse{Header: &kvrpcpb.ResponseHeader{Error: &errorpb.Error{Message:"no exist range", NotLeader: &errorpb.NotLeader{RangeId: rangeId}}}}
+		} else {
+			rngEpoch := req.Header.GetRangeEpoch()
+
+			if rng.RangeEpoch.Version == rngEpoch.Version && rng.RangeEpoch.ConfVer == rngEpoch.ConfVer {
+				num := 0
+				for _,row := range req.GetReq().Rows {
+					err := svr.store.Put(row.Key,row.Value)
+					if err == nil {
+						num++
+					}
+
+				}
+
+				resp = &kvrpcpb.DsInsertResponse{Header: &kvrpcpb.ResponseHeader{}, Resp: &kvrpcpb.InsertResponse{Code: 0, AffectedKeys: uint64(num)}}
+			}else{
+				resp = &kvrpcpb.DsInsertResponse{Header: &kvrpcpb.ResponseHeader{}, Resp: &kvrpcpb.InsertResponse{Code: 1, AffectedKeys: uint64(0)}}
+
+				staleErr := &errorpb.Error{
+					StaleEpoch: &errorpb.StaleEpoch{OldRange:rng,NewRange:svr.childRngs[rangeId]},
+				}
+				resp.Header.Error = staleErr
+			}
+		}
 	}
 	data, _ := proto.Marshal(resp)
 	msg.SetMsgType(0x12)
 	msg.SetData(data)
 }
 
+/**
+select all
+ */
 func (svr *DsRpcServer) query(msg *dsClient.Message) {
+	var resp *kvrpcpb.DsSelectResponse
+	req := new(kvrpcpb.DsSelectRequest)
+	err := proto.Unmarshal(msg.GetData(), req)
 
+	if err != nil {
+		resp = &kvrpcpb.DsSelectResponse{Header: &kvrpcpb.ResponseHeader{Error: &errorpb.Error{Message: "decode select failed"}}}
+	}else{
+		rngEpoch := req.Header.GetRangeEpoch()
+		rangeId := req.Header.GetRangeId()
+		rng := svr.GetRange(rangeId)
+		log.Info("query range:%d,startKey:%v,endKey:%v",rangeId,rng.StartKey,rng.EndKey)
+		if rng.RangeEpoch.Version == rngEpoch.Version && rng.RangeEpoch.ConfVer == rngEpoch.ConfVer {
+			
+			it := svr.store.NewIterator(rng.StartKey, rng.EndKey)
+			rows := make([]*kvrpcpb.Row, 0)
+
+			for it.Next() {
+				fields := make([]byte,0)
+				row := new(kvrpcpb.Row)
+				row.Key = it.Key()
+				pks := rng.PrimaryKeys
+				buf := it.Key()[9:]//drop table prefix
+				var v []byte
+
+				for _,pk := range pks {
+
+					buf,v,_ =commonUtil.DecodePrimaryKey(buf,pk)
+
+					log.Debug("pk v:%v %v ",v,row.Key)
+
+					fields,err =commonUtil.EncodeColumnValue(fields,pk,v)
+					if err != nil{
+						log.Error("encode pk err:%s",err.Error())
+					}
+				}
+				//value可能无序
+				fieldBuf := it.Value()
+				var colId uint32
+				var typ encoding.Type
+				var val []byte
+				var max uint32 = 0
+				filedMap:=make(map[uint32][]byte)
+				for len(fieldBuf) > 0 {
+					filedCodeBuf := make([]byte,0)
+					fieldBuf,colId,val,typ,err =commonUtil.DecodeValue2(fieldBuf)
+					log.Debug("decode field colId:%d,val:%v,type:%d",colId,val,typ)
+					filedCodeBuf,_ = commonUtil.EncodeValue2(filedCodeBuf,colId,typ,val)
+					filedMap[colId]=filedCodeBuf
+					if colId > max {
+						max = colId
+					}
+				}
+
+				for i:=uint32(0);i<=max;i++{
+					if v,ok := filedMap[i];ok{
+						fields = append(fields,v...)
+					}
+				}
+
+				row.Fields = fields
+				rows = append(rows, row)
+			}
+
+			defer it.Release()
+			resp = &kvrpcpb.DsSelectResponse{Header: &kvrpcpb.ResponseHeader{}}
+			resp.Resp = &kvrpcpb.SelectResponse{}
+			resp.Resp.Rows = rows
+			resp.Resp.Offset = uint64(len(rows))
+		}else{
+			resp = &kvrpcpb.DsSelectResponse{Header: &kvrpcpb.ResponseHeader{}, Resp: &kvrpcpb.SelectResponse{Code: 1,}}
+
+			staleErr := &errorpb.Error{
+				StaleEpoch: &errorpb.StaleEpoch{OldRange:rng,NewRange:svr.childRngs[rangeId]},
+			}
+			resp.Header.Error = staleErr
+		}
+
+	}
+
+	data, _ := proto.Marshal(resp)
+	msg.SetMsgType(0x12)
+	msg.SetData(data)
 }
 
+/**
+delete one key or delete all
+ */
 func (svr *DsRpcServer) delete(msg *dsClient.Message) {
+	var resp *kvrpcpb.DsDeleteResponse
+	req := new(kvrpcpb.DsDeleteRequest)
+	err := proto.Unmarshal(msg.GetData(), req)
+
+	if err != nil {
+		resp = &kvrpcpb.DsDeleteResponse{Header: &kvrpcpb.ResponseHeader{Error: &errorpb.Error{Message: "decode delete failed"}}}
+	}else{
+		rngEpoch := req.Header.GetRangeEpoch();
+		rangeId := req.Header.GetRangeId()
+		rng := svr.GetRange(rangeId)
+		if rng.RangeEpoch.Version == rngEpoch.Version && rng.RangeEpoch.ConfVer == rngEpoch.ConfVer {
+
+			key := req.Req.GetKey()
+			if key != nil {
+				num :=0
+				err:=svr.store.Delete(key)
+				if err != nil {
+					log.Error("delete key:%v err %s",key,err.Error())
+				}else{
+					num++
+				}
+				resp = &kvrpcpb.DsDeleteResponse{Header: &kvrpcpb.ResponseHeader{},Resp:&kvrpcpb.DeleteResponse{AffectedKeys:uint64(num)}}
+			}else{
+				it := svr.store.NewIterator(rng.StartKey, rng.EndKey)
+
+				num :=0
+				for it.Next() {
+					err := svr.store.Delete(it.Key())
+					if err != nil {
+						log.Error("delete key:%v err %s",it.Key(),err.Error())
+					}else{
+						num++
+					}
+
+				}
+				resp = &kvrpcpb.DsDeleteResponse{Header: &kvrpcpb.ResponseHeader{},Resp:&kvrpcpb.DeleteResponse{AffectedKeys:uint64(num)}}
+			}
+
+
+
+		}else{
+			resp = &kvrpcpb.DsDeleteResponse{Header: &kvrpcpb.ResponseHeader{}, Resp: &kvrpcpb.DeleteResponse{Code: 1,}}
+
+			staleErr := &errorpb.Error{
+				StaleEpoch: &errorpb.StaleEpoch{OldRange:rng,NewRange:svr.childRngs[rangeId]},
+			}
+			resp.Header.Error = staleErr
+		}
+
+	}
+
+	data, _ := proto.Marshal(resp)
+	msg.SetMsgType(0x12)
+	msg.SetData(data)
 
 }
 

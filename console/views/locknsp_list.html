@@ -17,34 +17,21 @@
     <script src="/static/js/plugins/sweetalert/sweetalert.min.js"></script>
     <link rel="stylesheet" type="text/css" href="/static/css/easyui.css">
 </head>
-<body class="gray-bg" style="margin-left: 10px;"ng-app="nspApplyInfo">
-<div class="example-wrap" ng-controller="applyList" style="margin-top: 10px; overflow:scroll">
-    <div class="btn-group hidden-xs" id="tableToolbar" role="group">
-        <button type="button" class="btn btn-primary  btn-rounded" onclick="applyNamespace()">申请</button>
+<body class="gray-bg" style="margin-left: 10px;">
+<div class="monitor-title">
+    <span>lock申请记录</span>
+</div>
+<div class="example-wrap" style="margin-top: 10px; overflow:scroll">
+    <div class="hidden-xs table-btns" id="nspApplyListsToolbar" role="group">
+        <button type="button" class="btn btn-primary  btn-rounded" onclick="applyNsp()">申请</button>
+        &nbsp; &nbsp;
+        <button type="button" class="btn btn-primary  btn-rounded" onclick="auditNsp()" style="display:{[{.admin}]}">审批</button>
+        &nbsp; &nbsp;
+        <button type="button" class="btn btn-primary  btn-rounded" onclick="rejectNsp()" style="display:{[{.admin}]}">驳回</button>
+        &nbsp; &nbsp;
+        <button type="button" class="btn btn-primary  btn-rounded" onclick="deleteNsp()">删除</button>
     </div>
-    <table class="table table-striped table-bordered space-list-table" id="table">
-        <thead>
-        <tr class="space-list-name">
-            <th style="text-align: center; vertical-align: middle;width: 2%">序号</th>
-            <th style="text-align: center; vertical-align: middle;width: 10%">namespace</th>
-            <th style="text-align: center; vertical-align: middle;width: 10%">集群Id</th>
-            <th style="text-align: center; vertical-align: middle;width: 20%">操作</th>
-        </tr>
-        </thead>
-        <tbody>
-            <tr ng-repeat="nsp in applyList track by $index " >
-                <td style="vertical-align:middle; text-align:center;">{{index+1}}</td></td>
-                <td style="vertical-align:middle; text-align:center;">{{nsp.namespace}}</td>
-                <td style="vertical-align:middle; text-align:center;">{{nsp.cluster_id}}</td>
-                <td style="vertical-align:middle; text-align:center;" class="table-btns">
-                    <a class="btn btn-primary btn-rounded" ng-click="updateOwner(nsp)">修改负责人</a>
-                    &nbsp;&nbsp;
-                    <a class="btn btn-primary btn-rounded" ng-click="viewCluster(nsp)">查看cluster详情</a>
-                    &nbsp;&nbsp;
-                    <a class="btn btn-primary btn-rounded" ng-click="viewLock(nsp)">查看lock详情</a>
-                </td>
-            </tr>
-        </tbody>
+    <table id="nspApplyLists" data-height="400" data-mobile-responsive="true">
     </table>
 </div>
 <script src="/static/js/jquery.min.js?v=2.1.4"></script>
@@ -53,8 +40,7 @@
 <script src="/static/js/plugins/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
 <script src="/static/js/angular/angular.min.js"></script>
 <script src="/static/js/jquery.easyui.min.js"></script>
-<script src="/static/js/lock/nsplist.js?v=1.0.1"></script>
 <script src="/static/js/commons/utils.js"></script>
-<script src="/static/js/jquery.easyui.min.js"></script>
+<script src="/static/js/apply/locknsplist.js?v=1.0.1"></script>
 </body>
 </html>

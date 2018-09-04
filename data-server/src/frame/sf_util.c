@@ -10,13 +10,13 @@
 int64_t getticks() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    return (int64_t)tv.tv_sec * 1000 + (int64_t)tv.tv_usec / 1000;
 }
 
 int64_t get_micro_second() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec * 1000000 + tv.tv_usec;
+    return (int64_t)tv.tv_sec * 1000000 + (int64_t)tv.tv_usec;
 }
 
 

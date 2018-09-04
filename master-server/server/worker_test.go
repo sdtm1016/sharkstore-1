@@ -3,13 +3,15 @@ package server
 import (
 	"testing"
 	"fmt"
-	"os"
-	"model/pkg/mspb"
-	"model/pkg/metapb"
 	"sync"
-	"util/deepcopy"
 	"time"
 	"math/rand"
+
+	"model/pkg/mspb"
+	"model/pkg/metapb"
+	"util/deepcopy"
+	"master-server/raft"
+	"util/log"
 )
 
 var wg sync.WaitGroup  //定义一个同步等待的组
@@ -93,7 +95,7 @@ func TestBalanceRangeOps(t *testing.T) {
 }
 
 func MockCluster(t *testing.T) *Cluster {
-	mockCluster := newLocalCluster(newMockIDAllocator())
+	mockCluster := newBoltDbCluster(t, newMockIDAllocator())
 	addNodes(mockCluster)
 	fmt.Println(fmt.Sprintf("current node size : %v", len(mockCluster.GetAllNode())))
 	return mockCluster
@@ -224,7 +226,7 @@ func addRangeForRangeBalance(cluster *Cluster, rangeSize int, t *testing.T) {
 func addPeersBalance(cluster *Cluster, rng *Range, t *testing.T) {
 	for index := 0; index < cluster.opt.GetMaxReplicas(); index++ {
 		peers := rng.GetPeers()
-		newPeer, err := cluster.allocPeerAndSelectNode(rng)
+		newPeer, err := cluster.allocPeerAndSelectNode(rng, false)
 		if err != nil {
 			t.Errorf("errr: %v", err)
 			continue
@@ -241,7 +243,7 @@ func addPeersRandom(cluster *Cluster) []*metapb.Peer {
 	var peers []*metapb.Peer
 	nodes := cluster.GetAllNode()
 	for index := 0; index < cluster.opt.GetMaxReplicas(); index++ {
-		newPeer, _ := cluster.allocPeer(nodes[rand.Intn(len(nodes))].GetId())
+		newPeer, _ := cluster.allocPeer(nodes[rand.Intn(len(nodes))].GetId(), false)
 		peers = append(peers, newPeer)
 	}
 	return peers
@@ -272,31 +274,94 @@ func closeLocalCluster(cluster *Cluster) {
 	clearData()
 }
 
-func newLocalCluster(id IDGenerator) *Cluster {
+func newLevelDbCluster(t *testing.T, id IDGenerator) *Cluster {
 	initDataPath()
 	store, err := NewLevelDBDriver(path)
 	if err != nil {
-		fmt.Printf("new store failed, err %v\n", err)
-		os.Exit(-1)
+		t.Fatalf("new level db store failed, err %v\n", err)
 	}
 	err = store.Open()
 	if err != nil {
-		fmt.Printf("open store failed, err %v\n", err)
-		os.Exit(-1)
+		t.Fatalf("open level db store failed, err %v\n", err)
 	}
 	var clusterId uint64 = 1
 	var nodeId uint64 = 1
 	cfg := NewDefaultConfig()
+	log.InitFileLog(cfg.Log.Dir, cfg.Log.Module, cfg.Log.Level)
 	cluster := NewCluster(clusterId, nodeId, store, newScheduleOption(cfg))
 	err = cluster.LoadCache()
 	if err != nil {
-		fmt.Printf("load cache failed, err %v", err)
-		os.Exit(-1)
-		return nil
+		t.Fatalf("load cache failed, err %v", err)
 	}
 	cluster.idGener = id
 	// 指定自己为leader
 	cluster.UpdateLeader(&Peer{ID: nodeId})
 	cluster.cli = &LocalDSClient{}
 	return cluster
+}
+
+func newBoltDbCluster(t *testing.T, id IDGenerator) *Cluster {
+	initDataPath()
+	cfg := NewDefaultConfig()
+	log.InitFileLog(cfg.Log.Dir, cfg.Log.Module, cfg.Log.Level)
+	store := mockRaftServer(cfg, t)
+
+	var clusterId uint64 = 1
+	var nodeId uint64 = 1
+	cluster := NewCluster(clusterId, nodeId, store, newScheduleOption(cfg))
+	err := cluster.LoadCache()
+	if err != nil {
+		t.Fatalf("load cache failed, err %v", err)
+	}
+	cluster.idGener = id
+	// 指定自己为leader
+	cluster.UpdateLeader(&Peer{ID: nodeId})
+	cluster.cli = &LocalDSClient{}
+	return cluster
+}
+
+func mockRaftServer(cfg *Config, t *testing.T) *RaftStore{
+	var peers []*Peer
+	for _, peer := range cfg.Cluster.Peers {
+		node := &Peer{}
+		node.ID = peer.ID
+		node.WebManageAddr = fmt.Sprintf("%s:%d", peer.Host, peer.HttpPort)
+		node.RpcServerAddr = fmt.Sprintf("%s:%d", peer.Host, peer.RpcPort)
+		node.RaftHeartbeatAddr = fmt.Sprintf("%s:%d", peer.Host, peer.RaftPorts[0])
+		node.RaftReplicateAddr = fmt.Sprintf("%s:%d", peer.Host, peer.RaftPorts[1])
+		peers = append(peers, node)
+	}
+	var lleader uint64
+	cnf := &StoreConfig{
+		RaftRetainLogs:        int64(cfg.Raft.RetainLogsCount),
+		RaftHeartbeatInterval: cfg.Raft.HeartbeatInterval.Duration,
+		RaftHeartbeatAddr:     cfg.raftHeartbeatAddr,
+		RaftReplicateAddr:     cfg.raftReplicaAddr,
+		RaftPeers:             peers,
+
+		NodeID:   cfg.NodeId,
+		DataPath: path,
+
+		LeaderChangeHandler: func(leader uint64) {
+			t.Logf("leader  change to id[%d]", leader)
+			lleader = leader
+		},
+		FatalHandler: func(err *raft.FatalError) {
+			// TODO event
+			t.Fatalf("raft fatal: id[%d], err[%v]", err.ID, err.Err)
+		},
+	}
+	store, err := NewRaftStore(cnf)
+	if err != nil {
+		t.Fatalf("create raft store failed, err[%v]", err)
+	}
+	err = store.Open()
+	if err != nil {
+		t.Fatalf("open store failed, err %v\n", err)
+	}
+	time.Sleep(time.Second * 5)
+	if lleader == 0 {
+		t.Fatalf("leader is 0")
+	}
+	return store
 }

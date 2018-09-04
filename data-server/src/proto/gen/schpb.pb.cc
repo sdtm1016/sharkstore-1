@@ -183,6 +183,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DeleteRangeRequest, header_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DeleteRangeRequest, range_id_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DeleteRangeRequest, peer_id_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DeleteRangeResponse, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -279,19 +280,19 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_ATTR
   { 13, -1, sizeof(CreateRangeRequest)},
   { 20, -1, sizeof(CreateRangeResponse)},
   { 26, -1, sizeof(DeleteRangeRequest)},
-  { 33, -1, sizeof(DeleteRangeResponse)},
-  { 39, -1, sizeof(TransferRangeLeaderRequest)},
-  { 46, -1, sizeof(TransferRangeLeaderResponse)},
-  { 52, -1, sizeof(GetPeerInfoRequest)},
-  { 59, -1, sizeof(GetPeerInfoResponse)},
-  { 69, -1, sizeof(UpdateRangeRequest)},
-  { 76, -1, sizeof(UpdateRangeResponse)},
-  { 82, -1, sizeof(ReplaceRangeRequest)},
-  { 90, -1, sizeof(ReplaceRangeResponse)},
-  { 96, -1, sizeof(SetNodeLogLevelRequest)},
-  { 103, -1, sizeof(SetNodeLogLevelResponse)},
-  { 109, -1, sizeof(OfflineRangeRequest)},
-  { 116, -1, sizeof(OfflineRangeResponse)},
+  { 34, -1, sizeof(DeleteRangeResponse)},
+  { 40, -1, sizeof(TransferRangeLeaderRequest)},
+  { 47, -1, sizeof(TransferRangeLeaderResponse)},
+  { 53, -1, sizeof(GetPeerInfoRequest)},
+  { 60, -1, sizeof(GetPeerInfoResponse)},
+  { 70, -1, sizeof(UpdateRangeRequest)},
+  { 77, -1, sizeof(UpdateRangeResponse)},
+  { 83, -1, sizeof(ReplaceRangeRequest)},
+  { 91, -1, sizeof(ReplaceRangeResponse)},
+  { 97, -1, sizeof(SetNodeLogLevelRequest)},
+  { 104, -1, sizeof(SetNodeLogLevelResponse)},
+  { 110, -1, sizeof(OfflineRangeRequest)},
+  { 117, -1, sizeof(OfflineRangeResponse)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -438,39 +439,39 @@ void AddDescriptorsImpl() {
       "reateRangeRequest\022$\n\006header\030\001 \001(\0132\024.schp"
       "b.RequestHeader\022\034\n\005range\030\002 \001(\0132\r.metapb."
       "Range\"<\n\023CreateRangeResponse\022%\n\006header\030\001"
-      " \001(\0132\025.schpb.ResponseHeader\"L\n\022DeleteRan"
+      " \001(\0132\025.schpb.ResponseHeader\"]\n\022DeleteRan"
       "geRequest\022$\n\006header\030\001 \001(\0132\024.schpb.Reques"
-      "tHeader\022\020\n\010range_id\030\002 \001(\004\"<\n\023DeleteRange"
-      "Response\022%\n\006header\030\001 \001(\0132\025.schpb.Respons"
-      "eHeader\"T\n\032TransferRangeLeaderRequest\022$\n"
-      "\006header\030\001 \001(\0132\024.schpb.RequestHeader\022\020\n\010r"
-      "ange_id\030\002 \001(\004\"D\n\033TransferRangeLeaderResp"
-      "onse\022%\n\006header\030\001 \001(\0132\025.schpb.ResponseHea"
-      "der\"L\n\022GetPeerInfoRequest\022$\n\006header\030\001 \001("
-      "\0132\024.schpb.RequestHeader\022\020\n\010range_id\030\002 \001("
-      "\004\"\213\001\n\023GetPeerInfoResponse\022%\n\006header\030\001 \001("
-      "\0132\025.schpb.ResponseHeader\022 \n\007replica\030\002 \001("
-      "\0132\017.metapb.Replica\022\r\n\005index\030\003 \001(\004\022\014\n\004ter"
-      "m\030\004 \001(\004\022\016\n\006commit\030\005 \001(\004\"X\n\022UpdateRangeRe"
-      "quest\022$\n\006header\030\001 \001(\0132\024.schpb.RequestHea"
-      "der\022\034\n\005range\030\002 \001(\0132\r.metapb.Range\"<\n\023Upd"
-      "ateRangeResponse\022%\n\006header\030\001 \001(\0132\025.schpb"
-      ".ResponseHeader\"s\n\023ReplaceRangeRequest\022$"
-      "\n\006header\030\001 \001(\0132\024.schpb.RequestHeader\022\024\n\014"
-      "old_range_id\030\002 \001(\004\022 \n\tnew_range\030\003 \001(\0132\r."
-      "metapb.Range\"=\n\024ReplaceRangeResponse\022%\n\006"
-      "header\030\001 \001(\0132\025.schpb.ResponseHeader\"M\n\026S"
-      "etNodeLogLevelRequest\022$\n\006header\030\001 \001(\0132\024."
-      "schpb.RequestHeader\022\r\n\005level\030\002 \001(\t\"@\n\027Se"
-      "tNodeLogLevelResponse\022%\n\006header\030\001 \001(\0132\025."
-      "schpb.ResponseHeader\"L\n\023OfflineRangeRequ"
-      "est\022$\n\006header\030\001 \001(\0132\024.schpb.RequestHeade"
-      "r\022\017\n\007rangeId\030\002 \001(\004\"=\n\024OfflineRangeRespon"
+      "tHeader\022\020\n\010range_id\030\002 \001(\004\022\017\n\007peer_id\030\003 \001"
+      "(\004\"<\n\023DeleteRangeResponse\022%\n\006header\030\001 \001("
+      "\0132\025.schpb.ResponseHeader\"T\n\032TransferRang"
+      "eLeaderRequest\022$\n\006header\030\001 \001(\0132\024.schpb.R"
+      "equestHeader\022\020\n\010range_id\030\002 \001(\004\"D\n\033Transf"
+      "erRangeLeaderResponse\022%\n\006header\030\001 \001(\0132\025."
+      "schpb.ResponseHeader\"L\n\022GetPeerInfoReque"
+      "st\022$\n\006header\030\001 \001(\0132\024.schpb.RequestHeader"
+      "\022\020\n\010range_id\030\002 \001(\004\"\213\001\n\023GetPeerInfoRespon"
       "se\022%\n\006header\030\001 \001(\0132\025.schpb.ResponseHeade"
-      "rb\006proto3"
+      "r\022 \n\007replica\030\002 \001(\0132\017.metapb.Replica\022\r\n\005i"
+      "ndex\030\003 \001(\004\022\014\n\004term\030\004 \001(\004\022\016\n\006commit\030\005 \001(\004"
+      "\"X\n\022UpdateRangeRequest\022$\n\006header\030\001 \001(\0132\024"
+      ".schpb.RequestHeader\022\034\n\005range\030\002 \001(\0132\r.me"
+      "tapb.Range\"<\n\023UpdateRangeResponse\022%\n\006hea"
+      "der\030\001 \001(\0132\025.schpb.ResponseHeader\"s\n\023Repl"
+      "aceRangeRequest\022$\n\006header\030\001 \001(\0132\024.schpb."
+      "RequestHeader\022\024\n\014old_range_id\030\002 \001(\004\022 \n\tn"
+      "ew_range\030\003 \001(\0132\r.metapb.Range\"=\n\024Replace"
+      "RangeResponse\022%\n\006header\030\001 \001(\0132\025.schpb.Re"
+      "sponseHeader\"M\n\026SetNodeLogLevelRequest\022$"
+      "\n\006header\030\001 \001(\0132\024.schpb.RequestHeader\022\r\n\005"
+      "level\030\002 \001(\t\"@\n\027SetNodeLogLevelResponse\022%"
+      "\n\006header\030\001 \001(\0132\025.schpb.ResponseHeader\"L\n"
+      "\023OfflineRangeRequest\022$\n\006header\030\001 \001(\0132\024.s"
+      "chpb.RequestHeader\022\017\n\007rangeId\030\002 \001(\004\"=\n\024O"
+      "fflineRangeResponse\022%\n\006header\030\001 \001(\0132\025.sc"
+      "hpb.ResponseHeaderb\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 1449);
+      descriptor, 1466);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "schpb.proto", &protobuf_RegisterTypes);
   ::metapb::protobuf_metapb_2eproto::AddDescriptors();
@@ -1761,6 +1762,7 @@ void CreateRangeResponse::set_allocated_header(::schpb::ResponseHeader* header) 
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int DeleteRangeRequest::kHeaderFieldNumber;
 const int DeleteRangeRequest::kRangeIdFieldNumber;
+const int DeleteRangeRequest::kPeerIdFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 DeleteRangeRequest::DeleteRangeRequest()
@@ -1781,14 +1783,16 @@ DeleteRangeRequest::DeleteRangeRequest(const DeleteRangeRequest& from)
   } else {
     header_ = NULL;
   }
-  range_id_ = from.range_id_;
+  ::memcpy(&range_id_, &from.range_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&peer_id_) -
+    reinterpret_cast<char*>(&range_id_)) + sizeof(peer_id_));
   // @@protoc_insertion_point(copy_constructor:schpb.DeleteRangeRequest)
 }
 
 void DeleteRangeRequest::SharedCtor() {
   ::memset(&header_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&range_id_) -
-      reinterpret_cast<char*>(&header_)) + sizeof(range_id_));
+      reinterpret_cast<char*>(&peer_id_) -
+      reinterpret_cast<char*>(&header_)) + sizeof(peer_id_));
   _cached_size_ = 0;
 }
 
@@ -1834,7 +1838,9 @@ void DeleteRangeRequest::Clear() {
     delete header_;
   }
   header_ = NULL;
-  range_id_ = GOOGLE_ULONGLONG(0);
+  ::memset(&range_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&peer_id_) -
+      reinterpret_cast<char*>(&range_id_)) + sizeof(peer_id_));
   _internal_metadata_.Clear();
 }
 
@@ -1868,6 +1874,20 @@ bool DeleteRangeRequest::MergePartialFromCodedStream(
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
                  input, &range_id_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // uint64 peer_id = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(24u /* 24 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &peer_id_)));
         } else {
           goto handle_unusual;
         }
@@ -1911,6 +1931,11 @@ void DeleteRangeRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->range_id(), output);
   }
 
+  // uint64 peer_id = 3;
+  if (this->peer_id() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(3, this->peer_id(), output);
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
@@ -1935,6 +1960,11 @@ void DeleteRangeRequest::SerializeWithCachedSizes(
   // uint64 range_id = 2;
   if (this->range_id() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->range_id(), target);
+  }
+
+  // uint64 peer_id = 3;
+  if (this->peer_id() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(3, this->peer_id(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -1966,6 +1996,13 @@ size_t DeleteRangeRequest::ByteSizeLong() const {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::UInt64Size(
         this->range_id());
+  }
+
+  // uint64 peer_id = 3;
+  if (this->peer_id() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt64Size(
+        this->peer_id());
   }
 
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
@@ -2003,6 +2040,9 @@ void DeleteRangeRequest::MergeFrom(const DeleteRangeRequest& from) {
   if (from.range_id() != 0) {
     set_range_id(from.range_id());
   }
+  if (from.peer_id() != 0) {
+    set_peer_id(from.peer_id());
+  }
 }
 
 void DeleteRangeRequest::CopyFrom(const ::google::protobuf::Message& from) {
@@ -2031,6 +2071,7 @@ void DeleteRangeRequest::InternalSwap(DeleteRangeRequest* other) {
   using std::swap;
   swap(header_, other->header_);
   swap(range_id_, other->range_id_);
+  swap(peer_id_, other->peer_id_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_cached_size_, other->_cached_size_);
 }
@@ -2095,6 +2136,20 @@ void DeleteRangeRequest::set_range_id(::google::protobuf::uint64 value) {
   
   range_id_ = value;
   // @@protoc_insertion_point(field_set:schpb.DeleteRangeRequest.range_id)
+}
+
+// uint64 peer_id = 3;
+void DeleteRangeRequest::clear_peer_id() {
+  peer_id_ = GOOGLE_ULONGLONG(0);
+}
+::google::protobuf::uint64 DeleteRangeRequest::peer_id() const {
+  // @@protoc_insertion_point(field_get:schpb.DeleteRangeRequest.peer_id)
+  return peer_id_;
+}
+void DeleteRangeRequest::set_peer_id(::google::protobuf::uint64 value) {
+  
+  peer_id_ = value;
+  // @@protoc_insertion_point(field_set:schpb.DeleteRangeRequest.peer_id)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

@@ -1,9 +1,8 @@
 package server
 
 import (
-	"model/pkg/mspb"
-
 	"golang.org/x/net/context"
+	"model/pkg/mspb"
 )
 
 func (service *Server) checkClusterValid() *mspb.Error {
@@ -166,6 +165,13 @@ func (service *Server) CreateTable(ctx context.Context, req *mspb.CreateTableReq
 		resp := &mspb.CreateTableResponse{Header: &mspb.ResponseHeader{Error: err}}
 		return resp, nil
 	}
-
 	return service.handleCreateTable(ctx, req)
+}
+
+func (service *Server) GetAutoIncId(ctx context.Context, req *mspb.GetAutoIncIdRequest) (*mspb.GetAutoIncIdResponse, error) {
+	if err := service.checkClusterValid(); err != nil {
+		resp := &mspb.GetAutoIncIdResponse{Header: &mspb.ResponseHeader{Error: err}}
+		return resp, nil
+	}
+	return service.handleAutoIncId(ctx, req)
 }

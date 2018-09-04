@@ -19,7 +19,8 @@
 #include "range/range.h"
 #include "storage/meta_store.h"
 
-#include "context_server.h"
+#include "server/context_server.h"
+#include "watch/watch_server.h"
 
 namespace sharkstore {
 namespace dataserver {
@@ -43,9 +44,9 @@ public:
     void StatisPush(uint64_t range_id);
 
     storage::MetaStore *meta_store() { return meta_store_; }
-    metapb::Range *GetRangeMeta(uint64_t range_id);
 
-    std::shared_ptr<range::Range> find(uint64_t range_id);
+    size_t GetRangesSize() const;
+    std::shared_ptr<range::Range> Find(uint64_t range_id);
 
     void OnNodeHeartbeatResp(const mspb::NodeHeartbeatResponse &) override;
     void OnRangeHeartbeatResp(const mspb::RangeHeartbeatResponse &) override;
@@ -53,9 +54,12 @@ public:
     void CollectNodeHeartbeat(mspb::NodeHeartbeatRequest *req) override;
 
 private:
+    void buildDBOptions(rocksdb::Options& ops);
     int OpenDB();
     void CloseDB();
-    int Recover(std::vector<std::string> &metas);
+
+    Status recover(const metapb::Range& meta);
+    int recover(const std::vector<metapb::Range> &metas);
 
     void RawGet(common::ProtoMessage *msg);
     void RawPut(common::ProtoMessage *msg);
@@ -64,11 +68,20 @@ private:
     void Select(common::ProtoMessage *msg);
     void Delete(common::ProtoMessage *msg);
 
+    //get and watch
+    void WatchGet(common::ProtoMessage *msg);
+    //just get single key or key with prefix  
+    void PureGet(common::ProtoMessage *msg);
+    //put and trigger watch response  
+    void WatchPut(common::ProtoMessage *msg);
+    //delete and trigger watch response
+    void WatchDel(common::ProtoMessage *msg);
+
     void Lock(common::ProtoMessage *msg);
     void LockUpdate(common::ProtoMessage *msg);
     void Unlock(common::ProtoMessage *msg);
     void UnlockForce(common::ProtoMessage *msg);
-    void LockScan(common::ProtoMessage *msg);
+    void LockWatch(common::ProtoMessage *msg);
 
     void KVSet(common::ProtoMessage *msg);
     void KVGet(common::ProtoMessage *msg);
@@ -90,16 +103,14 @@ private:
         common::ProtoMessage *msg);
 
 public:
-    Status ApplySplit(uint64_t old_range_id,
-                      const raft_cmdpb::SplitRequest &req);
-    void LeaderQueuePush(uint64_t leader, time_t expire);
+    Status SplitRange(uint64_t old_range_id, const raft_cmdpb::SplitRequest &req,
+            uint64_t raft_index);
 
-    void ResetStats();
+    void LeaderQueuePush(uint64_t leader, time_t expire);
 
 private:  // admin
     void CreateRange(common::ProtoMessage *msg);
     void DeleteRange(common::ProtoMessage *msg);
-    void UpdateRange(common::ProtoMessage *msg);
     void OfflineRange(common::ProtoMessage *msg);
     void ReplaceRange(common::ProtoMessage *msg);
 
@@ -107,15 +118,16 @@ private:  // admin
     void GetPeerInfo(common::ProtoMessage *msg);
     void SetLogLevel(common::ProtoMessage *msg);
 
-    Status CreateRange(const metapb::Range &range, uint64_t leader = 0);
-    int DeleteRange(uint64_t range_id);
+    Status CreateRange(const metapb::Range &range, uint64_t leader = 0, uint64_t log_start_index = 0);
+
+    Status DeleteRange(uint64_t range_id, uint64_t peer_id = 0);
     int CloseRange(uint64_t range_id);
     int OfflineRange(uint64_t range_id);
 
     void Heartbeat();
 
 private:
-    shared_mutex rw_lock_;
+    mutable shared_mutex rw_lock_;
     std::unordered_map<int64_t, std::shared_ptr<range::Range>> ranges_;
 
     std::mutex statis_mutex_;
@@ -136,7 +148,10 @@ private:
     storage::MetaStore *meta_store_ = nullptr;
 
     ContextServer *context_ = nullptr;
-    range_status_t *range_status_ = nullptr;
+    std::unique_ptr<range::RangeContext> range_context_;
+
+public:
+    watch::WatchServer* watch_server_;
 };
 
 }  // namespace server

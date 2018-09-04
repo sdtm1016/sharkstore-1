@@ -1,14 +1,20 @@
 package server
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"util"
 
 	"encoding/base64"
 
 	"proxy/gateway-server/mysql"
 	"proxy/gateway-server/sqlparser"
+	"proxy/store/dskv"
+	"util/hack"
 	"util/log"
+
+	"golang.org/x/net/context"
 )
 
 // HandleTruncate truncate table
@@ -115,72 +121,77 @@ func (p *Proxy) handleAdminRoute(db string, args []string) (*mysql.Result, error
 
 	switch subCmd {
 	case "show":
-		return handleAdminRouteShow(t, args[2:])
+		return p.handleAdminRouteShow(t, args[2:])
 	default:
 		return nil, fmt.Errorf("admin rounte: unknown subcommand(%v)", subCmd)
 	}
 }
 
-func handleAdminRouteShow(t *Table, keys []string) (*mysql.Result, error) {
-	//var routes []*KeyLocation
-	//if len(keys) == 0 {
-	//	routes = t.AllRoutes()
-	//} else {
-	//	pks := t.PKS()
-	//	if len(keys) > len(pks) {
-	//		return nil, fmt.Errorf("too mush pk values(%d > %d)", len(keys), len(pks))
-	//	}
-	//	var buf []byte
-	//	var err error
-	//	for i, key := range keys {
-	//		col := t.FindColumn(pks[i])
-	//		if col == nil {
-	//			return nil, fmt.Errorf("could not find column(%v) in Table %s.%s", pks[i], t.DbName(), t.Name())
-	//		}
-	//		if buf, err = util.EncodePrimaryKey(buf, col, hack.Slice(key)); err != nil {
-	//			return nil, err
-	//		}
-	//	}
-	//	r, err := t.ranges.LocateKey(buf)
-	//	if err == nil {
-	//		routes = append(routes, r)
-	//	}
-	//}
-	//
-	//fieldNames := []string{"ID", "StartKey", "EndKey", "LeaderID", "Version"}
-	//
-	//if len(routes) == 0 {
-	//	return &mysql.Result{
-	//		Status:       0,
-	//		AffectedRows: 0,
-	//		Resultset:    newEmptyResultSet(fieldNames),
-	//	}, nil
-	//}
-	//
-	//values := make([][]interface{}, len(routes))
-	//var leaderID uint64
-	//var version uint64
-	//for i, r := range routes {
-	//	if r.Leader != nil {
-	//		leaderID = r.Leader.NodeId
-	//	}
-	//	if r.Range != nil && r.Range.RangeEpoch != nil {
-	//		version = r.Range.RangeEpoch.Version
-	//	}
-	//	values[i] = []interface{}{r.Range.Id, formatRouteKey(r.Range.StartKey), formatRouteKey(r.Range.EndKey), leaderID, version}
-	//}
-	//r, err := buildResultset(nil, fieldNames, values)
-	//if err != nil {
-	//	log.Error("build admin route show result failed(%v), columns: %v, values: %v", err, fieldNames, values)
-	//	return nil, err
-	//}
-	//result := &mysql.Result{
-	//	Status:       0,
-	//	AffectedRows: 0,
-	//	Resultset:    r,
-	//}
-	//return result, nil
-	return nil, nil
+func (p *Proxy) handleAdminRouteShow(t *Table, keys []string) (*mysql.Result, error) {
+	pks := t.PKS()
+	if len(keys) > len(pks) {
+		return nil, fmt.Errorf("too many primary key's values(%d > %d)", len(keys), len(pks))
+	}
+
+	buf := util.EncodeStorePrefix(util.Store_Prefix_KV, t.GetId())
+	var err error
+	for i, key := range keys {
+		col := t.FindColumn(pks[i])
+		if col == nil {
+			return nil, fmt.Errorf("could not find column(%v) in Table %s.%s", pks[i], t.DbName(), t.Name())
+		}
+		if buf, err = util.EncodePrimaryKey(buf, col, hack.Slice(key)); err != nil {
+			return nil, err
+		}
+	}
+
+	var routes []*dskv.KeyLocation
+	searchKey := buf
+	maxSearch := 20
+	for {
+		bo := dskv.NewBackoffer(dskv.MsMaxBackoff, context.Background())
+		route, err := t.ranges.LocateKey(bo, searchKey)
+		if err != nil {
+			return nil, fmt.Errorf("locate route failed: %v", err)
+		}
+		if route == nil {
+			break
+		}
+
+		routes = append(routes, route)
+		if bytes.Compare(route.EndKey, buf) > 0 || len(routes) >= maxSearch {
+			break
+		}
+		searchKey = append([]byte(nil), route.EndKey...)
+	}
+
+	fieldNames := []string{"ID", "StartKey", "EndKey", "LeaderID", "LeaderAddr", "Version"}
+	if len(routes) == 0 {
+		return &mysql.Result{
+			Status:       0,
+			AffectedRows: 0,
+			Resultset:    newEmptyResultSet(fieldNames),
+		}, nil
+	}
+
+	values := make([][]interface{}, len(routes))
+	bo := dskv.NewBackoffer(dskv.MsMaxBackoff, context.Background())
+	for i, r := range routes {
+		leaderAddr, _ := t.ranges.GetNodeAddr(bo, r.NodeId)
+		values[i] = []interface{}{r.Region.Id, formatRouteKey(r.StartKey), formatRouteKey(r.EndKey),
+			r.NodeId, leaderAddr, fmt.Sprintf("%d:%d", r.Region.Cer, r.Region.ConfVer)}
+	}
+	rs, err := buildResultset(nil, fieldNames, values)
+	if err != nil {
+		log.Error("build admin route show result failed(%v), columns: %v, values: %v", err, fieldNames, values)
+		return nil, err
+	}
+	result := &mysql.Result{
+		Status:       0,
+		AffectedRows: 0,
+		Resultset:    rs,
+	}
+	return result, nil
 }
 
 func formatRouteKey(key []byte) []byte {

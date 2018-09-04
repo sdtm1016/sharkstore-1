@@ -13,6 +13,14 @@ std::string GetGitDescribe() {
     return GIT_DESC;
 }
 
+std::string GetBuildDate() {
+    return BUILD_DATE;
+}
+
+std::string GetBuildType() {
+    return BUILD_TYPE;
+}
+
 std::string GetVersionInfo() {
     std::ostringstream ss;
     ss << "Git Describe:\t" << GIT_DESC << std::endl;
@@ -21,6 +29,11 @@ std::string GetVersionInfo() {
     ss << "Build Flags:\t" << BUILD_FLAGS << std::endl;
     ss << "Rocksdb:\t" << ROCKSDB_MAJOR << "." << ROCKSDB_MINOR << "." << ROCKSDB_PATCH;
     return ss.str();
+}
+
+std::string GetRocksdbVersion() {
+    return std::to_string(ROCKSDB_MAJOR) + "." + std::to_string(ROCKSDB_MINOR)
+        + "." + std::to_string(ROCKSDB_PATCH);
 }
 
 } /* namespace server */

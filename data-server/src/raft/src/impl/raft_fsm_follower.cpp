@@ -235,14 +235,20 @@ Status RaftFsm::restore(const pb::SnapshotMeta& meta) {
             return s;
         }
 
-        if (peer.type == PeerType::kLearner) {
-            // 不能从正常peer降级为learner
-            if (!is_learner_ && peer.node_id == node_id_) {
+        if (peer.node_id == node_id_) {
+            if (!is_learner_ && peer.type == PeerType::kLearner) {
                 return Status(Status::kInvalidArgument, "restore meta",
                               "counld degrade from a normal peer to leadrner");
-            } else {
-                learners_.emplace(peer.node_id, newReplica(peer, false));
             }
+            // promote self from snapshot
+            if (is_learner_ && peer.type != PeerType::kLearner) {
+                LOG_INFO("raft[%lu] promote self from snapshot", id_);
+                is_learner_ = false;
+            }
+        }
+
+        if (peer.type == PeerType::kLearner) {
+            learners_.emplace(peer.node_id, newReplica(peer, false));
         } else {
             replicas_.emplace(peer.node_id, newReplica(peer, false));
         }

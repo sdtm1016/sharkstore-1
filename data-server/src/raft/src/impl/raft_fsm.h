@@ -40,8 +40,7 @@ public:
     RaftStatus GetStatus() const;
 
     Status TruncateLog(uint64_t index);
-    Status DestroyLog();
-    Status BackupLog();
+    Status DestroyLog(bool backup);
 
 private:
     static int numOfPendingConf(const std::vector<EntryPtr>& ents);

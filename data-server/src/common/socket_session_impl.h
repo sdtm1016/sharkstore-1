@@ -16,17 +16,7 @@ public:
     SocketSessionImpl(const SocketSessionImpl&) = delete;
     SocketSessionImpl& operator=(const SocketSessionImpl&) = delete;
 
-
-    ProtoMessage *GetProtoMessage(const void *data) override;
-
     void Send(ProtoMessage *msg, google::protobuf::Message* resp) override;
-
-    bool GetMessage(const char *data, size_t size,
-            google::protobuf::Message* req) override;
-
-    void SetResponseHeader(const kvrpcpb::RequestHeader &req,
-            kvrpcpb::ResponseHeader *resp,  errorpb::Error *err = nullptr) override;
-
 };
 
 } //namespace common

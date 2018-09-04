@@ -31,6 +31,7 @@ message CreateRangeResponse {
 message DeleteRangeRequest {
     RequestHeader     header  = 1;
     uint64        range_id    = 2;
+    uint64        peer_id     = 3;
 }
 
 message DeleteRangeResponse {

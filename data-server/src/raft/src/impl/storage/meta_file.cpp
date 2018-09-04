@@ -18,8 +18,9 @@ MetaFile::MetaFile(const std::string& path) : path_(JoinFilePath({path, "META"})
 
 MetaFile::~MetaFile() { Close(); }
 
-Status MetaFile::Open() {
-    fd_ = ::open(path_.c_str(), O_CREAT | O_RDWR, 0644);
+Status MetaFile::Open(bool read_only) {
+    int oflag = read_only ? O_RDONLY : (O_CREAT | O_RDWR);
+    fd_ = ::open(path_.c_str(), oflag, 0644);
     if (-1 == fd_) {
         return Status(Status::kIOError, "open meta file", strErrno(errno));
     }
@@ -83,7 +84,6 @@ Status MetaFile::Load(pb::HardState* hs, pb::TruncateMeta* tm) {
     } else {
         return Status(Status::kCorruption, "invalid meta size", std::to_string(ret));
     }
-    return Status::OK();
 }
 
 Status MetaFile::SaveHardState(const pb::HardState& hs) {

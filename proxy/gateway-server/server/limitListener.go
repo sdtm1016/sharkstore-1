@@ -4,6 +4,7 @@ import (
 	"net"
 	"sync"
 	"proxy/metric"
+	"util/log"
 )
 
 // LimitListener returns a Listener that accepts at most n simultaneous
@@ -39,6 +40,7 @@ func (l *limitListener) Accept() (net.Conn, error) {
 	l.acquire()
 	c, err := l.Listener.Accept()
 	if err != nil {
+		log.Warn("mysql connect err, %v", err)
 		l.release()
 		return nil, err
 	}

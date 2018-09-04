@@ -17,25 +17,12 @@ namespace storage {
 
 static const size_t kDefaultMaxSelectLimit = 10000;
 
-//声明一个KEY
-static std::string GetRealKey(std::string& key) {
-    if (key.size() <= kRowPrefixLength) return "";
-    size_t pos = kRowPrefixLength;
-    // skip ns
-    if (!DecodeVarintAscending(key, pos, nullptr)) return "";
-    std::string realKey;
-    if (!DecodeBytesAscending(key, pos, &realKey)) return "";
-    int64_t type = 0;
-    if (!DecodeVarintAscending(key, pos, &type)) return "";
-
-    return realKey;
-}
-
-Store::Store(const metapb::Range& meta, rocksdb::DB* db)
-    : range_id_(meta.id()),
-      start_key_(meta.start_key()),
-      end_key_(meta.end_key()),
-      db_(db) {
+Store::Store(const metapb::Range& meta, rocksdb::DB* db) :
+    table_id_(meta.table_id()) ,
+    range_id_(meta.id()),
+    start_key_(meta.start_key()),
+    end_key_(meta.end_key()),
+    db_(db) {
     assert(!start_key_.empty());
     assert(!end_key_.empty());
     assert(meta.primary_keys_size() > 0);
@@ -174,20 +161,16 @@ Status Store::selectSimple(const kvrpcpb::SelectRequest& req,
     bool over = false;
     uint64_t count = 0;
     uint64_t all = 0;
-    uint64_t limit =
-        req.has_limit() ? req.limit().count() : kDefaultMaxSelectLimit;
+    uint64_t limit = req.has_limit() ? req.limit().count() : kDefaultMaxSelectLimit;
     uint64_t offset = req.has_limit() ? req.limit().offset() : 0;
     while (!over && s.ok()) {
         over = false;
         s = f.Next(r.get(), &over);
         if (s.ok() && !over) {
             ++all;
-            if (count > limit) {
-                break;
-            }
             if (all > offset) {
                 addRow(req, resp, *r);
-                ++count;
+                if (++count >= limit) break;
             }
         }
     }
@@ -341,88 +324,9 @@ void Store::SetEndKey(std::string end_key) {
     end_key_ = std::move(end_key);
 }
 
-uint64_t Store::StatisSize(std::string& split_key, uint64_t split_size) {
-    uint64_t len = 0;
-
-    // The number of the same characters is greater than
-    // the length of start_key_ and more than 5,
-    // then the length of the split_key is
-    // start_key_.length() + 5
-    auto max_len = start_key_.length() + 5;
-
-    std::unique_ptr<Iterator> it(NewIterator());
-
-    while (it->Valid()) {
-        len += it->key_size();
-        len += it->value_size();
-
-        if (len > split_size) {
-            split_key = std::move(it->key());
-            it->Next();
-            break;
-        }
-
-        it->Next();
-    }
-
-    if (it->Valid() && !split_key.empty()) {
-        split_key = SliceSeparate(it->key(), split_key, max_len);
-    } else {
-        split_key.clear();
-    }
-
-    while (it->Valid()) {
-        len += it->key_size();
-        len += it->value_size();
-
-        it->Next();
-    }
-
-    return len;
-}
-uint64_t Store::StatisSize(std::string& split_key, uint64_t split_size,
-                           bool decode) {
-    uint64_t len = 0;
-    std::string cur_real_key = "";  //解析后的实际KEY
-    std::string pre_real_key = "";
-    std::string curkey = "";  //未解析得到的KEY
-
-    auto max_len = start_key_.length() + 5;
-
-    std::unique_ptr<Iterator> it(NewIterator());
-
-    while (it->Valid()) {
-        len += it->key_size();
-        len += it->value_size();
-
-        //由编码后的KEY，解析当前实际KEY
-        curkey = std::move(it->key());
-        pre_real_key = std::move(cur_real_key);
-        cur_real_key = std::move(GetRealKey(curkey));
-
-        if (len > split_size) {
-            split_key = std::move(curkey);
-            if ((!pre_real_key.empty()) && (cur_real_key != pre_real_key)) {
-                it->Next();
-                break;
-            }
-        }
-
-        it->Next();
-    }
-
-    if (!it->Valid()) {
-        split_key.clear();
-    }
-
-    while (it->Valid()) {
-        len += it->key_size();
-        len += it->value_size();
-
-        it->Next();
-    }
-
-    return len;
+std::string Store::GetEndKey() const {
+    std::unique_lock<std::mutex> lock(key_lock_);
+    return end_key_;
 }
 
 Iterator* Store::NewIterator(const kvrpcpb::Scope& scope) {
@@ -541,6 +445,130 @@ void Store::addMetricRead(uint64_t keys, uint64_t bytes) {
 void Store::addMetricWrite(uint64_t keys, uint64_t bytes) {
     metric_.AddWrite(keys, bytes);
     g_metric.AddWrite(keys, bytes);
+}
+
+Status Store::parseSplitKey(const std::string& key, range::SplitKeyMode mode, std::string *split_key) {
+    if (key.size() <= kRowPrefixLength) {
+        return Status(Status::kCorruption, "insufficient key size", EncodeToHex(key));
+    }
+
+    switch (mode) {
+        case range::SplitKeyMode::kNormal:
+            *split_key = key;
+            return Status::OK();
+        case range::SplitKeyMode::kRedis: {
+            size_t offset = kRowPrefixLength;
+            // decode ns
+            if (!DecodeVarintAscending(key, offset, nullptr)) {
+                return Status(Status::kCorruption, "decode redis value ns", EncodeToHex(key));
+            }
+            // decode real key
+            std::string realKey;
+            if (!DecodeBytesAscending(key, offset, &realKey)) {
+                return Status(Status::kCorruption, "decode redis value real key", EncodeToHex(key));
+            }
+            assert(offset <= key.size());
+            split_key->assign(key.c_str(), offset);
+            return Status::OK();
+        }
+        case range::SplitKeyMode::kLockWatch:{
+            size_t offset = kRowPrefixLength;
+            std::string watch_key;
+            if (!DecodeBytesAscending(key, offset, &watch_key)) {
+                return Status(Status::kCorruption, "decode watch key", EncodeToHex(key));
+            }
+            assert(offset <= key.size());
+            split_key->assign(key.c_str(), offset);
+            return Status::OK();
+        }
+        default:
+            return Status(Status::kNotSupported, "split key mode",
+                    std::to_string(static_cast<int>(mode)));
+    }
+}
+
+Status Store::StatSize(uint64_t split_size, range::SplitKeyMode mode,
+                  uint64_t *real_size, std::string *split_key) {
+    uint64_t total_size = 0;
+
+    // The number of the same characters is greater than
+    // the length of start_key_ and more than 5,
+    // then the length of the split_key is
+    // start_key_.length() + 5
+    auto max_len = start_key_.length() + 5;
+
+    std::unique_ptr<Iterator> it(NewIterator());
+    std::string middle_key;
+    std::string first_key;
+
+    while (it->Valid()) {
+        if (mode != range::SplitKeyMode::kNormal && first_key.empty()) {
+            auto s = parseSplitKey(it->key(), mode, &first_key);
+            if (!s.ok()) return s;
+            assert(!first_key.empty());
+        }
+
+        total_size += it->key_size();
+        total_size += it->value_size();
+
+        if (total_size >= split_size) {
+            middle_key = it->key();
+            it->Next();
+            break;
+        }
+
+        it->Next();
+    }
+
+    if (!it->Valid()) {
+        if (!it->status().ok()) {
+            return it->status();
+        } else {
+            return Status(Status::kUnexpected, "no more data", std::to_string(total_size));
+        }
+    }
+
+    // 特殊模式（非Normal）split key会是原始key的前缀，
+    // 如果first key跟split key相等， 则需要查找下一个前缀key作为split key,
+    // 以防止 [start_key, split_key) 区间内的数据为空
+    bool find_next = false;
+    if (mode == range::SplitKeyMode::kNormal) {
+        *split_key = SliceSeparate(it->key(), middle_key, max_len);
+    } else {
+        auto s = parseSplitKey(middle_key, mode, split_key);
+        if (!s.ok()) {
+            return s;
+        }
+        // 相等，需要找下一个
+        find_next = (first_key == *split_key);
+    }
+
+    // 遍历剩下一的一半
+    while (it->Valid()) {
+        total_size += it->key_size();
+        total_size += it->value_size();
+
+        if (find_next) {
+            assert(mode != range::SplitKeyMode::kNormal);
+            auto s = parseSplitKey(it->key(), mode, split_key);
+            if (!s.ok()) return s;
+            if (*split_key != first_key) { // 遇到不一样的key
+                find_next = false;
+            }
+        }
+
+        it->Next();
+    }
+    if (!it->status().ok()) {
+        return it->status();
+    }
+
+    if (find_next) {
+        return Status(Status::kNotFound, "next split key", EncodeToHex(*split_key));
+    }
+
+    *real_size = total_size;
+    return Status::OK();
 }
 
 } /* namespace storage */

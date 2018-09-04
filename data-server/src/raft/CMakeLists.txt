@@ -56,8 +56,6 @@ set (raft_test_Deps
         pthread
         )
 
-add_subdirectory(tools)
-
 OPTION(BUILD_RAFT_TEST "build raft tests" OFF)
 MESSAGE(STATUS BUILD_RAFT_TEST=${BUILD_RAFT_TEST})
 if (BUILD_RAFT_TEST)

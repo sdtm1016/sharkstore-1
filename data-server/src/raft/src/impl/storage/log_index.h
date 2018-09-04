@@ -24,13 +24,13 @@ public:
     Status ParseFrom(const Record& rec, const std::vector<char>& payload);
     void Serialize(pb::LogIndex* pb_msg);
 
-    int Size() const { return items_.size(); }
+    size_t Size() const { return items_.size(); }
     bool Empty() const { return items_.empty(); }
     uint64_t First() const;
     uint64_t Last() const;
 
     uint64_t Term(uint64_t index) const;
-    uint64_t Offset(uint64_t index) const;
+    uint32_t Offset(uint64_t index) const;
 
     void Append(uint64_t index, uint64_t term, uint32_t offset);
     void Truncate(uint64_t index);

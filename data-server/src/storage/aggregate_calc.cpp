@@ -96,13 +96,13 @@ void SumCalculator::Add(const FieldValue* f) {
         type_ = f->Type();
         switch (type_) {
             case FieldType::kFloat:
-                sum_.fval = 0;
+                sum_.fval = f->Float();
                 break;
             case FieldType::kInt:
-                sum_.ival = 0;
+                sum_.ival = f->Int();
                 break;
             case FieldType::kUInt:
-                sum_.uval = 0;
+                sum_.uval = f->UInt();
                 break;
             default:
                 return;

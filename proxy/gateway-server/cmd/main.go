@@ -8,6 +8,7 @@ import (
 	"proxy/gateway-server/server"
 	"util/gogc"
 	"util/log"
+	"util/ping"
 )
 
 var (
@@ -44,6 +45,8 @@ func main() {
 	}
 	// start gc
 	go gogc.TickerPrintGCSummary(log.GetFileLogger(), "info")
+	// start alive report
+	go ping.Ping(fmt.Sprint(conf.Cluster.ID), conf.Metric.Address, 10) // fixme
 	// run server
 	srv.Run()
 	log.Info("gateway server start ")

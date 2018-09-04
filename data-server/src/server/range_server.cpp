@@ -1,15 +1,18 @@
 #include "range_server.h"
 
 #include <chrono>
+#include <future>
+#include <thread>
 
-#include <common/ds_config.h>
-#include <fastcommon/shared_func.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <rocksdb/advanced_options.h>
 #include <rocksdb/cache.h>
 #include <rocksdb/table.h>
 #include <rocksdb/utilities/db_ttl.h>
 #include <rocksdb/utilities/blob_db/blob_db.h>
+#include <rocksdb/rate_limiter.h>
+#include <fastcommon/shared_func.h>
+#include <common/ds_config.h>
 
 #include "base/util.h"
 #include "common/ds_config.h"
@@ -20,8 +23,10 @@
 #include "proto/gen/metapb.pb.h"
 #include "proto/gen/schpb.pb.h"
 #include "storage/metric.h"
+#include "run_status.h"
 
 #include "server.h"
+#include "range_context_impl.h"
 
 namespace sharkstore {
 namespace dataserver {
@@ -34,7 +39,6 @@ int RangeServer::Init(ContextServer *context) {
     FLOG_INFO("RangeServer Init begin ...");
 
     context_ = context;
-    range_status_ = &g_status.range_status;
 
     // 打开数据db
     if (OpenDB() != 0) {
@@ -64,18 +68,23 @@ int RangeServer::Init(ContextServer *context) {
     }
     context_->meta_store = meta_store_;
 
-    std::vector<std::string> metas;
-    ret = meta_store_->GetAllRange(metas);
+    // 创建RangeContext
+    range_context_.reset(new RangeContextImpl(context_));
+
+    std::vector<metapb::Range> range_metas;
+    ret = meta_store_->GetAllRange(&range_metas);
     if (!ret.ok()) {
-        FLOG_ERROR("load local range meta failed(%s)", ret.ToString().c_str());
+        FLOG_ERROR("load range metas failed(%s)", ret.ToString().c_str());
         return -1;
     }
-
-    if (Recover(metas) != 0) {
+    if (recover(range_metas) != 0) {
         FLOG_ERROR("load local range meta failed");
         return -1;
     }
 
+
+
+    watch_server_ = new watch::WatchServer(ds_config.watch_config.watcher_set_size);
     FLOG_INFO("RangeServer Init end ...");
 
     return 0;
@@ -89,9 +98,7 @@ int RangeServer::Start() {
     auto handle = range_heartbeat_.native_handle();
     AnnotateThread(handle, "range_hb");
 
-    range_status_->assigned_worker_threads = ds_config.range_config.worker_threads;
-
-    char name[16];
+    char name[32] = {'\0'};
     for (int i = 0; i < ds_config.range_config.worker_threads; i++) {
         worker_.emplace_back([this] {
             uint64_t range_id = 0;
@@ -107,7 +114,7 @@ int RangeServer::Start() {
                     statis_queue_.pop();
                 }
 
-                auto range = find(range_id);
+                auto range = Find(range_id);
                 if (range == nullptr) {
                     FLOG_ERROR("RawPut request not found range_id %" PRIu64 " failed",
                                range_id);
@@ -117,13 +124,10 @@ int RangeServer::Start() {
             }
 
             FLOG_INFO("StatisSize worker thread exit...");
-            range_status_->actual_worker_threads--;
         });
 
-        range_status_->actual_worker_threads++;
-
         auto handle = worker_[i].native_handle();
-        sprintf(name, "statis:%d", i);
+        snprintf(name, 32, "statis:%d", i);
         AnnotateThread(handle, name);
     }
 
@@ -163,9 +167,97 @@ void RangeServer::Stop() {
     FLOG_INFO("RangeServer Stop end ...");
 }
 
-int RangeServer::OpenDB() {
+void RangeServer::buildDBOptions(rocksdb::Options& ops) {
     print_rocksdb_config();
 
+    // db log level
+    if (ds_config.rocksdb_config.enable_debug_log) {
+        ops.info_log_level = rocksdb::DEBUG_LEVEL;
+    }
+
+    // db stats
+    if (ds_config.rocksdb_config.enable_stats) {
+        context_->db_stats = rocksdb::CreateDBStatistics();
+        ops.statistics = context_->db_stats;
+    }
+
+    // table options include block_size, block_cache_size, etc
+    rocksdb::BlockBasedTableOptions table_options;
+    table_options.block_size = ds_config.rocksdb_config.block_size;
+    context_->block_cache =
+            rocksdb::NewLRUCache(ds_config.rocksdb_config.block_cache_size);
+    if (ds_config.rocksdb_config.block_cache_size > 0) {
+        table_options.block_cache = context_->block_cache;
+    }
+    if (ds_config.rocksdb_config.cache_index_and_filter_blocks){
+        table_options.cache_index_and_filter_blocks = true;
+    }
+    ops.table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
+
+    // row_cache
+    if (ds_config.rocksdb_config.row_cache_size > 0){
+        context_->row_cache =
+                rocksdb::NewLRUCache(ds_config.rocksdb_config.row_cache_size);
+        ops.row_cache = context_->row_cache;
+    }
+
+    ops.max_open_files = ds_config.rocksdb_config.max_open_files;
+    ops.create_if_missing = true;
+    ops.use_fsync = true;
+    ops.use_adaptive_mutex = true;
+    ops.bytes_per_sync = ds_config.rocksdb_config.bytes_per_sync;
+
+    // memtables
+    ops.write_buffer_size = ds_config.rocksdb_config.write_buffer_size;
+    ops.max_write_buffer_number = ds_config.rocksdb_config.max_write_buffer_number;
+    ops.min_write_buffer_number_to_merge =
+            ds_config.rocksdb_config.min_write_buffer_number_to_merge;
+
+    // level & sst file size
+    ops.max_bytes_for_level_base = ds_config.rocksdb_config.max_bytes_for_level_base;
+    ops.max_bytes_for_level_multiplier =
+            ds_config.rocksdb_config.max_bytes_for_level_multiplier;
+    ops.target_file_size_base = ds_config.rocksdb_config.target_file_size_base;
+    ops.target_file_size_multiplier =
+            ds_config.rocksdb_config.target_file_size_multiplier;
+
+    // compactions and flushes
+    if (ds_config.rocksdb_config.disable_auto_compactions) {
+        FLOG_WARN("rocksdb auto compactions is disabled.");
+        ops.disable_auto_compactions = true;
+    }
+    if (ds_config.rocksdb_config.background_rate_limit > 0) {
+        ops.rate_limiter = std::shared_ptr<rocksdb::RateLimiter>(
+                rocksdb::NewGenericRateLimiter(static_cast<int64_t>(ds_config.rocksdb_config.background_rate_limit)));
+    }
+    ops.max_background_flushes = ds_config.rocksdb_config.max_background_flushes;
+    ops.max_background_compactions = ds_config.rocksdb_config.max_background_compactions;
+    ops.level0_file_num_compaction_trigger =
+            ds_config.rocksdb_config.level0_file_num_compaction_trigger;
+
+    // write pause
+    ops.level0_slowdown_writes_trigger =
+            ds_config.rocksdb_config.level0_slowdown_writes_trigger;
+    ops.level0_stop_writes_trigger = ds_config.rocksdb_config.level0_stop_writes_trigger;
+
+    // compress
+    auto compress_type =
+            static_cast<rocksdb::CompressionType>(ds_config.rocksdb_config.compression);
+    switch (compress_type) {
+        case rocksdb::kSnappyCompression: // 1
+        case rocksdb::kZlibCompression:  // 2
+        case rocksdb::kBZip2Compression: // 3
+        case rocksdb::kLZ4Compression: // 4
+        case rocksdb::kLZ4HCCompression: // 5
+        case rocksdb::kXpressCompression: // 6
+            ops.compression = compress_type;
+            break;
+        default:
+            (void)ops.compression;
+    }
+}
+
+int RangeServer::OpenDB() {
     // 创建db的父目录
     auto db_path = JoinFilePath({ds_config.rocksdb_config.path, kDataPathSuffix});
     int ret = MakeDirAll(db_path, 0755);
@@ -175,48 +267,9 @@ int RangeServer::OpenDB() {
         return -1;
     }
 
-    // rocksdb block cache size
-    rocksdb::BlockBasedTableOptions table_options;
-    table_options.block_size = ds_config.rocksdb_config.block_size;
-    context_->block_cache =
-        rocksdb::NewLRUCache(ds_config.rocksdb_config.block_cache_size);
-    if (ds_config.rocksdb_config.block_cache_size > 0) {
-        table_options.block_cache = context_->block_cache;
-    }
-
-    if (ds_config.rocksdb_config.cache_index_and_filter_blocks){
-        table_options.cache_index_and_filter_blocks = true;
-    }
-
     rocksdb::Options ops;
-    ops.table_factory.reset(rocksdb::NewBlockBasedTableFactory(table_options));
-    if (ds_config.rocksdb_config.row_cache_size > 0){
-        context_->row_cache =
-                rocksdb::NewLRUCache(ds_config.rocksdb_config.row_cache_size);
-        ops.row_cache = context_->row_cache;
-    }
-    ops.max_open_files = ds_config.rocksdb_config.max_open_files;
-    ops.create_if_missing = true;
-    ops.use_fsync = true;
-    ops.use_adaptive_mutex = true;
-    ops.bytes_per_sync = ds_config.rocksdb_config.bytes_per_sync;
-    ops.write_buffer_size = ds_config.rocksdb_config.write_buffer_size;
-    ops.max_write_buffer_number = ds_config.rocksdb_config.max_write_buffer_number;
-    ops.min_write_buffer_number_to_merge =
-        ds_config.rocksdb_config.min_write_buffer_number_to_merge;
-    ops.max_bytes_for_level_base = ds_config.rocksdb_config.max_bytes_for_level_base;
-    ops.max_bytes_for_level_multiplier =
-        ds_config.rocksdb_config.max_bytes_for_level_multiplier;
-    ops.target_file_size_base = ds_config.rocksdb_config.target_file_size_base;
-    ops.target_file_size_multiplier =
-        ds_config.rocksdb_config.target_file_size_multiplier;
-    ops.max_background_flushes = ds_config.rocksdb_config.max_background_flushes;
-    ops.max_background_compactions = ds_config.rocksdb_config.max_background_compactions;
-    ops.level0_file_num_compaction_trigger =
-        ds_config.rocksdb_config.level0_file_num_compaction_trigger;
-    ops.level0_slowdown_writes_trigger =
-        ds_config.rocksdb_config.level0_slowdown_writes_trigger;
-    ops.level0_stop_writes_trigger = ds_config.rocksdb_config.level0_stop_writes_trigger;
+    buildDBOptions(ops);
+
     if (ds_config.rocksdb_config.storage_type == 0){
         if (ds_config.rocksdb_config.ttl == 0) {
             auto ret = rocksdb::DB::Open(ops, db_path, &db_);
@@ -241,22 +294,43 @@ int RangeServer::OpenDB() {
             FLOG_ERROR("invalid rocksdb ttl(%d)", ds_config.rocksdb_config.ttl);
             return -1;
         }
-    }else if (ds_config.rocksdb_config.storage_type == 1){
-        rocksdb::blob_db::BlobDBOptions blobDBOptions = rocksdb::blob_db::BlobDBOptions();
-        blobDBOptions.min_blob_size = ds_config.rocksdb_config.min_blob_size;
-        blobDBOptions.enable_garbage_collection = ds_config.rocksdb_config.enable_garbage_collection;
-        rocksdb::blob_db::BlobDB *blobDB = nullptr;
+    } else if (ds_config.rocksdb_config.storage_type == 1) {
+        rocksdb::blob_db::BlobDBOptions bops;
+        assert(ds_config.rocksdb_config.min_blob_size >= 0);
+        bops.min_blob_size = static_cast<uint64_t>(ds_config.rocksdb_config.min_blob_size);
+        bops.enable_garbage_collection = ds_config.rocksdb_config.enable_garbage_collection;
+        bops.blob_file_size = ds_config.rocksdb_config.blob_file_size;
+        // compress
+        auto compress_type =
+                static_cast<rocksdb::CompressionType>(ds_config.rocksdb_config.blob_compression);
+        switch (compress_type) {
+            case rocksdb::kSnappyCompression: // 1
+            case rocksdb::kZlibCompression:  // 2
+            case rocksdb::kBZip2Compression: // 3
+            case rocksdb::kLZ4Compression: // 4
+            case rocksdb::kLZ4HCCompression: // 5
+            case rocksdb::kXpressCompression: // 6
+            case rocksdb::kZSTD:
+                bops.compression = compress_type;
+                break;
+            default:
+                (void)bops.compression;
+        }
 
-        auto ret = rocksdb::blob_db::BlobDB::Open(ops,blobDBOptions,db_path,&blobDB);
 
+#ifdef BLOB_EXTEND_OPTIONS
+        bops.gc_file_expired_percent = ds_config.rocksdb_config.blob_gc_percent;
+#endif
+        rocksdb::blob_db::BlobDB *bdb = nullptr;
+        auto ret = rocksdb::blob_db::BlobDB::Open(ops, bops, db_path, &bdb);
         if (!ret.ok()){
             FLOG_ERROR("open rocksdb_blob(%s) failed(%s)", db_path.c_str(),
                        ret.ToString().c_str());
             return -1;
         } else {
-            db_ = blobDB;
+            db_ = bdb;
         }
-    }else{
+    } else {
         FLOG_ERROR("invalid rocksdb storage_type(%d)", ds_config.rocksdb_config.storage_type);
         return -1;
     }
@@ -280,7 +354,7 @@ void RangeServer::DealTask(common::ProtoMessage *msg) {
     ds_header_t &header = msg->header;
 
     FLOG_DEBUG(
-        "server start deal %s task, sid=%ld, msgid=%ld",
+        "server start deal %s task, sid=%" PRId64 ", msgid=%" PRId64,
         funcpb::FunctionID_Name(static_cast<funcpb::FunctionID>(header.func_id)).c_str(),
         msg->session_id, msg->header.msg_id);
 
@@ -303,6 +377,21 @@ void RangeServer::DealTask(common::ProtoMessage *msg) {
         case funcpb::kFuncDelete:
             Delete(msg);
             break;
+        case funcpb::kFuncWatchGet:
+            WatchGet(msg);
+            break;
+//      case funcpb::kFuncWatchBatchGet:
+//          WatchBatchGet(msg);
+//          break;
+        case funcpb::kFuncPureGet:
+            PureGet(msg);
+            break;
+        case funcpb::kFuncWatchPut:
+            WatchPut(msg);
+            break;
+        case funcpb::kFuncWatchDel:
+            WatchDel(msg);
+            break;
         case funcpb::kFuncCreateRange:
             CreateRange(msg);
             break;
@@ -311,9 +400,6 @@ void RangeServer::DealTask(common::ProtoMessage *msg) {
             break;
         case funcpb::kFuncRangeTransferLeader:
             TransferLeader(msg);
-            break;
-        case funcpb::kFuncUpdateRange:
-            UpdateRange(msg);
             break;
         case funcpb::kFuncReplaceRange:
             ReplaceRange(msg);
@@ -341,8 +427,8 @@ void RangeServer::DealTask(common::ProtoMessage *msg) {
         case funcpb::kFuncUnlockForce:
             UnlockForce(msg);
             break;
-        case funcpb::kFuncLockScan:
-            LockScan(msg);
+        case funcpb::kFuncLockWatch:
+            LockWatch(msg);
             break;
 
         // following for redis commands
@@ -378,12 +464,12 @@ void RangeServer::DealTask(common::ProtoMessage *msg) {
 
 void RangeServer::CreateRange(common::ProtoMessage *msg) {
     schpb::CreateRangeRequest req;
-    if (!context_->socket_session->GetMessage(msg->body.data(), msg->body.size(), &req)) {
+    if (!common::GetMessage(msg->body.data(), msg->body.size(), &req)) {
         FLOG_ERROR("deserialize create range request failed");
         return context_->socket_session->Send(msg, nullptr);
     }
 
-    FLOG_INFO("range[%lu] recv create range from master.", req.range().id());
+    FLOG_INFO("range[%" PRIu64 "] recv create range from master", req.range().id());
 
     errorpb::Error *err = nullptr;
     auto resp = new schpb::CreateRangeResponse;
@@ -405,21 +491,12 @@ void RangeServer::CreateRange(common::ProtoMessage *msg) {
             break;
         }
 
-        std::string value;
-        if (!req.range().SerializeToString(&value)) {
-            err = new errorpb::Error;
-            err->set_message("create range seriaize meta failed");
-
-            FLOG_ERROR("create range seriaize meta failed");
-            break;
-        }
-
-        auto ret = meta_store_->AddRange(req.range().id(), value);
+        auto ret = meta_store_->AddRange(req.range());
         if (!ret.ok()) {
             err = new errorpb::Error;
             err->set_message("create range seriaize meta failed");
 
-            FLOG_ERROR("create range save meta failed: %s", ret.ToString().c_str());
+            FLOG_ERROR("create range save meta failed");
             break;
         }
 
@@ -442,7 +519,8 @@ void RangeServer::CreateRange(common::ProtoMessage *msg) {
     return context_->socket_session->Send(msg, resp);
 }
 
-Status RangeServer::CreateRange(const metapb::Range &range, uint64_t leader) {
+Status RangeServer::CreateRange(const metapb::Range &range, uint64_t leader,
+        uint64_t log_start_index) {
     FLOG_DEBUG("new range: id=%" PRIu64 ", start=%s, end=%s,"
                " version=%" PRIu64 ", conf_ver=%" PRIu64,
                range.id(), EncodeToHexString(range.start_key()).c_str(),
@@ -460,13 +538,9 @@ Status RangeServer::CreateRange(const metapb::Range &range, uint64_t leader) {
         return Status(Status::kDuplicate, "range is exist", "");
     }
 
-    auto rng = std::make_shared<range::Range>(context_, range);
-    if (rng == nullptr) {
-        FLOG_ERROR("create new range[%" PRIu64 "] failed.", range.id());
-        return Status(Status::kNoMem, "new range null", "");
-    }
+    auto rng = std::make_shared<range::Range>(range_context_.get(), range);
     // 初始化range
-    auto ret = rng->Initialize(range_status_, leader);
+    auto ret = rng->Initialize(leader, log_start_index);
     if (!ret.ok()) {
         FLOG_ERROR("initialize range[%" PRIu64 "] failed: %s", range.id(),
                    ret.ToString().c_str());
@@ -477,66 +551,68 @@ Status RangeServer::CreateRange(const metapb::Range &range, uint64_t leader) {
 
     FLOG_INFO("create new range[%" PRIu64 "] success.", range.id());
 
-    range_status_->range_count++;
-    context_->run_status->PushRange(monitor::RangeTag::RangeCount,
-                                    range_status_->range_count);
-
     return ret;
 }
 
 void RangeServer::DeleteRange(common::ProtoMessage *msg) {
     schpb::DeleteRangeRequest req;
-    if (!context_->socket_session->GetMessage(msg->body.data(), msg->body.size(), &req)) {
+    if (!common::GetMessage(msg->body.data(), msg->body.size(), &req)) {
         FLOG_ERROR("deserialize delete range request failed");
         return context_->socket_session->Send(msg, nullptr);
     }
 
-    auto resp = new schpb::DeleteRangeResponse;
-    if (DeleteRange(req.range_id()) != 0) {
-        auto err = resp->mutable_header()->mutable_error();
-        err->set_message("delete range failed");
-    }
+    FLOG_WARN("range[%" PRIu64 "] recv DeleteRange request. peer_id=%" PRIu64,
+            req.range_id(), req.peer_id());
 
+    auto resp = new schpb::DeleteRangeResponse;
+    auto s = DeleteRange(req.range_id(), req.peer_id());
+    if (!s.ok()) {
+        FLOG_ERROR("range[%" PRIu64 "] delete failed: %s", req.range_id(), s.ToString().c_str());
+
+        auto err = resp->mutable_header()->mutable_error();
+        err->set_message(s.ToString());
+    }
     return context_->socket_session->Send(msg, resp);
 }
 
-int RangeServer::DeleteRange(uint64_t range_id) {
+Status RangeServer::DeleteRange(uint64_t range_id, uint64_t peer_id) {
     std::shared_ptr<range::Range> rng;
     do {
         std::unique_lock<sharkstore::shared_mutex> lock(rw_lock_);
 
-        meta_store_->DelRange(range_id);
-
         auto it = ranges_.find(range_id);
         if (it == ranges_.end()) {
             FLOG_WARN("delete range[%" PRIu64 "] not found.", range_id);
-            return 0;
+            return Status::OK();
         }
-
         rng = it->second;
 
-        rng->Shutdown();
-        auto s = rng->Truncate();
-        if (!s.ok()) {
-            FLOG_INFO("delete range[%" PRIu64 "] truncate failed.", range_id);
-            return -1;
+        if (peer_id != 0 && rng->GetPeerID() != peer_id) {
+            FLOG_WARN("range[%" PRIu64 "] delete a mismached peer. current: %" PRIu64 ", to delete: %" PRIu64,
+                    range_id, rng->GetPeerID(), peer_id);
+
+            // consider mismatch as success
+            return Status::OK();
         }
 
-        ranges_.erase(it);
-
+        meta_store_->DelRange(range_id);
+        auto s = rng->Destroy();
+        if (!s.ok()) {
+            FLOG_INFO("delete range[%" PRIu64 "] truncate failed.", range_id);
+            return s;
+        } else {
+            ranges_.erase(it);
+        }
     } while (false);
 
     FLOG_INFO("delete range[%" PRIu64 "] success.", range_id);
 
-    range_status_->range_count--;
-    context_->run_status->PushRange(monitor::RangeTag::RangeCount,
-                                    range_status_->range_count);
-    return 0;
+    return Status::OK();
 }
 
 void RangeServer::OfflineRange(common::ProtoMessage *msg) {
     schpb::OfflineRangeRequest req;
-    if (!context_->socket_session->GetMessage(msg->body.data(), msg->body.size(), &req)) {
+    if (!common::GetMessage(msg->body.data(), msg->body.size(), &req)) {
         FLOG_ERROR("deserialize offline range request failed");
         return context_->socket_session->Send(msg, nullptr);
     }
@@ -572,9 +648,6 @@ int RangeServer::OfflineRange(uint64_t range_id) {
 
     } while (false);
 
-    range_status_->range_count--;
-    context_->run_status->PushRange(monitor::RangeTag::RangeCount,
-                                    range_status_->range_count);
     return 0;
 }
 
@@ -602,44 +675,17 @@ int RangeServer::CloseRange(uint64_t range_id) {
 
     FLOG_INFO("close range[%" PRIu64 "] success.", range_id);
 
-    range_status_->range_count--;
-    context_->run_status->PushRange(monitor::RangeTag::RangeCount,
-                                    range_status_->range_count);
     return 0;
-}
-
-void RangeServer::UpdateRange(common::ProtoMessage *msg) {
-    schpb::UpdateRangeRequest req;
-    if (!context_->socket_session->GetMessage(msg->body.data(), msg->body.size(), &req)) {
-        FLOG_ERROR("deserialize update range request failed");
-        return context_->socket_session->Send(msg, nullptr);
-    }
-
-    auto resp = new schpb::UpdateRangeResponse;
-    do {
-        if (CloseRange(req.range().id()) != 0) {
-            auto err = resp->mutable_header()->mutable_error();
-            err->set_message("update range failed");
-            break;
-        }
-        auto ret = CreateRange(req.range());
-        if (!ret.ok()) {
-            auto err = resp->mutable_header()->mutable_error();
-            err->set_message("update range failed");
-        }
-    } while (false);
-
-    context_->socket_session->Send(msg, resp);
 }
 
 void RangeServer::ReplaceRange(common::ProtoMessage *msg) {
     schpb::ReplaceRangeRequest req;
-    if (!context_->socket_session->GetMessage(msg->body.data(), msg->body.size(), &req)) {
+    if (!common::GetMessage(msg->body.data(), msg->body.size(), &req)) {
         FLOG_ERROR("deserialize replace range request failed");
         return context_->socket_session->Send(msg, nullptr);
     }
 
-    FLOG_WARN("start update range. old=%lu, new=%lu.", req.old_range_id(),
+    FLOG_WARN("start update range. old=%" PRIu64 ", new=%" PRIu64, req.old_range_id(),
               req.new_range().id());
 
     auto resp = new schpb::ReplaceRangeResponse;
@@ -649,6 +695,8 @@ void RangeServer::ReplaceRange(common::ProtoMessage *msg) {
             err->set_message("close old range failed");
             break;
         }
+
+        std::unique_lock<sharkstore::shared_mutex> lock(rw_lock_);
         auto ret = CreateRange(req.new_range());
         if (!ret.ok()) {
             auto err = resp->mutable_header()->mutable_error();
@@ -661,14 +709,14 @@ void RangeServer::ReplaceRange(common::ProtoMessage *msg) {
 
 void RangeServer::TransferLeader(common::ProtoMessage *msg) {
     schpb::TransferRangeLeaderRequest req;
-    if (!context_->socket_session->GetMessage(msg->body.data(), msg->body.size(), &req)) {
+    if (!common::GetMessage(msg->body.data(), msg->body.size(), &req)) {
         FLOG_ERROR("deserialize transfer leader request failed");
         return context_->socket_session->Send(msg, nullptr);
     }
 
     auto resp = new schpb::TransferRangeLeaderResponse;
 
-    auto range = find(req.range_id());
+    auto range = Find(req.range_id());
     if (range == nullptr) {
         FLOG_ERROR("TransferLeade request not found range_id %" PRIu64 " failed",
                    req.range_id());
@@ -682,7 +730,7 @@ void RangeServer::TransferLeader(common::ProtoMessage *msg) {
 void RangeServer::GetPeerInfo(common::ProtoMessage *msg) {
     schpb::GetPeerInfoRequest req;
 
-    if (!context_->socket_session->GetMessage(msg->body.data(), msg->body.size(), &req)) {
+    if (!common::GetMessage(msg->body.data(), msg->body.size(), &req)) {
         FLOG_ERROR("deserialize transfer leader request failed");
         return context_->socket_session->Send(msg, nullptr);
     }
@@ -691,7 +739,7 @@ void RangeServer::GetPeerInfo(common::ProtoMessage *msg) {
 
     raft::RaftStatus peer_info;
 
-    auto range = find(req.range_id());
+    auto range = Find(req.range_id());
     if (range == nullptr) {
         FLOG_ERROR("TransferLeade request not found range_id %" PRIu64 " failed",
                    req.range_id());
@@ -715,7 +763,7 @@ void RangeServer::GetPeerInfo(common::ProtoMessage *msg) {
 void RangeServer::SetLogLevel(common::ProtoMessage *msg) {
     schpb::SetNodeLogLevelRequest req;
 
-    if (!context_->socket_session->GetMessage(msg->body.data(), msg->body.size(), &req)) {
+    if (!common::GetMessage(msg->body.data(), msg->body.size(), &req)) {
         FLOG_ERROR("deserialize transfer leader request failed");
         return context_->socket_session->Send(msg, nullptr);
     }
@@ -728,7 +776,12 @@ void RangeServer::SetLogLevel(common::ProtoMessage *msg) {
     context_->socket_session->Send(msg, resp);
 }
 
-std::shared_ptr<range::Range> RangeServer::find(uint64_t range_id) {
+size_t RangeServer::GetRangesSize() const {
+    sharkstore::shared_lock<sharkstore::shared_mutex> lock(rw_lock_);
+    return ranges_.size();
+}
+
+std::shared_ptr<range::Range> RangeServer::Find(uint64_t range_id) {
     sharkstore::shared_lock<sharkstore::shared_mutex> lock(rw_lock_);
 
     auto it = ranges_.find(range_id);
@@ -808,11 +861,51 @@ void RangeServer::Delete(common::ProtoMessage *msg) {
     }
 }
 
+void RangeServer::WatchGet(common::ProtoMessage *msg) {
+    watchpb::DsWatchRequest req;
+    watchpb::DsWatchResponse *resp;
+
+    auto range = CheckAndDecodeRequest("WatchGet", req, resp, msg);
+    if (range != nullptr) {
+        range->WatchGet(msg, req);
+    }
+}
+
+void RangeServer::PureGet(common::ProtoMessage *msg) {
+    watchpb::DsKvWatchGetMultiRequest req;
+    watchpb::DsKvWatchGetMultiResponse *resp;
+
+    auto range = CheckAndDecodeRequest("PureGet", req, resp, msg);
+    if (range != nullptr) {
+        range->PureGet(msg, req);
+    }
+}
+
+void RangeServer::WatchPut(common::ProtoMessage *msg) {
+    watchpb::DsKvWatchPutRequest req;
+    watchpb::DsKvWatchPutResponse *resp;
+
+    auto range = CheckAndDecodeRequest("WatchPut", req, resp, msg);
+    if (range != nullptr) {
+        range->WatchPut(msg, req);
+    }
+}
+
+void RangeServer::WatchDel(common::ProtoMessage *msg) {
+    watchpb::DsKvWatchDeleteRequest req;
+    watchpb::DsKvWatchDeleteResponse *resp;
+
+    auto range = CheckAndDecodeRequest("WatchDel", req, resp, msg);
+    if (range != nullptr) {
+        range->WatchDel(msg, req);
+    }
+}
+
 template <class RequestT, class ResponseT>
 std::shared_ptr<range::Range> RangeServer::CheckAndDecodeRequest(
     const char *func_name, RequestT &request, ResponseT *&respone,
     common::ProtoMessage *msg) {
-    if (!context_->socket_session->GetMessage(msg->body.data(), msg->body.size(),
+    if (!common::GetMessage(msg->body.data(), msg->body.size(),
                                               &request)) {
         FLOG_ERROR("deserialize %s request failed", func_name);
         context_->socket_session->Send(msg, nullptr);
@@ -830,7 +923,7 @@ std::shared_ptr<range::Range> RangeServer::CheckAndDecodeRequest(
         return nullptr;
     }
 
-    auto range = find(request.header().range_id());
+    auto range = Find(request.header().range_id());
     if (range == nullptr) {
         FLOG_ERROR("%s request not found range_id %" PRIu64 " failed", func_name,
                    request.header().range_id());
@@ -883,14 +976,14 @@ void RangeServer::UnlockForce(common::ProtoMessage *msg) {
     }
 }
 
-void RangeServer::LockScan(common::ProtoMessage *msg) {
-    kvrpcpb::DsLockScanRequest req;
-    kvrpcpb::DsLockScanResponse *resp;
+void RangeServer::LockWatch(common::ProtoMessage *msg) {
+    watchpb::DsWatchRequest req;
+    watchpb::DsWatchResponse* resp;
 
-    auto range = CheckAndDecodeRequest("LockScan", req, resp, msg);
+    auto range = CheckAndDecodeRequest("LockWatch", req, resp, msg);
     if (range != nullptr) {
-        range->LockScan(msg, req);
-  }
+        range->LockWatch(msg, req);
+    }
 }
 
 void RangeServer::KVSet(common::ProtoMessage *msg) {
@@ -973,109 +1066,147 @@ void RangeServer::KVScan(common::ProtoMessage *msg) {
     }
 }
 
-Status RangeServer::ApplySplit(uint64_t old_range_id,
-                               const raft_cmdpb::SplitRequest &req) {
-    auto rng = find(old_range_id);
+Status RangeServer::SplitRange(uint64_t old_range_id, const raft_cmdpb::SplitRequest &req,
+                  uint64_t raft_index) {
+    auto rng = Find(old_range_id);
     if (rng == nullptr) {
-        FLOG_ERROR("ApplySplit not found range_id %" PRIu64 " failed", old_range_id);
         return Status(Status::kNotFound, "range not found", "");
     }
 
     bool is_exist = false;
-    do {
+    {
         std::unique_lock<sharkstore::shared_mutex> lock(rw_lock_);
-        auto ret = CreateRange(req.new_range(), req.leader());
+        auto ret = CreateRange(req.new_range(), req.leader(), raft_index + 1);
         if (ret.code() == Status::kDuplicate) {
-            is_exist = true;
-            break;
-        }
-
-        if (!ret.ok()) {
-            FLOG_ERROR("ApplySplit old_range_id: %" PRIu64 " new_range_id: %" PRIu64
-                       " failed",
-                       old_range_id, req.new_range().id());
+            FLOG_WARN("range[%" PRIu64 "] ApplySplit(new range: %" PRIu64 ") already exist.",
+                      old_range_id, req.new_range().id());
+        } else if (!ret.ok()) {
             return ret;
         }
-    } while (false);
-
-    std::map<uint64_t, std::string> batch_range;
+    }
 
     metapb::Range meta = rng->options();
     meta.set_end_key(req.split_key());
-
     meta.mutable_range_epoch()->set_version(req.epoch().version());
 
-    std::string value;
-    if (meta.SerializeToString(&value)) {
-        batch_range.emplace(old_range_id, std::move(value));
-    } else {
-        FLOG_ERROR("ApplySplit range_id %" PRIu64 " failed", old_range_id);
-        DeleteRange(req.new_range().id());
-        return Status(Status::kInvalidArgument, "seriaize meta error", "");
-    }
-
+    std::vector<metapb::Range> batch_ranges{meta};
     if (!is_exist) {
-        if (req.new_range().SerializeToString(&value)) {
-            batch_range.emplace(req.new_range().id(), std::move(value));
-        } else {
-            FLOG_ERROR("ApplySplit range_id %" PRIu64 " failed", old_range_id);
-            DeleteRange(req.new_range().id());
-            return Status(Status::kInvalidArgument, "seriaize meta error", "");
-        }
+        batch_ranges.push_back(req.new_range());
     }
-
-    auto ret = meta_store_->BatchAddRange(batch_range);
+    auto ret = meta_store_->BatchAddRange(batch_ranges);
     if (!ret.ok()) {
-        FLOG_ERROR("ApplySplit batch add range failed");
         if (!is_exist) {
             DeleteRange(req.new_range().id());
         }
-        return ret;
     }
-
     return ret;
 }
 
 void RangeServer::TimeOut(const kvrpcpb::RequestHeader &req,
                           kvrpcpb::ResponseHeader *resp) {
-    errorpb::Error *err = new errorpb::Error;
-
+    auto err = new errorpb::Error;
     err->set_message("time out");
     err->mutable_timeout();
 
-    context_->socket_session->SetResponseHeader(req, resp, err);
+    common::SetResponseHeader(req, resp, err);
 }
 
 void RangeServer::RangeNotFound(const kvrpcpb::RequestHeader &req,
                                 kvrpcpb::ResponseHeader *resp) {
-    errorpb::Error *err = new errorpb::Error;
-
+    auto err = new errorpb::Error;
     err->set_message("range not found");
     err->mutable_range_not_found()->set_range_id(req.range_id());
 
-    context_->socket_session->SetResponseHeader(req, resp, err);
+    common::SetResponseHeader(req, resp, err);
 }
 
-int RangeServer::Recover(std::vector<std::string> &metas) {
-    FLOG_DEBUG("Recover meta range size %lu", metas.size());
-    for (auto &m : metas) {
-        metapb::Range meta;
-        if (!context_->socket_session->GetMessage(m.data(), m.size(), &meta)) {
-            FLOG_ERROR("Recover deserialize failed");
-            return -1;
-        }
-        FLOG_DEBUG("Recover meta range id=%" PRIu64, meta.id());
-        if (!CreateRange(meta).ok()) {
-            FLOG_ERROR("Recover CreateRange failed,id=%" PRIu64, meta.id());
-            if (ds_config.range_config.recover_skip_fail > 0) {
-                continue;
-            } else {
-                return -1;
-            }
-        }
+Status RangeServer::recover(const metapb::Range& meta) {
+    auto rng = std::make_shared<range::Range>(range_context_.get(), meta);
+    auto s = rng->Initialize(0);
+    if (!s.ok()) return s;
+
+    std::unique_lock<sharkstore::shared_mutex> lock(rw_lock_);
+    auto ret = ranges_.emplace(meta.id(), rng);
+    if (!ret.second) {
+        return Status(Status::kDuplicate, "save range", std::to_string(meta.id()));
+    }
+    return Status::OK();
+}
+
+int RangeServer::recover(const std::vector<metapb::Range> &metas) {
+    assert(ds_config.range_config.recover_concurrency > 0);
+    auto actual_concurrency = std::min(metas.size() / 4 + 1,
+                                       static_cast<size_t>(ds_config.range_config.recover_concurrency));
+    if (actual_concurrency > 50)  {
+        actual_concurrency = 50;
     }
 
-    return 0;
+    std::vector<std::future<Status>> recover_futures;
+    std::vector<uint64_t> failed_ranges;
+    std::mutex failed_mu;
+    std::atomic<size_t> recover_pos = {0};
+    std::atomic<size_t> success_counter = {0};
+
+    FLOG_INFO("Start to recovery ranges. total ranges=%lu, concurrency=%lu, skip_fail=%d", metas.size(),
+              actual_concurrency, ds_config.range_config.recover_skip_fail);
+
+    auto begin = std::chrono::system_clock::now();
+
+    for (size_t i = 0; i < actual_concurrency; ++i) {
+        auto f = std::async(std::launch::async, [&, this] {
+            while (true) {
+                auto pos = recover_pos.fetch_add(1);
+                if (pos >= metas.size()) {
+                    return Status::OK();
+                }
+                const auto& meta = metas[pos];
+                FLOG_DEBUG("Start Recover range id=%" PRIu64, meta.id());
+                auto s = recover(meta);
+                if (s.ok()) {
+                    ++success_counter;
+                } else {
+                    FLOG_ERROR("Recovery range[%lu] failed: %s", meta.id(), s.ToString().c_str());
+                    {
+                        std::lock_guard<std::mutex> lock(failed_mu);
+                        failed_ranges.push_back(meta.id());
+                    }
+                    if (ds_config.range_config.recover_skip_fail) { // allow failed
+                        continue;
+                    } else {
+                        recover_pos = metas.size(); // failed, let other threads exit
+                        return s;
+                    }
+                }
+            }
+        });
+        recover_futures.push_back(std::move(f));
+    }
+
+    Status last_error;
+    for (auto &f : recover_futures) {
+        auto s = f.get();
+        if (!s.ok()) last_error = s;
+    }
+
+    auto took_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now() - begin).count();
+
+    if (!failed_ranges.empty()) {
+        std::string failed_str;
+        for (std::size_t i = 0; i < failed_ranges.size(); ++i)
+            failed_str += std::to_string(failed_ranges[i]) + ", ";
+        FLOG_ERROR("Range recovery failed ranges: [%s]", failed_str.c_str());
+    }
+
+    if (!last_error.ok()) {
+        FLOG_ERROR("Range recovery abort, last status: %s. failed=%lu",
+                  last_error.ToString().c_str(), failed_ranges.size());
+        return -1;
+    } else {
+        FLOG_INFO("Range recovery finished. success=%lu, failed=%lu, time used=%lds%ldms",
+                  success_counter.load(), failed_ranges.size(), took_ms / 1000, took_ms % 1000);
+        return 0;
+    }
 }
 
 void RangeServer::Heartbeat() {
@@ -1103,7 +1234,7 @@ void RangeServer::Heartbeat() {
             range_id = hb.second;
         }
 
-        auto range = find(range_id);
+        auto range = Find(range_id);
         if (range != nullptr) {
             range->Heartbeat();
         }
@@ -1125,15 +1256,6 @@ void RangeServer::StatisPush(uint64_t range_id) {
     statis_cond_.notify_all();
 }
 
-metapb::Range *RangeServer::GetRangeMeta(uint64_t range_id) {
-    auto rng = find(range_id);
-    if (rng != nullptr) {
-        return new metapb::Range(rng->options());
-    }
-
-    return nullptr;
-}
-
 void RangeServer::OnNodeHeartbeatResp(const mspb::NodeHeartbeatResponse &resp) {
     // TODO: clear replicas
     FLOG_INFO("Recv NodeHeartbeat Response from master server.");
@@ -1144,7 +1266,7 @@ void RangeServer::OnRangeHeartbeatResp(const mspb::RangeHeartbeatResponse &resp)
         return;
     }
 
-    auto range = find(resp.range_id());
+    auto range = Find(resp.range_id());
     if (range == nullptr) {
         FLOG_ERROR("RangeHeartbeat Task not found range_id %" PRIu64 " failed",
                    resp.range_id());
@@ -1165,23 +1287,23 @@ void RangeServer::OnRangeHeartbeatResp(const mspb::RangeHeartbeatResponse &resp)
             // TODO
             break;
         case taskpb::TaskType::RangeDelete:
-            FLOG_DEBUG("RangeHeartbeat task RangeDelete. range id: %" PRIu64,
+            FLOG_INFO("RangeHeartbeat task RangeDelete. range id: %" PRIu64,
                        resp.range_id());
             DeleteRange(resp.range_id());
             break;
         case taskpb::TaskType::RangeLeaderTransfer:
-            FLOG_DEBUG("RangeHeartbeat task RangeLeaderTransfer. range id: %" PRIu64,
+            FLOG_INFO("RangeHeartbeat task RangeLeaderTransfer. range id: %" PRIu64,
                        resp.range_id());
             // TODO
             // master undefinded
             break;
         case taskpb::TaskType::RangeAddPeer:
-            FLOG_DEBUG("RangeHeartbeat task RangeAddPeer. range id: %" PRIu64,
+            FLOG_INFO("RangeHeartbeat task RangeAddPeer. range id: %" PRIu64,
                        resp.range_id());
             range->AddPeer(resp.task().range_add_peer().peer());
             break;
         case taskpb::TaskType::RangeDelPeer:
-            FLOG_DEBUG("RangeHeartbeat task RangeDelPeer. range id: %" PRIu64,
+            FLOG_INFO("RangeHeartbeat task RangeDelPeer. range id: %" PRIu64,
                        resp.range_id());
             range->DelPeer(resp.task().range_del_peer().peer());
             break;
@@ -1199,7 +1321,7 @@ void RangeServer::OnAskSplitResp(const mspb::AskSplitResponse &resp) {
 
     FLOG_INFO("range[%lu] recv AskSplit response from master.", resp.range().id());
 
-    auto range = find(resp.range().id());
+    auto range = Find(resp.range().id());
     if (range == nullptr) {
         FLOG_ERROR("AdminSplit not found range_id %" PRIu64 " failed", resp.range().id());
         return;
@@ -1211,14 +1333,12 @@ void RangeServer::OnAskSplitResp(const mspb::AskSplitResponse &resp) {
 }
 
 void RangeServer::CollectNodeHeartbeat(mspb::NodeHeartbeatRequest *req) {
-    context_->run_status->SetHardDiskInfo();
-
     req->set_node_id(context_->node_id);
 
     auto stats = req->mutable_stats();
-    stats->set_range_count(range_status_->range_count);
-    stats->set_range_leader_count(range_status_->range_leader_count);
-    stats->set_range_split_count(range_status_->range_split_count);
+    stats->set_range_count(GetRangesSize());
+    stats->set_range_leader_count(context_->run_status->GetLeaderCount());
+    stats->set_range_split_count(context_->run_status->GetSplitCount());
 
     raft::ServerStatus rss;
     context_->raft_server->GetStatus(&rss);
@@ -1226,10 +1346,14 @@ void RangeServer::CollectNodeHeartbeat(mspb::NodeHeartbeatRequest *req) {
     stats->set_receiving_snap_count(rss.total_snap_applying);
     stats->set_applying_snap_count(rss.total_snap_applying);
 
-    stats->set_capacity(g_status.hard_info.total_size);
-    stats->set_used_size(g_status.hard_info.used_size);
-    stats->set_available(g_status.hard_info.free_size);
+    // collect file system usage
+    FileSystemUsage fs_usage;
+    context_->run_status->GetFilesystemUsage(&fs_usage);
+    stats->set_capacity(fs_usage.total_size);
+    stats->set_used_size(fs_usage.used_size);
+    stats->set_available(fs_usage.free_size);
 
+    // collect storage metric
     storage::MetricStat mstat;
     storage::Metric::CollectAll(&mstat);
     stats->set_keys_read(mstat.keys_read_per_sec);

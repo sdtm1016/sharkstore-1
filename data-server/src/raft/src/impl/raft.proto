@@ -51,10 +51,8 @@ enum MessageType {
   HEARTBEAT_RESPONSE        = 6;
 
   SNAPSHOT_REQUEST          = 7;
-  SNAPSHOT_ACK              = 8;
+  SNAPSHOT_ACK              = 9;
 
-  // 本地消息，快照发送结果
-  LOCAL_SNAPSHOT_STATUS     = 9;
   // 本地消息，触发选举
   LOCAL_MSG_HUP             = 10;
   // 本地消息，客户端请求
@@ -64,6 +62,9 @@ enum MessageType {
 
   PRE_VOTE_REQUEST          = 13;
   PRE_VOTE_RESPONSE         = 14;
+
+  // 本地快照结果
+  LOCAL_SNAPSHOT_STATUS     = 15;
 }
 
 message HeartbeatContext { 

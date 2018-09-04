@@ -1,21 +1,23 @@
 #include "range.h"
 
+#include "range_logger.h"
+
 namespace sharkstore {
 namespace dataserver {
 namespace range {
+
+using namespace sharkstore::monitor;
 
 void Range::Insert(common::ProtoMessage *msg, kvrpcpb::DsInsertRequest &req) {
     errorpb::Error *err = nullptr;
 
     auto btime = get_micro_second();
-    context_->run_status->PushTime(monitor::PrintTag::Qwait,
-                                   btime - msg->begin_time);
+    context_->Statistics()->PushTime(HistogramType::kQWait, btime - msg->begin_time);
 
-    FLOG_DEBUG("range[%" PRIu64 "] Insert begin", meta_.id());
+    RANGE_LOG_DEBUG("Insert begin");
 
     if (!VerifyLeader(err)) {
-        FLOG_WARN("range[%" PRIu64 "] Insert error: %s", meta_.id(),
-                  err->message().c_str());
+        RANGE_LOG_WARN("Insert error: %s", err->message().c_str());
 
         auto resp = new kvrpcpb::DsInsertResponse;
         return SendError(msg, req.header(), resp, err);
@@ -29,19 +31,17 @@ void Range::Insert(common::ProtoMessage *msg, kvrpcpb::DsInsertRequest &req) {
 
     auto epoch = req.header().range_epoch();
     if (!EpochIsEqual(epoch, err)) {
-        FLOG_WARN("range[%" PRIu64 "] Insert error: %s", meta_.id(),
-                  err->message().c_str());
+        RANGE_LOG_WARN("Insert error: %s", err->message().c_str());
 
         auto resp = new kvrpcpb::DsInsertResponse;
         return SendError(msg, req.header(), resp, err);
     }
-    auto ret = SubmitCmd(msg, req, [&req](raft_cmdpb::Command &cmd) {
+    auto ret = SubmitCmd(msg, req.header(), [&req](raft_cmdpb::Command &cmd) {
         cmd.set_cmd_type(raft_cmdpb::CmdType::Insert);
         cmd.set_allocated_insert_req(req.release_req());
     });
     if (!ret.ok()) {
-        FLOG_ERROR("range[%" PRIu64 "] Insert raft submit error: %s",
-                   meta_.id(), ret.ToString().c_str());
+        RANGE_LOG_ERROR("Insert raft submit error: %s", ret.ToString().c_str());
 
         auto resp = new kvrpcpb::DsInsertResponse;
         SendError(msg, req.header(), resp, RaftFailError());
@@ -54,25 +54,24 @@ Status Range::ApplyInsert(const raft_cmdpb::Command &cmd) {
 
     errorpb::Error *err = nullptr;
 
-    FLOG_DEBUG("Range %" PRIu64 " ApplyInsert begin", meta_.id());
+    RANGE_LOG_DEBUG("ApplyInsert begin");
 
     auto &req = cmd.insert_req();
+    auto btime = get_micro_second();
     do {
-        auto epoch = cmd.verify_epoch();
+        auto &epoch = cmd.verify_epoch();
 
         if (!EpochIsEqual(epoch, err)) {
-            FLOG_WARN("Range %" PRIu64 "  ApplyInsert error: %s", meta_.id(),
-                      err->message().c_str());
+            RANGE_LOG_WARN("ApplyInsert error: %s", err->message().c_str());
             break;
         }
 
-        auto btime = get_micro_second();
         ret = store_->Insert(req, &affected_keys);
         auto etime = get_micro_second();
-        context_->run_status->PushTime(monitor::PrintTag::Store, etime - btime);
+        context_->Statistics()->PushTime(HistogramType::kStore, etime - btime);
 
         if (!ret.ok()) {
-            FLOG_ERROR("ApplyInsert failed, code:%d, msg:%s", ret.code(),
+            RANGE_LOG_ERROR("ApplyInsert failed, code:%d, msg:%s", ret.code(),
                        ret.ToString().c_str());
             break;
         }
@@ -95,9 +94,9 @@ Status Range::ApplyInsert(const raft_cmdpb::Command &cmd) {
 
     if (cmd.cmd_id().node_id() == node_id_) {
         auto resp = new kvrpcpb::DsInsertResponse;
-        SendResponse(resp, cmd, static_cast<int>(ret.code()), affected_keys,
-                     err);
-
+        resp->mutable_resp()->set_affected_keys(affected_keys);
+        resp->mutable_resp()->set_code(ret.code());
+        ReplySubmit(cmd, resp, err, btime);
     } else if (err != nullptr) {
         delete err;
     }

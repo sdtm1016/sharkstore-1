@@ -43,9 +43,9 @@
             <td style="vertical-align:middle; text-align:center;">{{table.id}}</td>
             <td style="vertical-align:middle; text-align:center;">{{table.db_name}}</td>
             <td style="vertical-align:middle; text-align:center;">{{table.name}}</td>
-            <td style="vertical-align:middle; text-align:center;">{{table.status}}</td>
+            <td style="vertical-align:middle; text-align:center;">{{table.status | tableStatus}}</td>
             <td style="vertical-align:middle; text-align:center;">{{table.isolation_label}}</td>
-            <td style="vertical-align:middle; text-align:center;">{{table.create_time * 1000 | date:'yyyy-MM-dd HH:mm:ss' }} </td>
+            <td style="vertical-align:middle; text-align:center;">{{table.create_time * 1000 | date:'yyyy-MM-dd HH:mm:ss' }}</td>
             <!--<td style="vertical-align:middle; text-align:center;">
                 <div class="switchbtn" ng-class="{'switchbtn-on':!table.autoShardingUnable}" ng-click="toggleAutoMigrate(table, 'autoShardingUnable')">
                     <div class="switchbtn-inside"></div>
@@ -79,10 +79,10 @@
                 <a class="btn btn-primary btn-rounded" ng-click="deleteRow(table)">删除表</a>
                 <a class="btn btn-primary btn-rounded" ng-click="fastDeleteRow(table)" style="display:{[{.admin}]}">快删表</a>
                 <a class="btn btn-primary btn-rounded" ng-click="checkTopology(table)" style="display:{[{.admin}]}">拓扑检查</a>
-                <a class="btn btn-primary btn-rounded" ng-click="getRangeDuplicateView(table)" style="display:{[{.admin}]}">range缓存检查</a>
+                <a class="btn btn-primary btn-rounded" ng-click="getRangeDuplicateView(table)" style="display:{[{.admin}]}">range缓存重复</a>
                 <a class="btn btn-primary btn-rounded" ng-click="getTopologyMissingView(table)" style="display:{[{.admin}]}">拓扑缺失</a>
-                <a class="btn btn-primary btn-rounded" ng-click="getAbnormalRangeView(table)" style="display:{[{.admin}]}">异常range</a>
-                <a class="btn btn-primary btn-rounded" ng-click="getUnstableRangeView(table)" style="display:{[{.admin}]}">副本数不正确range</a>
+                <a class="btn btn-primary btn-rounded" ng-click="getAbnormalRangeView(table)" style="display:{[{.admin}]}">心跳异常range</a>
+                <a class="btn btn-primary btn-rounded" ng-click="getUnstableRangeView(table)" style="display:{[{.admin}]}">副本数异常range</a>
             </td>
         </tr>
         </tbody>

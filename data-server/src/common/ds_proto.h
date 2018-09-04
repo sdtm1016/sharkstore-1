@@ -13,13 +13,17 @@
 #define DS_PROTO_FID_RPC_REQ 0x02
 #define DS_PROTO_FID_RPC_RESP 0x12
 
+enum ds_proto_flags {
+    FAST_WORKER_FLAG = 1 << 0,
+};
+
 typedef struct ds_proto_header_s {
     char magic_number[4];
     char version[2];
     char msg_type[2];
     char func_id[2];
     char msg_id[8];
-    char stream_hash;
+    char flags;
     char proto_type;
     char time_out[4];
     char body_len[4];
@@ -34,7 +38,7 @@ typedef struct ds_header_s {
     short msg_type;
     short func_id;
     char proto_type;
-    char stream_hash;
+    char flags;
 } ds_header_t;
 
 #ifdef __cplusplus

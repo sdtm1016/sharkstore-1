@@ -2,30 +2,36 @@ package server
 
 import (
 	"testing"
-	"master-server/raft"
 	"bytes"
 	"time"
 	"encoding/binary"
+
+	"master-server/raft"
 )
 
 func TestRaftStore(t *testing.T) {
 	var lleader uint64
 	cnf := &StoreConfig{
-		RaftRetainLogs: int64(100),
-		RaftHeartbeatInterval:  time.Millisecond * 500,
-		RaftHeartbeatAddr: "127.0.0.1:1234",
-		RaftReplicateAddr: "127.0.0.1:1235",
-		RaftPeers:         []*Peer{&Peer{ID: 1, WebManageAddr: "127.0.0.1:8080",
-			RpcServerAddr: "127.0.0.1:8887", RaftHeartbeatAddr: "127.0.0.1:1234", RaftReplicateAddr: "127.0.0.1:1235"}},
+		RaftRetainLogs:        int64(100),
+		RaftHeartbeatInterval: time.Millisecond * 500,
+		RaftHeartbeatAddr:     "127.0.0.1:1234",
+		RaftReplicateAddr:     "127.0.0.1:1235",
+		RaftPeers: []*Peer{&Peer{
+			ID:                1,
+			WebManageAddr:     "127.0.0.1:8080",
+			RpcServerAddr:     "127.0.0.1:8887",
+			RaftHeartbeatAddr: "127.0.0.1:1234",
+			RaftReplicateAddr: "127.0.0.1:1235"}},
 
-		NodeID:         uint64(1),
-		DataPath:       "/tmp/data",
+		NodeID:   uint64(1),
+		DataPath: "/tmp/data",
 
 		LeaderChangeHandler: func(leader uint64) {
 			lleader = leader
 		},
 		FatalHandler: func(err *raft.FatalError) {
 			// TODO event
+			t.Errorf("raft fatal: id[%d], err[%v]", err.ID, err.Err)
 		},
 	}
 	saveStore, err := NewRaftStore(cnf)
@@ -68,7 +74,7 @@ func TestRaftStore(t *testing.T) {
 		return
 	}
 	v, err = saveStore.Get(key)
-	if err != nil || v != nil{
+	if err != nil || v != nil {
 		t.Error("test failed")
 		return
 	}
@@ -77,15 +83,19 @@ func TestRaftStore(t *testing.T) {
 func TestRaftStoreIterAndBatch(t *testing.T) {
 	var lleader uint64
 	cnf := &StoreConfig{
-		RaftRetainLogs: int64(100),
-		RaftHeartbeatInterval:  time.Millisecond * 500,
-		RaftHeartbeatAddr: "127.0.0.1:2234",
-		RaftReplicateAddr: "127.0.0.1:2235",
-		RaftPeers:         []*Peer{&Peer{ID: 1, WebManageAddr: "127.0.0.1:8080",
-			RpcServerAddr: "127.0.0.1:8887", RaftHeartbeatAddr: "127.0.0.1:2234", RaftReplicateAddr: "127.0.0.1:2235"}},
+		RaftRetainLogs:        int64(100),
+		RaftHeartbeatInterval: time.Millisecond * 500,
+		RaftHeartbeatAddr:     "127.0.0.1:2234",
+		RaftReplicateAddr:     "127.0.0.1:2235",
+		RaftPeers: []*Peer{&Peer{
+			ID:                1,
+			WebManageAddr:     "127.0.0.1:8080",
+			RpcServerAddr:     "127.0.0.1:8887",
+			RaftHeartbeatAddr: "127.0.0.1:2234",
+			RaftReplicateAddr: "127.0.0.1:2235"}},
 
-		NodeID:         uint64(1),
-		DataPath:       "/tmp/data",
+		NodeID:   uint64(1),
+		DataPath: "/tmp/data",
 
 		LeaderChangeHandler: func(leader uint64) {
 			lleader = leader
@@ -164,15 +174,19 @@ func TestRaftStoreIterAndBatch(t *testing.T) {
 func TestRaftStoreSnapshot(t *testing.T) {
 	var lleader uint64
 	cnf := &StoreConfig{
-		RaftRetainLogs: int64(100),
-		RaftHeartbeatInterval:  time.Millisecond * 500,
-		RaftHeartbeatAddr: "127.0.0.1:3234",
-		RaftReplicateAddr: "127.0.0.1:3235",
-		RaftPeers:         []*Peer{&Peer{ID: 1, WebManageAddr: "127.0.0.1:8080",
-			RpcServerAddr: "127.0.0.1:8887", RaftHeartbeatAddr: "127.0.0.1:3234", RaftReplicateAddr: "127.0.0.1:3235"}},
+		RaftRetainLogs:        int64(100),
+		RaftHeartbeatInterval: time.Millisecond * 500,
+		RaftHeartbeatAddr:     "127.0.0.1:3234",
+		RaftReplicateAddr:     "127.0.0.1:3235",
+		RaftPeers: []*Peer{&Peer{
+			ID:                1,
+			WebManageAddr:     "127.0.0.1:8080",
+			RpcServerAddr:     "127.0.0.1:8887",
+			RaftHeartbeatAddr: "127.0.0.1:3234",
+			RaftReplicateAddr: "127.0.0.1:3235"}},
 
-		NodeID:         uint64(1),
-		DataPath:       "/tmp/data",
+		NodeID:   uint64(1),
+		DataPath: "/tmp/data",
 
 		LeaderChangeHandler: func(leader uint64) {
 			lleader = leader

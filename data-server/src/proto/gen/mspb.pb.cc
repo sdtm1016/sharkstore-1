@@ -228,6 +228,16 @@ public:
  ::google::protobuf::internal::ExplicitlyConstructed<CreateTableResponse>
      _instance;
 } _CreateTableResponse_default_instance_;
+class GetAutoIncIdRequestDefaultTypeInternal {
+public:
+ ::google::protobuf::internal::ExplicitlyConstructed<GetAutoIncIdRequest>
+     _instance;
+} _GetAutoIncIdRequest_default_instance_;
+class GetAutoIncIdResponseDefaultTypeInternal {
+public:
+ ::google::protobuf::internal::ExplicitlyConstructed<GetAutoIncIdResponse>
+     _instance;
+} _GetAutoIncIdResponse_default_instance_;
 class RequestHeaderDefaultTypeInternal {
 public:
  ::google::protobuf::internal::ExplicitlyConstructed<RequestHeader>
@@ -259,7 +269,7 @@ namespace protobuf_mspb_2eproto {
 
 namespace {
 
-::google::protobuf::Metadata file_level_metadata[47];
+::google::protobuf::Metadata file_level_metadata[49];
 
 }  // namespace
 
@@ -274,6 +284,8 @@ PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::AuxillaryParseTableField
 };
 PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::ParseTable const
     TableStruct::schema[] GOOGLE_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
+  { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
+  { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
@@ -373,9 +385,9 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeHeartbeatRequest, header_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeHeartbeatRequest, range_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeHeartbeatRequest, leader_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeHeartbeatRequest, stats_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeHeartbeatRequest, term_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeHeartbeatRequest, peers_status_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeHeartbeatRequest, stats_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeHeartbeatResponse, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -431,6 +443,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AskSplitRequest, header_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AskSplitRequest, range_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AskSplitRequest, split_key_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AskSplitRequest, force_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AskSplitResponse, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -476,7 +489,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetNodeIdRequest, header_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetNodeIdRequest, server_port_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetNodeIdRequest, raft_port_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetNodeIdRequest, http_port_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetNodeIdRequest, admin_port_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetNodeIdRequest, version_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetNodeIdResponse, _internal_metadata_),
@@ -666,6 +679,22 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CreateTableResponse, header_),
   ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetAutoIncIdRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetAutoIncIdRequest, header_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetAutoIncIdRequest, db_id_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetAutoIncIdRequest, table_id_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetAutoIncIdRequest, size_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetAutoIncIdResponse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetAutoIncIdResponse, header_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetAutoIncIdResponse, ids_),
+  ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RequestHeader, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -710,42 +739,44 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_ATTR
   { 82, -1, sizeof(NodeHeartbeatRequest)},
   { 91, -1, sizeof(NodeHeartbeatResponse)},
   { 99, -1, sizeof(AskSplitRequest)},
-  { 107, -1, sizeof(AskSplitResponse)},
-  { 117, -1, sizeof(ReportSplitRequest)},
-  { 125, -1, sizeof(ReportSplitResponse)},
-  { 131, -1, sizeof(NodeLoginRequest)},
-  { 138, -1, sizeof(NodeLoginResponse)},
-  { 144, -1, sizeof(GetNodeIdRequest)},
-  { 154, -1, sizeof(GetNodeIdResponse)},
-  { 162, -1, sizeof(GetRouteRequest)},
-  { 171, -1, sizeof(GetRouteResponse)},
-  { 178, -1, sizeof(GetNodeRequest)},
-  { 185, -1, sizeof(GetNodeResponse)},
-  { 192, -1, sizeof(GetDBRequest)},
-  { 199, -1, sizeof(GetDBResponse)},
-  { 206, -1, sizeof(GetTableRequest)},
-  { 214, -1, sizeof(GetTableByIdRequest)},
-  { 222, -1, sizeof(GetTableResponse)},
-  { 229, -1, sizeof(GetTableByIdResponse)},
-  { 236, -1, sizeof(GetColumnsRequest)},
-  { 244, -1, sizeof(GetColumnsResponse)},
-  { 251, -1, sizeof(GetColumnByNameRequest)},
-  { 260, -1, sizeof(GetColumnByNameResponse)},
-  { 267, -1, sizeof(GetColumnByIdRequest)},
-  { 276, -1, sizeof(GetColumnByIdResponse)},
-  { 283, -1, sizeof(AddColumnRequest)},
-  { 292, -1, sizeof(AddColumnResponse)},
-  { 299, -1, sizeof(TruncateTableRequest)},
-  { 307, -1, sizeof(TruncateTableResponse)},
-  { 313, -1, sizeof(CreateDatabaseRequest)},
-  { 320, -1, sizeof(CreateDatabaseResponse)},
-  { 326, -1, sizeof(CreateTableRequest)},
-  { 335, -1, sizeof(CreateTableResponse)},
-  { 341, -1, sizeof(RequestHeader)},
-  { 347, -1, sizeof(ResponseHeader)},
-  { 354, -1, sizeof(LeaderHint)},
-  { 361, -1, sizeof(NoLeader)},
-  { 366, -1, sizeof(Error)},
+  { 108, -1, sizeof(AskSplitResponse)},
+  { 118, -1, sizeof(ReportSplitRequest)},
+  { 126, -1, sizeof(ReportSplitResponse)},
+  { 132, -1, sizeof(NodeLoginRequest)},
+  { 139, -1, sizeof(NodeLoginResponse)},
+  { 145, -1, sizeof(GetNodeIdRequest)},
+  { 155, -1, sizeof(GetNodeIdResponse)},
+  { 163, -1, sizeof(GetRouteRequest)},
+  { 172, -1, sizeof(GetRouteResponse)},
+  { 179, -1, sizeof(GetNodeRequest)},
+  { 186, -1, sizeof(GetNodeResponse)},
+  { 193, -1, sizeof(GetDBRequest)},
+  { 200, -1, sizeof(GetDBResponse)},
+  { 207, -1, sizeof(GetTableRequest)},
+  { 215, -1, sizeof(GetTableByIdRequest)},
+  { 223, -1, sizeof(GetTableResponse)},
+  { 230, -1, sizeof(GetTableByIdResponse)},
+  { 237, -1, sizeof(GetColumnsRequest)},
+  { 245, -1, sizeof(GetColumnsResponse)},
+  { 252, -1, sizeof(GetColumnByNameRequest)},
+  { 261, -1, sizeof(GetColumnByNameResponse)},
+  { 268, -1, sizeof(GetColumnByIdRequest)},
+  { 277, -1, sizeof(GetColumnByIdResponse)},
+  { 284, -1, sizeof(AddColumnRequest)},
+  { 293, -1, sizeof(AddColumnResponse)},
+  { 300, -1, sizeof(TruncateTableRequest)},
+  { 308, -1, sizeof(TruncateTableResponse)},
+  { 314, -1, sizeof(CreateDatabaseRequest)},
+  { 321, -1, sizeof(CreateDatabaseResponse)},
+  { 327, -1, sizeof(CreateTableRequest)},
+  { 336, -1, sizeof(CreateTableResponse)},
+  { 342, -1, sizeof(GetAutoIncIdRequest)},
+  { 351, -1, sizeof(GetAutoIncIdResponse)},
+  { 358, -1, sizeof(RequestHeader)},
+  { 364, -1, sizeof(ResponseHeader)},
+  { 371, -1, sizeof(LeaderHint)},
+  { 378, -1, sizeof(NoLeader)},
+  { 383, -1, sizeof(Error)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -791,6 +822,8 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::google::protobuf::Message*>(&_CreateDatabaseResponse_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_CreateTableRequest_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_CreateTableResponse_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&_GetAutoIncIdRequest_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&_GetAutoIncIdResponse_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_RequestHeader_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_ResponseHeader_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_LeaderHint_default_instance_),
@@ -816,7 +849,7 @@ void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) GOOGLE_ATTRIBUTE_COLD;
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 47);
+  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 49);
 }
 
 }  // namespace
@@ -910,7 +943,11 @@ void TableStruct::InitDefaultsImpl() {
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_CreateTableRequest_default_instance_);_CreateTableResponse_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
-      &_CreateTableResponse_default_instance_);_RequestHeader_default_instance_._instance.DefaultConstruct();
+      &_CreateTableResponse_default_instance_);_GetAutoIncIdRequest_default_instance_._instance.DefaultConstruct();
+  ::google::protobuf::internal::OnShutdownDestroyMessage(
+      &_GetAutoIncIdRequest_default_instance_);_GetAutoIncIdResponse_default_instance_._instance.DefaultConstruct();
+  ::google::protobuf::internal::OnShutdownDestroyMessage(
+      &_GetAutoIncIdResponse_default_instance_);_RequestHeader_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_RequestHeader_default_instance_);_ResponseHeader_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
@@ -1034,6 +1071,10 @@ void TableStruct::InitDefaultsImpl() {
       ::mspb::RequestHeader::internal_default_instance());
   _CreateTableResponse_default_instance_._instance.get_mutable()->header_ = const_cast< ::mspb::ResponseHeader*>(
       ::mspb::ResponseHeader::internal_default_instance());
+  _GetAutoIncIdRequest_default_instance_._instance.get_mutable()->header_ = const_cast< ::mspb::RequestHeader*>(
+      ::mspb::RequestHeader::internal_default_instance());
+  _GetAutoIncIdResponse_default_instance_._instance.get_mutable()->header_ = const_cast< ::mspb::ResponseHeader*>(
+      ::mspb::ResponseHeader::internal_default_instance());
   _ResponseHeader_default_instance_._instance.get_mutable()->error_ = const_cast< ::mspb::Error*>(
       ::mspb::Error::internal_default_instance());
   _Error_default_instance_._instance.get_mutable()->new_leader_ = const_cast< ::mspb::LeaderHint*>(
@@ -1065,9 +1106,9 @@ void AddDescriptorsImpl() {
       "ate_size\030\005 \001(\004\"\317\001\n\025RangeHeartbeatRequest"
       "\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHeader\022\034\n"
       "\005range\030\002 \001(\0132\r.metapb.Range\022\034\n\006leader\030\003 "
-      "\001(\0132\014.metapb.Peer\022\014\n\004term\030\004 \001(\004\022&\n\014peers"
-      "_status\030\005 \003(\0132\020.mspb.PeerStatus\022\037\n\005stats"
-      "\030\006 \001(\0132\020.mspb.RangeStats\"\262\001\n\026RangeHeartb"
+      "\001(\0132\014.metapb.Peer\022\037\n\005stats\030\006 \001(\0132\020.mspb."
+      "RangeStats\022\014\n\004term\030\007 \001(\004\022&\n\014peers_status"
+      "\030\010 \003(\0132\020.mspb.PeerStatus\"\262\001\n\026RangeHeartb"
       "eatResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Respo"
       "nseHeader\022\020\n\010range_id\030\002 \001(\004\022!\n\005epoch\030\003 \001"
       "(\0132\022.metapb.RangeEpoch\022!\n\013target_peer\030\004 "
@@ -1086,123 +1127,130 @@ void AddDescriptorsImpl() {
       "ts\030\003 \001(\0132\017.mspb.NodeStats\022\031\n\021isolated_re"
       "plicas\030\004 \003(\004\"g\n\025NodeHeartbeatResponse\022$\n"
       "\006header\030\001 \001(\0132\024.mspb.ResponseHeader\022\017\n\007n"
-      "ode_id\030\002 \001(\004\022\027\n\017delete_replicas\030\003 \003(\004\"g\n"
+      "ode_id\030\002 \001(\004\022\027\n\017delete_replicas\030\003 \003(\004\"v\n"
       "\017AskSplitRequest\022#\n\006header\030\001 \001(\0132\023.mspb."
       "RequestHeader\022\034\n\005range\030\002 \001(\0132\r.metapb.Ra"
-      "nge\022\021\n\tsplit_key\030\003 \001(\014\"\225\001\n\020AskSplitRespo"
-      "nse\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHeade"
-      "r\022\034\n\005range\030\002 \001(\0132\r.metapb.Range\022\024\n\014new_r"
-      "ange_id\030\003 \001(\004\022\024\n\014new_peer_ids\030\004 \003(\004\022\021\n\ts"
-      "plit_key\030\005 \001(\014\"t\n\022ReportSplitRequest\022#\n\006"
-      "header\030\001 \001(\0132\023.mspb.RequestHeader\022\033\n\004lef"
-      "t\030\002 \001(\0132\r.metapb.Range\022\034\n\005right\030\003 \001(\0132\r."
-      "metapb.Range\";\n\023ReportSplitResponse\022$\n\006h"
-      "eader\030\001 \001(\0132\024.mspb.ResponseHeader\"H\n\020Nod"
-      "eLoginRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Req"
-      "uestHeader\022\017\n\007node_id\030\002 \001(\004\"9\n\021NodeLogin"
-      "Response\022$\n\006header\030\001 \001(\0132\024.mspb.Response"
-      "Header\"\203\001\n\020GetNodeIdRequest\022#\n\006header\030\001 "
-      "\001(\0132\023.mspb.RequestHeader\022\023\n\013server_port\030"
-      "\002 \001(\r\022\021\n\traft_port\030\003 \001(\r\022\021\n\thttp_port\030\004 "
-      "\001(\r\022\017\n\007version\030\005 \001(\t\"[\n\021GetNodeIdRespons"
-      "e\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHeader\022"
-      "\017\n\007node_id\030\002 \001(\004\022\017\n\007clearup\030\003 \001(\010\"d\n\017Get"
-      "RouteRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Requ"
-      "estHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003 \001"
-      "(\004\022\013\n\003key\030\004 \001(\014\"W\n\020GetRouteResponse\022$\n\006h"
-      "eader\030\001 \001(\0132\024.mspb.ResponseHeader\022\035\n\006rou"
-      "tes\030\002 \003(\0132\r.metapb.Route\"A\n\016GetNodeReque"
+      "nge\022\021\n\tsplit_key\030\003 \001(\014\022\r\n\005force\030\004 \001(\010\"\225\001"
+      "\n\020AskSplitResponse\022$\n\006header\030\001 \001(\0132\024.msp"
+      "b.ResponseHeader\022\034\n\005range\030\002 \001(\0132\r.metapb"
+      ".Range\022\024\n\014new_range_id\030\003 \001(\004\022\024\n\014new_peer"
+      "_ids\030\004 \003(\004\022\021\n\tsplit_key\030\005 \001(\014\"t\n\022ReportS"
+      "plitRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Reque"
+      "stHeader\022\033\n\004left\030\002 \001(\0132\r.metapb.Range\022\034\n"
+      "\005right\030\003 \001(\0132\r.metapb.Range\";\n\023ReportSpl"
+      "itResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Respon"
+      "seHeader\"H\n\020NodeLoginRequest\022#\n\006header\030\001"
+      " \001(\0132\023.mspb.RequestHeader\022\017\n\007node_id\030\002 \001"
+      "(\004\"9\n\021NodeLoginResponse\022$\n\006header\030\001 \001(\0132"
+      "\024.mspb.ResponseHeader\"\204\001\n\020GetNodeIdReque"
       "st\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHeader\022"
-      "\n\n\002id\030\002 \001(\004\"S\n\017GetNodeResponse\022$\n\006header"
-      "\030\001 \001(\0132\024.mspb.ResponseHeader\022\032\n\004node\030\002 \001"
-      "(\0132\014.metapb.Node\"A\n\014GetDBRequest\022#\n\006head"
-      "er\030\001 \001(\0132\023.mspb.RequestHeader\022\014\n\004name\030\002 "
-      "\001(\t\"S\n\rGetDBResponse\022$\n\006header\030\001 \001(\0132\024.m"
-      "spb.ResponseHeader\022\034\n\002db\030\002 \001(\0132\020.metapb."
-      "DataBase\"[\n\017GetTableRequest\022#\n\006header\030\001 "
+      "\023\n\013server_port\030\002 \001(\r\022\021\n\traft_port\030\003 \001(\r\022"
+      "\022\n\nadmin_port\030\004 \001(\r\022\017\n\007version\030\005 \001(\t\"[\n\021"
+      "GetNodeIdResponse\022$\n\006header\030\001 \001(\0132\024.mspb"
+      ".ResponseHeader\022\017\n\007node_id\030\002 \001(\004\022\017\n\007clea"
+      "rup\030\003 \001(\010\"d\n\017GetRouteRequest\022#\n\006header\030\001"
+      " \001(\0132\023.mspb.RequestHeader\022\r\n\005db_id\030\002 \001(\004"
+      "\022\020\n\010table_id\030\003 \001(\004\022\013\n\003key\030\004 \001(\014\"W\n\020GetRo"
+      "uteResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Respo"
+      "nseHeader\022\035\n\006routes\030\002 \003(\0132\r.metapb.Route"
+      "\"A\n\016GetNodeRequest\022#\n\006header\030\001 \001(\0132\023.msp"
+      "b.RequestHeader\022\n\n\002id\030\002 \001(\004\"S\n\017GetNodeRe"
+      "sponse\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHe"
+      "ader\022\032\n\004node\030\002 \001(\0132\014.metapb.Node\"A\n\014GetD"
+      "BRequest\022#\n\006header\030\001 \001(\0132\023.mspb.RequestH"
+      "eader\022\014\n\004name\030\002 \001(\t\"S\n\rGetDBResponse\022$\n\006"
+      "header\030\001 \001(\0132\024.mspb.ResponseHeader\022\034\n\002db"
+      "\030\002 \001(\0132\020.metapb.DataBase\"[\n\017GetTableRequ"
+      "est\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHeader"
+      "\022\017\n\007db_name\030\002 \001(\t\022\022\n\ntable_name\030\003 \001(\t\"[\n"
+      "\023GetTableByIdRequest\022#\n\006header\030\001 \001(\0132\023.m"
+      "spb.RequestHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n\010tabl"
+      "e_id\030\003 \001(\004\"V\n\020GetTableResponse\022$\n\006header"
+      "\030\001 \001(\0132\024.mspb.ResponseHeader\022\034\n\005table\030\002 "
+      "\001(\0132\r.metapb.Table\"Z\n\024GetTableByIdRespon"
+      "se\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHeader"
+      "\022\034\n\005table\030\002 \001(\0132\r.metapb.Table\"Y\n\021GetCol"
+      "umnsRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Reque"
+      "stHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003 \001("
+      "\004\"[\n\022GetColumnsResponse\022$\n\006header\030\001 \001(\0132"
+      "\024.mspb.ResponseHeader\022\037\n\007columns\030\002 \003(\0132\016"
+      ".metapb.Column\"p\n\026GetColumnByNameRequest"
+      "\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHeader\022\r\n"
+      "\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003 \001(\004\022\020\n\010col_na"
+      "me\030\004 \001(\t\"_\n\027GetColumnByNameResponse\022$\n\006h"
+      "eader\030\001 \001(\0132\024.mspb.ResponseHeader\022\036\n\006col"
+      "umn\030\002 \001(\0132\016.metapb.Column\"l\n\024GetColumnBy"
+      "IdRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Request"
+      "Header\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003 \001(\004\022"
+      "\016\n\006col_id\030\004 \001(\004\"]\n\025GetColumnByIdResponse"
+      "\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHeader\022\036"
+      "\n\006column\030\002 \001(\0132\016.metapb.Column\"y\n\020AddCol"
+      "umnRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Reques"
+      "tHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003 \001(\004"
+      "\022\037\n\007columns\030\004 \003(\0132\016.metapb.Column\"Z\n\021Add"
+      "ColumnResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Re"
+      "sponseHeader\022\037\n\007columns\030\002 \003(\0132\016.metapb.C"
+      "olumn\"\\\n\024TruncateTableRequest\022#\n\006header\030"
+      "\001 \001(\0132\023.mspb.RequestHeader\022\r\n\005db_id\030\002 \001("
+      "\004\022\020\n\010table_id\030\003 \001(\004\"=\n\025TruncateTableResp"
+      "onse\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHead"
+      "er\"M\n\025CreateDatabaseRequest\022#\n\006header\030\001 "
       "\001(\0132\023.mspb.RequestHeader\022\017\n\007db_name\030\002 \001("
-      "\t\022\022\n\ntable_name\030\003 \001(\t\"[\n\023GetTableByIdReq"
-      "uest\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHeade"
-      "r\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003 \001(\004\"V\n\020Ge"
-      "tTableResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Re"
-      "sponseHeader\022\034\n\005table\030\002 \001(\0132\r.metapb.Tab"
-      "le\"Z\n\024GetTableByIdResponse\022$\n\006header\030\001 \001"
-      "(\0132\024.mspb.ResponseHeader\022\034\n\005table\030\002 \001(\0132"
-      "\r.metapb.Table\"Y\n\021GetColumnsRequest\022#\n\006h"
-      "eader\030\001 \001(\0132\023.mspb.RequestHeader\022\r\n\005db_i"
-      "d\030\002 \001(\004\022\020\n\010table_id\030\003 \001(\004\"[\n\022GetColumnsR"
-      "esponse\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseH"
-      "eader\022\037\n\007columns\030\002 \003(\0132\016.metapb.Column\"p"
-      "\n\026GetColumnByNameRequest\022#\n\006header\030\001 \001(\013"
-      "2\023.mspb.RequestHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n\010"
-      "table_id\030\003 \001(\004\022\020\n\010col_name\030\004 \001(\t\"_\n\027GetC"
-      "olumnByNameResponse\022$\n\006header\030\001 \001(\0132\024.ms"
-      "pb.ResponseHeader\022\036\n\006column\030\002 \001(\0132\016.meta"
-      "pb.Column\"l\n\024GetColumnByIdRequest\022#\n\006hea"
-      "der\030\001 \001(\0132\023.mspb.RequestHeader\022\r\n\005db_id\030"
-      "\002 \001(\004\022\020\n\010table_id\030\003 \001(\004\022\016\n\006col_id\030\004 \001(\004\""
-      "]\n\025GetColumnByIdResponse\022$\n\006header\030\001 \001(\013"
-      "2\024.mspb.ResponseHeader\022\036\n\006column\030\002 \001(\0132\016"
-      ".metapb.Column\"y\n\020AddColumnRequest\022#\n\006he"
-      "ader\030\001 \001(\0132\023.mspb.RequestHeader\022\r\n\005db_id"
-      "\030\002 \001(\004\022\020\n\010table_id\030\003 \001(\004\022\037\n\007columns\030\004 \003("
-      "\0132\016.metapb.Column\"Z\n\021AddColumnResponse\022$"
-      "\n\006header\030\001 \001(\0132\024.mspb.ResponseHeader\022\037\n\007"
-      "columns\030\002 \003(\0132\016.metapb.Column\"\\\n\024Truncat"
-      "eTableRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Req"
-      "uestHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003 "
-      "\001(\004\"=\n\025TruncateTableResponse\022$\n\006header\030\001"
-      " \001(\0132\024.mspb.ResponseHeader\"M\n\025CreateData"
-      "baseRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Reque"
-      "stHeader\022\017\n\007db_name\030\002 \001(\t\">\n\026CreateDatab"
-      "aseResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Respo"
-      "nseHeader\"r\n\022CreateTableRequest\022#\n\006heade"
-      "r\030\001 \001(\0132\023.mspb.RequestHeader\022\017\n\007db_name\030"
-      "\002 \001(\t\022\022\n\ntable_name\030\003 \001(\t\022\022\n\nproperties\030"
-      "\004 \001(\t\";\n\023CreateTableResponse\022$\n\006header\030\001"
-      " \001(\0132\024.mspb.ResponseHeader\"#\n\rRequestHea"
-      "der\022\022\n\ncluster_id\030\001 \001(\004\"@\n\016ResponseHeade"
-      "r\022\022\n\ncluster_id\030\001 \001(\004\022\032\n\005error\030\002 \001(\0132\013.m"
-      "spb.Error\"+\n\nLeaderHint\022\017\n\007address\030\001 \001(\t"
-      "\022\014\n\004term\030\002 \001(\004\"\n\n\010NoLeader\"P\n\005Error\022$\n\nn"
-      "ew_leader\030\002 \001(\0132\020.mspb.LeaderHint\022!\n\tno_"
-      "leader\030\003 \001(\0132\016.mspb.NoLeader2\241\n\n\010MsServe"
-      "r\022J\n\rNodeHeartbeat\022\032.mspb.NodeHeartbeatR"
-      "equest\032\033.mspb.NodeHeartbeatResponse\"\000\022M\n"
-      "\016RangeHeartbeat\022\033.mspb.RangeHeartbeatReq"
-      "uest\032\034.mspb.RangeHeartbeatResponse\"\000\022;\n\010"
-      "AskSplit\022\025.mspb.AskSplitRequest\032\026.mspb.A"
-      "skSplitResponse\"\000\022D\n\013ReportSplit\022\030.mspb."
-      "ReportSplitRequest\032\031.mspb.ReportSplitRes"
-      "ponse\"\000\022>\n\tNodeLogin\022\026.mspb.NodeLoginReq"
-      "uest\032\027.mspb.NodeLoginResponse\"\000\022>\n\tGetNo"
-      "deId\022\026.mspb.GetNodeIdRequest\032\027.mspb.GetN"
-      "odeIdResponse\"\000\022D\n\013GetMSLeader\022\030.mspb.Ge"
-      "tMSLeaderRequest\032\031.mspb.GetMSLeaderRespo"
-      "nse\"\000\022;\n\010GetRoute\022\025.mspb.GetRouteRequest"
-      "\032\026.mspb.GetRouteResponse\"\000\0228\n\007GetNode\022\024."
-      "mspb.GetNodeRequest\032\025.mspb.GetNodeRespon"
-      "se\"\000\0222\n\005GetDB\022\022.mspb.GetDBRequest\032\023.mspb"
-      ".GetDBResponse\"\000\022;\n\010GetTable\022\025.mspb.GetT"
-      "ableRequest\032\026.mspb.GetTableResponse\"\000\022G\n"
-      "\014GetTableById\022\031.mspb.GetTableByIdRequest"
-      "\032\032.mspb.GetTableByIdResponse\"\000\022A\n\nGetCol"
-      "umns\022\027.mspb.GetColumnsRequest\032\030.mspb.Get"
-      "ColumnsResponse\"\000\022P\n\017GetColumnByName\022\034.m"
-      "spb.GetColumnByNameRequest\032\035.mspb.GetCol"
-      "umnByNameResponse\"\000\022J\n\rGetColumnById\022\032.m"
-      "spb.GetColumnByIdRequest\032\033.mspb.GetColum"
-      "nByIdResponse\"\000\022J\n\rTruncateTable\022\032.mspb."
-      "TruncateTableRequest\032\033.mspb.TruncateTabl"
-      "eResponse\"\000\022>\n\tAddColumn\022\026.mspb.AddColum"
-      "nRequest\032\027.mspb.AddColumnResponse\"\000\022M\n\016C"
-      "reateDatabase\022\033.mspb.CreateDatabaseReque"
-      "st\032\034.mspb.CreateDatabaseResponse\"\000\022D\n\013Cr"
-      "eateTable\022\030.mspb.CreateTableRequest\032\031.ms"
-      "pb.CreateTableResponse\"\000b\006proto3"
+      "\t\">\n\026CreateDatabaseResponse\022$\n\006header\030\001 "
+      "\001(\0132\024.mspb.ResponseHeader\"r\n\022CreateTable"
+      "Request\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHe"
+      "ader\022\017\n\007db_name\030\002 \001(\t\022\022\n\ntable_name\030\003 \001("
+      "\t\022\022\n\nproperties\030\004 \001(\t\";\n\023CreateTableResp"
+      "onse\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHead"
+      "er\"i\n\023GetAutoIncIdRequest\022#\n\006header\030\001 \001("
+      "\0132\023.mspb.RequestHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n"
+      "\010table_id\030\003 \001(\004\022\014\n\004size\030\004 \001(\r\"I\n\024GetAuto"
+      "IncIdResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Res"
+      "ponseHeader\022\013\n\003ids\030\002 \003(\004\"#\n\rRequestHeade"
+      "r\022\022\n\ncluster_id\030\001 \001(\004\"@\n\016ResponseHeader\022"
+      "\022\n\ncluster_id\030\001 \001(\004\022\032\n\005error\030\002 \001(\0132\013.msp"
+      "b.Error\"+\n\nLeaderHint\022\017\n\007address\030\001 \001(\t\022\014"
+      "\n\004term\030\002 \001(\004\"\n\n\010NoLeader\"P\n\005Error\022$\n\nnew"
+      "_leader\030\002 \001(\0132\020.mspb.LeaderHint\022!\n\tno_le"
+      "ader\030\003 \001(\0132\016.mspb.NoLeader2\352\n\n\010MsServer\022"
+      "J\n\rNodeHeartbeat\022\032.mspb.NodeHeartbeatReq"
+      "uest\032\033.mspb.NodeHeartbeatResponse\"\000\022M\n\016R"
+      "angeHeartbeat\022\033.mspb.RangeHeartbeatReque"
+      "st\032\034.mspb.RangeHeartbeatResponse\"\000\022;\n\010As"
+      "kSplit\022\025.mspb.AskSplitRequest\032\026.mspb.Ask"
+      "SplitResponse\"\000\022D\n\013ReportSplit\022\030.mspb.Re"
+      "portSplitRequest\032\031.mspb.ReportSplitRespo"
+      "nse\"\000\022>\n\tNodeLogin\022\026.mspb.NodeLoginReque"
+      "st\032\027.mspb.NodeLoginResponse\"\000\022>\n\tGetNode"
+      "Id\022\026.mspb.GetNodeIdRequest\032\027.mspb.GetNod"
+      "eIdResponse\"\000\022D\n\013GetMSLeader\022\030.mspb.GetM"
+      "SLeaderRequest\032\031.mspb.GetMSLeaderRespons"
+      "e\"\000\022;\n\010GetRoute\022\025.mspb.GetRouteRequest\032\026"
+      ".mspb.GetRouteResponse\"\000\0228\n\007GetNode\022\024.ms"
+      "pb.GetNodeRequest\032\025.mspb.GetNodeResponse"
+      "\"\000\0222\n\005GetDB\022\022.mspb.GetDBRequest\032\023.mspb.G"
+      "etDBResponse\"\000\022;\n\010GetTable\022\025.mspb.GetTab"
+      "leRequest\032\026.mspb.GetTableResponse\"\000\022G\n\014G"
+      "etTableById\022\031.mspb.GetTableByIdRequest\032\032"
+      ".mspb.GetTableByIdResponse\"\000\022A\n\nGetColum"
+      "ns\022\027.mspb.GetColumnsRequest\032\030.mspb.GetCo"
+      "lumnsResponse\"\000\022P\n\017GetColumnByName\022\034.msp"
+      "b.GetColumnByNameRequest\032\035.mspb.GetColum"
+      "nByNameResponse\"\000\022J\n\rGetColumnById\022\032.msp"
+      "b.GetColumnByIdRequest\032\033.mspb.GetColumnB"
+      "yIdResponse\"\000\022J\n\rTruncateTable\022\032.mspb.Tr"
+      "uncateTableRequest\032\033.mspb.TruncateTableR"
+      "esponse\"\000\022>\n\tAddColumn\022\026.mspb.AddColumnR"
+      "equest\032\027.mspb.AddColumnResponse\"\000\022M\n\016Cre"
+      "ateDatabase\022\033.mspb.CreateDatabaseRequest"
+      "\032\034.mspb.CreateDatabaseResponse\"\000\022D\n\013Crea"
+      "teTable\022\030.mspb.CreateTableRequest\032\031.mspb"
+      ".CreateTableResponse\"\000\022G\n\014GetAutoIncId\022\031"
+      ".mspb.GetAutoIncIdRequest\032\032.mspb.GetAuto"
+      "IncIdResponse\"\000b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 5992);
+      descriptor, 6263);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "mspb.proto", &protobuf_RegisterTypes);
   ::metapb::protobuf_metapb_2eproto::AddDescriptors();
@@ -3272,9 +3320,9 @@ void RangeStats::set_approximate_size(::google::protobuf::uint64 value) {
 const int RangeHeartbeatRequest::kHeaderFieldNumber;
 const int RangeHeartbeatRequest::kRangeFieldNumber;
 const int RangeHeartbeatRequest::kLeaderFieldNumber;
+const int RangeHeartbeatRequest::kStatsFieldNumber;
 const int RangeHeartbeatRequest::kTermFieldNumber;
 const int RangeHeartbeatRequest::kPeersStatusFieldNumber;
-const int RangeHeartbeatRequest::kStatsFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 RangeHeartbeatRequest::RangeHeartbeatRequest()
@@ -3430,10 +3478,22 @@ bool RangeHeartbeatRequest::MergePartialFromCodedStream(
         break;
       }
 
-      // uint64 term = 4;
-      case 4: {
+      // .mspb.RangeStats stats = 6;
+      case 6: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(32u /* 32 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(50u /* 50 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_stats()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // uint64 term = 7;
+      case 7: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(56u /* 56 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
@@ -3444,24 +3504,12 @@ bool RangeHeartbeatRequest::MergePartialFromCodedStream(
         break;
       }
 
-      // repeated .mspb.PeerStatus peers_status = 5;
-      case 5: {
+      // repeated .mspb.PeerStatus peers_status = 8;
+      case 8: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(42u /* 42 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(66u /* 66 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                 input, add_peers_status()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // .mspb.RangeStats stats = 6;
-      case 6: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(50u /* 50 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-               input, mutable_stats()));
         } else {
           goto handle_unusual;
         }
@@ -3512,22 +3560,22 @@ void RangeHeartbeatRequest::SerializeWithCachedSizes(
       3, *this->leader_, output);
   }
 
-  // uint64 term = 4;
-  if (this->term() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(4, this->term(), output);
-  }
-
-  // repeated .mspb.PeerStatus peers_status = 5;
-  for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->peers_status_size()); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      5, this->peers_status(static_cast<int>(i)), output);
-  }
-
   // .mspb.RangeStats stats = 6;
   if (this->has_stats()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
       6, *this->stats_, output);
+  }
+
+  // uint64 term = 7;
+  if (this->term() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(7, this->term(), output);
+  }
+
+  // repeated .mspb.PeerStatus peers_status = 8;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->peers_status_size()); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      8, this->peers_status(static_cast<int>(i)), output);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -3565,24 +3613,24 @@ void RangeHeartbeatRequest::SerializeWithCachedSizes(
         3, *this->leader_, deterministic, target);
   }
 
-  // uint64 term = 4;
-  if (this->term() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(4, this->term(), target);
-  }
-
-  // repeated .mspb.PeerStatus peers_status = 5;
-  for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->peers_status_size()); i < n; i++) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      InternalWriteMessageNoVirtualToArray(
-        5, this->peers_status(static_cast<int>(i)), deterministic, target);
-  }
-
   // .mspb.RangeStats stats = 6;
   if (this->has_stats()) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageNoVirtualToArray(
         6, *this->stats_, deterministic, target);
+  }
+
+  // uint64 term = 7;
+  if (this->term() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(7, this->term(), target);
+  }
+
+  // repeated .mspb.PeerStatus peers_status = 8;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->peers_status_size()); i < n; i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        8, this->peers_status(static_cast<int>(i)), deterministic, target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -3602,7 +3650,7 @@ size_t RangeHeartbeatRequest::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  // repeated .mspb.PeerStatus peers_status = 5;
+  // repeated .mspb.PeerStatus peers_status = 8;
   {
     unsigned int count = static_cast<unsigned int>(this->peers_status_size());
     total_size += 1UL * count;
@@ -3641,7 +3689,7 @@ size_t RangeHeartbeatRequest::ByteSizeLong() const {
         *this->stats_);
   }
 
-  // uint64 term = 4;
+  // uint64 term = 7;
   if (this->term() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::UInt64Size(
@@ -3857,50 +3905,6 @@ void RangeHeartbeatRequest::set_allocated_leader(::metapb::Peer* leader) {
   // @@protoc_insertion_point(field_set_allocated:mspb.RangeHeartbeatRequest.leader)
 }
 
-// uint64 term = 4;
-void RangeHeartbeatRequest::clear_term() {
-  term_ = GOOGLE_ULONGLONG(0);
-}
-::google::protobuf::uint64 RangeHeartbeatRequest::term() const {
-  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.term)
-  return term_;
-}
-void RangeHeartbeatRequest::set_term(::google::protobuf::uint64 value) {
-  
-  term_ = value;
-  // @@protoc_insertion_point(field_set:mspb.RangeHeartbeatRequest.term)
-}
-
-// repeated .mspb.PeerStatus peers_status = 5;
-int RangeHeartbeatRequest::peers_status_size() const {
-  return peers_status_.size();
-}
-void RangeHeartbeatRequest::clear_peers_status() {
-  peers_status_.Clear();
-}
-const ::mspb::PeerStatus& RangeHeartbeatRequest::peers_status(int index) const {
-  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.peers_status)
-  return peers_status_.Get(index);
-}
-::mspb::PeerStatus* RangeHeartbeatRequest::mutable_peers_status(int index) {
-  // @@protoc_insertion_point(field_mutable:mspb.RangeHeartbeatRequest.peers_status)
-  return peers_status_.Mutable(index);
-}
-::mspb::PeerStatus* RangeHeartbeatRequest::add_peers_status() {
-  // @@protoc_insertion_point(field_add:mspb.RangeHeartbeatRequest.peers_status)
-  return peers_status_.Add();
-}
-::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >*
-RangeHeartbeatRequest::mutable_peers_status() {
-  // @@protoc_insertion_point(field_mutable_list:mspb.RangeHeartbeatRequest.peers_status)
-  return &peers_status_;
-}
-const ::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >&
-RangeHeartbeatRequest::peers_status() const {
-  // @@protoc_insertion_point(field_list:mspb.RangeHeartbeatRequest.peers_status)
-  return peers_status_;
-}
-
 // .mspb.RangeStats stats = 6;
 bool RangeHeartbeatRequest::has_stats() const {
   return this != internal_default_instance() && stats_ != NULL;
@@ -3939,6 +3943,50 @@ void RangeHeartbeatRequest::set_allocated_stats(::mspb::RangeStats* stats) {
     
   }
   // @@protoc_insertion_point(field_set_allocated:mspb.RangeHeartbeatRequest.stats)
+}
+
+// uint64 term = 7;
+void RangeHeartbeatRequest::clear_term() {
+  term_ = GOOGLE_ULONGLONG(0);
+}
+::google::protobuf::uint64 RangeHeartbeatRequest::term() const {
+  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.term)
+  return term_;
+}
+void RangeHeartbeatRequest::set_term(::google::protobuf::uint64 value) {
+  
+  term_ = value;
+  // @@protoc_insertion_point(field_set:mspb.RangeHeartbeatRequest.term)
+}
+
+// repeated .mspb.PeerStatus peers_status = 8;
+int RangeHeartbeatRequest::peers_status_size() const {
+  return peers_status_.size();
+}
+void RangeHeartbeatRequest::clear_peers_status() {
+  peers_status_.Clear();
+}
+const ::mspb::PeerStatus& RangeHeartbeatRequest::peers_status(int index) const {
+  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.peers_status)
+  return peers_status_.Get(index);
+}
+::mspb::PeerStatus* RangeHeartbeatRequest::mutable_peers_status(int index) {
+  // @@protoc_insertion_point(field_mutable:mspb.RangeHeartbeatRequest.peers_status)
+  return peers_status_.Mutable(index);
+}
+::mspb::PeerStatus* RangeHeartbeatRequest::add_peers_status() {
+  // @@protoc_insertion_point(field_add:mspb.RangeHeartbeatRequest.peers_status)
+  return peers_status_.Add();
+}
+::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >*
+RangeHeartbeatRequest::mutable_peers_status() {
+  // @@protoc_insertion_point(field_mutable_list:mspb.RangeHeartbeatRequest.peers_status)
+  return &peers_status_;
+}
+const ::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >&
+RangeHeartbeatRequest::peers_status() const {
+  // @@protoc_insertion_point(field_list:mspb.RangeHeartbeatRequest.peers_status)
+  return peers_status_;
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -6472,6 +6520,7 @@ NodeHeartbeatResponse::mutable_delete_replicas() {
 const int AskSplitRequest::kHeaderFieldNumber;
 const int AskSplitRequest::kRangeFieldNumber;
 const int AskSplitRequest::kSplitKeyFieldNumber;
+const int AskSplitRequest::kForceFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 AskSplitRequest::AskSplitRequest()
@@ -6501,14 +6550,15 @@ AskSplitRequest::AskSplitRequest(const AskSplitRequest& from)
   } else {
     range_ = NULL;
   }
+  force_ = from.force_;
   // @@protoc_insertion_point(copy_constructor:mspb.AskSplitRequest)
 }
 
 void AskSplitRequest::SharedCtor() {
   split_key_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&header_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&range_) -
-      reinterpret_cast<char*>(&header_)) + sizeof(range_));
+      reinterpret_cast<char*>(&force_) -
+      reinterpret_cast<char*>(&header_)) + sizeof(force_));
   _cached_size_ = 0;
 }
 
@@ -6561,6 +6611,7 @@ void AskSplitRequest::Clear() {
     delete range_;
   }
   range_ = NULL;
+  force_ = false;
   _internal_metadata_.Clear();
 }
 
@@ -6604,6 +6655,20 @@ bool AskSplitRequest::MergePartialFromCodedStream(
             static_cast< ::google::protobuf::uint8>(26u /* 26 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_split_key()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // bool force = 4;
+      case 4: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(32u /* 32 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &force_)));
         } else {
           goto handle_unusual;
         }
@@ -6654,6 +6719,11 @@ void AskSplitRequest::SerializeWithCachedSizes(
       3, this->split_key(), output);
   }
 
+  // bool force = 4;
+  if (this->force() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(4, this->force(), output);
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
@@ -6687,6 +6757,11 @@ void AskSplitRequest::SerializeWithCachedSizes(
     target =
       ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
         3, this->split_key(), target);
+  }
+
+  // bool force = 4;
+  if (this->force() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(4, this->force(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -6725,6 +6800,11 @@ size_t AskSplitRequest::ByteSizeLong() const {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
         *this->range_);
+  }
+
+  // bool force = 4;
+  if (this->force() != 0) {
+    total_size += 1 + 1;
   }
 
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
@@ -6766,6 +6846,9 @@ void AskSplitRequest::MergeFrom(const AskSplitRequest& from) {
   if (from.has_range()) {
     mutable_range()->::metapb::Range::MergeFrom(from.range());
   }
+  if (from.force() != 0) {
+    set_force(from.force());
+  }
 }
 
 void AskSplitRequest::CopyFrom(const ::google::protobuf::Message& from) {
@@ -6795,6 +6878,7 @@ void AskSplitRequest::InternalSwap(AskSplitRequest* other) {
   split_key_.Swap(&other->split_key_);
   swap(header_, other->header_);
   swap(range_, other->range_);
+  swap(force_, other->force_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_cached_size_, other->_cached_size_);
 }
@@ -6938,6 +7022,20 @@ void AskSplitRequest::set_allocated_split_key(::std::string* split_key) {
   }
   split_key_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), split_key);
   // @@protoc_insertion_point(field_set_allocated:mspb.AskSplitRequest.split_key)
+}
+
+// bool force = 4;
+void AskSplitRequest::clear_force() {
+  force_ = false;
+}
+bool AskSplitRequest::force() const {
+  // @@protoc_insertion_point(field_get:mspb.AskSplitRequest.force)
+  return force_;
+}
+void AskSplitRequest::set_force(bool value) {
+  
+  force_ = value;
+  // @@protoc_insertion_point(field_set:mspb.AskSplitRequest.force)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -8956,7 +9054,7 @@ void NodeLoginResponse::set_allocated_header(::mspb::ResponseHeader* header) {
 const int GetNodeIdRequest::kHeaderFieldNumber;
 const int GetNodeIdRequest::kServerPortFieldNumber;
 const int GetNodeIdRequest::kRaftPortFieldNumber;
-const int GetNodeIdRequest::kHttpPortFieldNumber;
+const int GetNodeIdRequest::kAdminPortFieldNumber;
 const int GetNodeIdRequest::kVersionFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
@@ -8983,16 +9081,16 @@ GetNodeIdRequest::GetNodeIdRequest(const GetNodeIdRequest& from)
     header_ = NULL;
   }
   ::memcpy(&server_port_, &from.server_port_,
-    static_cast<size_t>(reinterpret_cast<char*>(&http_port_) -
-    reinterpret_cast<char*>(&server_port_)) + sizeof(http_port_));
+    static_cast<size_t>(reinterpret_cast<char*>(&admin_port_) -
+    reinterpret_cast<char*>(&server_port_)) + sizeof(admin_port_));
   // @@protoc_insertion_point(copy_constructor:mspb.GetNodeIdRequest)
 }
 
 void GetNodeIdRequest::SharedCtor() {
   version_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&header_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&http_port_) -
-      reinterpret_cast<char*>(&header_)) + sizeof(http_port_));
+      reinterpret_cast<char*>(&admin_port_) -
+      reinterpret_cast<char*>(&header_)) + sizeof(admin_port_));
   _cached_size_ = 0;
 }
 
@@ -9041,8 +9139,8 @@ void GetNodeIdRequest::Clear() {
   }
   header_ = NULL;
   ::memset(&server_port_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&http_port_) -
-      reinterpret_cast<char*>(&server_port_)) + sizeof(http_port_));
+      reinterpret_cast<char*>(&admin_port_) -
+      reinterpret_cast<char*>(&server_port_)) + sizeof(admin_port_));
   _internal_metadata_.Clear();
 }
 
@@ -9096,14 +9194,14 @@ bool GetNodeIdRequest::MergePartialFromCodedStream(
         break;
       }
 
-      // uint32 http_port = 4;
+      // uint32 admin_port = 4;
       case 4: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(32u /* 32 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 input, &http_port_)));
+                 input, &admin_port_)));
         } else {
           goto handle_unusual;
         }
@@ -9168,9 +9266,9 @@ void GetNodeIdRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->raft_port(), output);
   }
 
-  // uint32 http_port = 4;
-  if (this->http_port() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(4, this->http_port(), output);
+  // uint32 admin_port = 4;
+  if (this->admin_port() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(4, this->admin_port(), output);
   }
 
   // string version = 5;
@@ -9214,9 +9312,9 @@ void GetNodeIdRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->raft_port(), target);
   }
 
-  // uint32 http_port = 4;
-  if (this->http_port() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(4, this->http_port(), target);
+  // uint32 admin_port = 4;
+  if (this->admin_port() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(4, this->admin_port(), target);
   }
 
   // string version = 5;
@@ -9275,11 +9373,11 @@ size_t GetNodeIdRequest::ByteSizeLong() const {
         this->raft_port());
   }
 
-  // uint32 http_port = 4;
-  if (this->http_port() != 0) {
+  // uint32 admin_port = 4;
+  if (this->admin_port() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::UInt32Size(
-        this->http_port());
+        this->admin_port());
   }
 
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
@@ -9324,8 +9422,8 @@ void GetNodeIdRequest::MergeFrom(const GetNodeIdRequest& from) {
   if (from.raft_port() != 0) {
     set_raft_port(from.raft_port());
   }
-  if (from.http_port() != 0) {
-    set_http_port(from.http_port());
+  if (from.admin_port() != 0) {
+    set_admin_port(from.admin_port());
   }
 }
 
@@ -9357,7 +9455,7 @@ void GetNodeIdRequest::InternalSwap(GetNodeIdRequest* other) {
   swap(header_, other->header_);
   swap(server_port_, other->server_port_);
   swap(raft_port_, other->raft_port_);
-  swap(http_port_, other->http_port_);
+  swap(admin_port_, other->admin_port_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_cached_size_, other->_cached_size_);
 }
@@ -9438,18 +9536,18 @@ void GetNodeIdRequest::set_raft_port(::google::protobuf::uint32 value) {
   // @@protoc_insertion_point(field_set:mspb.GetNodeIdRequest.raft_port)
 }
 
-// uint32 http_port = 4;
-void GetNodeIdRequest::clear_http_port() {
-  http_port_ = 0u;
+// uint32 admin_port = 4;
+void GetNodeIdRequest::clear_admin_port() {
+  admin_port_ = 0u;
 }
-::google::protobuf::uint32 GetNodeIdRequest::http_port() const {
-  // @@protoc_insertion_point(field_get:mspb.GetNodeIdRequest.http_port)
-  return http_port_;
+::google::protobuf::uint32 GetNodeIdRequest::admin_port() const {
+  // @@protoc_insertion_point(field_get:mspb.GetNodeIdRequest.admin_port)
+  return admin_port_;
 }
-void GetNodeIdRequest::set_http_port(::google::protobuf::uint32 value) {
+void GetNodeIdRequest::set_admin_port(::google::protobuf::uint32 value) {
   
-  http_port_ = value;
-  // @@protoc_insertion_point(field_set:mspb.GetNodeIdRequest.http_port)
+  admin_port_ = value;
+  // @@protoc_insertion_point(field_set:mspb.GetNodeIdRequest.admin_port)
 }
 
 // string version = 5;
@@ -19498,6 +19596,836 @@ void CreateTableResponse::set_allocated_header(::mspb::ResponseHeader* header) {
     
   }
   // @@protoc_insertion_point(field_set_allocated:mspb.CreateTableResponse.header)
+}
+
+#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
+
+// ===================================================================
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int GetAutoIncIdRequest::kHeaderFieldNumber;
+const int GetAutoIncIdRequest::kDbIdFieldNumber;
+const int GetAutoIncIdRequest::kTableIdFieldNumber;
+const int GetAutoIncIdRequest::kSizeFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+GetAutoIncIdRequest::GetAutoIncIdRequest()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
+    protobuf_mspb_2eproto::InitDefaults();
+  }
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:mspb.GetAutoIncIdRequest)
+}
+GetAutoIncIdRequest::GetAutoIncIdRequest(const GetAutoIncIdRequest& from)
+  : ::google::protobuf::Message(),
+      _internal_metadata_(NULL),
+      _cached_size_(0) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  if (from.has_header()) {
+    header_ = new ::mspb::RequestHeader(*from.header_);
+  } else {
+    header_ = NULL;
+  }
+  ::memcpy(&db_id_, &from.db_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&size_) -
+    reinterpret_cast<char*>(&db_id_)) + sizeof(size_));
+  // @@protoc_insertion_point(copy_constructor:mspb.GetAutoIncIdRequest)
+}
+
+void GetAutoIncIdRequest::SharedCtor() {
+  ::memset(&header_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&size_) -
+      reinterpret_cast<char*>(&header_)) + sizeof(size_));
+  _cached_size_ = 0;
+}
+
+GetAutoIncIdRequest::~GetAutoIncIdRequest() {
+  // @@protoc_insertion_point(destructor:mspb.GetAutoIncIdRequest)
+  SharedDtor();
+}
+
+void GetAutoIncIdRequest::SharedDtor() {
+  if (this != internal_default_instance()) delete header_;
+}
+
+void GetAutoIncIdRequest::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* GetAutoIncIdRequest::descriptor() {
+  protobuf_mspb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_mspb_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
+const GetAutoIncIdRequest& GetAutoIncIdRequest::default_instance() {
+  protobuf_mspb_2eproto::InitDefaults();
+  return *internal_default_instance();
+}
+
+GetAutoIncIdRequest* GetAutoIncIdRequest::New(::google::protobuf::Arena* arena) const {
+  GetAutoIncIdRequest* n = new GetAutoIncIdRequest;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void GetAutoIncIdRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:mspb.GetAutoIncIdRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  if (GetArenaNoVirtual() == NULL && header_ != NULL) {
+    delete header_;
+  }
+  header_ = NULL;
+  ::memset(&db_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&size_) -
+      reinterpret_cast<char*>(&db_id_)) + sizeof(size_));
+  _internal_metadata_.Clear();
+}
+
+bool GetAutoIncIdRequest::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:mspb.GetAutoIncIdRequest)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // .mspb.RequestHeader header = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_header()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // uint64 db_id = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &db_id_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // uint64 table_id = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(24u /* 24 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &table_id_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // uint32 size = 4;
+      case 4: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(32u /* 32 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &size_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:mspb.GetAutoIncIdRequest)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:mspb.GetAutoIncIdRequest)
+  return false;
+#undef DO_
+}
+
+void GetAutoIncIdRequest::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:mspb.GetAutoIncIdRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .mspb.RequestHeader header = 1;
+  if (this->has_header()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      1, *this->header_, output);
+  }
+
+  // uint64 db_id = 2;
+  if (this->db_id() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->db_id(), output);
+  }
+
+  // uint64 table_id = 3;
+  if (this->table_id() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(3, this->table_id(), output);
+  }
+
+  // uint32 size = 4;
+  if (this->size() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(4, this->size(), output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
+  }
+  // @@protoc_insertion_point(serialize_end:mspb.GetAutoIncIdRequest)
+}
+
+::google::protobuf::uint8* GetAutoIncIdRequest::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
+  // @@protoc_insertion_point(serialize_to_array_start:mspb.GetAutoIncIdRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .mspb.RequestHeader header = 1;
+  if (this->has_header()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        1, *this->header_, deterministic, target);
+  }
+
+  // uint64 db_id = 2;
+  if (this->db_id() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->db_id(), target);
+  }
+
+  // uint64 table_id = 3;
+  if (this->table_id() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(3, this->table_id(), target);
+  }
+
+  // uint32 size = 4;
+  if (this->size() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(4, this->size(), target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:mspb.GetAutoIncIdRequest)
+  return target;
+}
+
+size_t GetAutoIncIdRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:mspb.GetAutoIncIdRequest)
+  size_t total_size = 0;
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
+  }
+  // .mspb.RequestHeader header = 1;
+  if (this->has_header()) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        *this->header_);
+  }
+
+  // uint64 db_id = 2;
+  if (this->db_id() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt64Size(
+        this->db_id());
+  }
+
+  // uint64 table_id = 3;
+  if (this->table_id() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt64Size(
+        this->table_id());
+  }
+
+  // uint32 size = 4;
+  if (this->size() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        this->size());
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = cached_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void GetAutoIncIdRequest::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:mspb.GetAutoIncIdRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  const GetAutoIncIdRequest* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const GetAutoIncIdRequest>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:mspb.GetAutoIncIdRequest)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:mspb.GetAutoIncIdRequest)
+    MergeFrom(*source);
+  }
+}
+
+void GetAutoIncIdRequest::MergeFrom(const GetAutoIncIdRequest& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:mspb.GetAutoIncIdRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.has_header()) {
+    mutable_header()->::mspb::RequestHeader::MergeFrom(from.header());
+  }
+  if (from.db_id() != 0) {
+    set_db_id(from.db_id());
+  }
+  if (from.table_id() != 0) {
+    set_table_id(from.table_id());
+  }
+  if (from.size() != 0) {
+    set_size(from.size());
+  }
+}
+
+void GetAutoIncIdRequest::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:mspb.GetAutoIncIdRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void GetAutoIncIdRequest::CopyFrom(const GetAutoIncIdRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:mspb.GetAutoIncIdRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool GetAutoIncIdRequest::IsInitialized() const {
+  return true;
+}
+
+void GetAutoIncIdRequest::Swap(GetAutoIncIdRequest* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void GetAutoIncIdRequest::InternalSwap(GetAutoIncIdRequest* other) {
+  using std::swap;
+  swap(header_, other->header_);
+  swap(db_id_, other->db_id_);
+  swap(table_id_, other->table_id_);
+  swap(size_, other->size_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata GetAutoIncIdRequest::GetMetadata() const {
+  protobuf_mspb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_mspb_2eproto::file_level_metadata[kIndexInFileMessages];
+}
+
+#if PROTOBUF_INLINE_NOT_IN_HEADERS
+// GetAutoIncIdRequest
+
+// .mspb.RequestHeader header = 1;
+bool GetAutoIncIdRequest::has_header() const {
+  return this != internal_default_instance() && header_ != NULL;
+}
+void GetAutoIncIdRequest::clear_header() {
+  if (GetArenaNoVirtual() == NULL && header_ != NULL) delete header_;
+  header_ = NULL;
+}
+const ::mspb::RequestHeader& GetAutoIncIdRequest::header() const {
+  const ::mspb::RequestHeader* p = header_;
+  // @@protoc_insertion_point(field_get:mspb.GetAutoIncIdRequest.header)
+  return p != NULL ? *p : *reinterpret_cast<const ::mspb::RequestHeader*>(
+      &::mspb::_RequestHeader_default_instance_);
+}
+::mspb::RequestHeader* GetAutoIncIdRequest::mutable_header() {
+  
+  if (header_ == NULL) {
+    header_ = new ::mspb::RequestHeader;
+  }
+  // @@protoc_insertion_point(field_mutable:mspb.GetAutoIncIdRequest.header)
+  return header_;
+}
+::mspb::RequestHeader* GetAutoIncIdRequest::release_header() {
+  // @@protoc_insertion_point(field_release:mspb.GetAutoIncIdRequest.header)
+  
+  ::mspb::RequestHeader* temp = header_;
+  header_ = NULL;
+  return temp;
+}
+void GetAutoIncIdRequest::set_allocated_header(::mspb::RequestHeader* header) {
+  delete header_;
+  header_ = header;
+  if (header) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:mspb.GetAutoIncIdRequest.header)
+}
+
+// uint64 db_id = 2;
+void GetAutoIncIdRequest::clear_db_id() {
+  db_id_ = GOOGLE_ULONGLONG(0);
+}
+::google::protobuf::uint64 GetAutoIncIdRequest::db_id() const {
+  // @@protoc_insertion_point(field_get:mspb.GetAutoIncIdRequest.db_id)
+  return db_id_;
+}
+void GetAutoIncIdRequest::set_db_id(::google::protobuf::uint64 value) {
+  
+  db_id_ = value;
+  // @@protoc_insertion_point(field_set:mspb.GetAutoIncIdRequest.db_id)
+}
+
+// uint64 table_id = 3;
+void GetAutoIncIdRequest::clear_table_id() {
+  table_id_ = GOOGLE_ULONGLONG(0);
+}
+::google::protobuf::uint64 GetAutoIncIdRequest::table_id() const {
+  // @@protoc_insertion_point(field_get:mspb.GetAutoIncIdRequest.table_id)
+  return table_id_;
+}
+void GetAutoIncIdRequest::set_table_id(::google::protobuf::uint64 value) {
+  
+  table_id_ = value;
+  // @@protoc_insertion_point(field_set:mspb.GetAutoIncIdRequest.table_id)
+}
+
+// uint32 size = 4;
+void GetAutoIncIdRequest::clear_size() {
+  size_ = 0u;
+}
+::google::protobuf::uint32 GetAutoIncIdRequest::size() const {
+  // @@protoc_insertion_point(field_get:mspb.GetAutoIncIdRequest.size)
+  return size_;
+}
+void GetAutoIncIdRequest::set_size(::google::protobuf::uint32 value) {
+  
+  size_ = value;
+  // @@protoc_insertion_point(field_set:mspb.GetAutoIncIdRequest.size)
+}
+
+#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
+
+// ===================================================================
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int GetAutoIncIdResponse::kHeaderFieldNumber;
+const int GetAutoIncIdResponse::kIdsFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+GetAutoIncIdResponse::GetAutoIncIdResponse()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
+    protobuf_mspb_2eproto::InitDefaults();
+  }
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:mspb.GetAutoIncIdResponse)
+}
+GetAutoIncIdResponse::GetAutoIncIdResponse(const GetAutoIncIdResponse& from)
+  : ::google::protobuf::Message(),
+      _internal_metadata_(NULL),
+      ids_(from.ids_),
+      _cached_size_(0) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  if (from.has_header()) {
+    header_ = new ::mspb::ResponseHeader(*from.header_);
+  } else {
+    header_ = NULL;
+  }
+  // @@protoc_insertion_point(copy_constructor:mspb.GetAutoIncIdResponse)
+}
+
+void GetAutoIncIdResponse::SharedCtor() {
+  header_ = NULL;
+  _cached_size_ = 0;
+}
+
+GetAutoIncIdResponse::~GetAutoIncIdResponse() {
+  // @@protoc_insertion_point(destructor:mspb.GetAutoIncIdResponse)
+  SharedDtor();
+}
+
+void GetAutoIncIdResponse::SharedDtor() {
+  if (this != internal_default_instance()) delete header_;
+}
+
+void GetAutoIncIdResponse::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* GetAutoIncIdResponse::descriptor() {
+  protobuf_mspb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_mspb_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
+const GetAutoIncIdResponse& GetAutoIncIdResponse::default_instance() {
+  protobuf_mspb_2eproto::InitDefaults();
+  return *internal_default_instance();
+}
+
+GetAutoIncIdResponse* GetAutoIncIdResponse::New(::google::protobuf::Arena* arena) const {
+  GetAutoIncIdResponse* n = new GetAutoIncIdResponse;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void GetAutoIncIdResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:mspb.GetAutoIncIdResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ids_.Clear();
+  if (GetArenaNoVirtual() == NULL && header_ != NULL) {
+    delete header_;
+  }
+  header_ = NULL;
+  _internal_metadata_.Clear();
+}
+
+bool GetAutoIncIdResponse::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:mspb.GetAutoIncIdResponse)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // .mspb.ResponseHeader header = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_header()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // repeated uint64 ids = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, this->mutable_ids())));
+        } else if (
+            static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 1, 18u, input, this->mutable_ids())));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:mspb.GetAutoIncIdResponse)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:mspb.GetAutoIncIdResponse)
+  return false;
+#undef DO_
+}
+
+void GetAutoIncIdResponse::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:mspb.GetAutoIncIdResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .mspb.ResponseHeader header = 1;
+  if (this->has_header()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      1, *this->header_, output);
+  }
+
+  // repeated uint64 ids = 2;
+  if (this->ids_size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteTag(2, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
+    output->WriteVarint32(static_cast< ::google::protobuf::uint32>(
+        _ids_cached_byte_size_));
+  }
+  for (int i = 0, n = this->ids_size(); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64NoTag(
+      this->ids(i), output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
+  }
+  // @@protoc_insertion_point(serialize_end:mspb.GetAutoIncIdResponse)
+}
+
+::google::protobuf::uint8* GetAutoIncIdResponse::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
+  // @@protoc_insertion_point(serialize_to_array_start:mspb.GetAutoIncIdResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .mspb.ResponseHeader header = 1;
+  if (this->has_header()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        1, *this->header_, deterministic, target);
+  }
+
+  // repeated uint64 ids = 2;
+  if (this->ids_size() > 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
+      2,
+      ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
+      target);
+    target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
+        static_cast< ::google::protobuf::uint32>(
+            _ids_cached_byte_size_), target);
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteUInt64NoTagToArray(this->ids_, target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:mspb.GetAutoIncIdResponse)
+  return target;
+}
+
+size_t GetAutoIncIdResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:mspb.GetAutoIncIdResponse)
+  size_t total_size = 0;
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
+  }
+  // repeated uint64 ids = 2;
+  {
+    size_t data_size = ::google::protobuf::internal::WireFormatLite::
+      UInt64Size(this->ids_);
+    if (data_size > 0) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+            static_cast< ::google::protobuf::int32>(data_size));
+    }
+    int cached_size = ::google::protobuf::internal::ToCachedSize(data_size);
+    GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+    _ids_cached_byte_size_ = cached_size;
+    GOOGLE_SAFE_CONCURRENT_WRITES_END();
+    total_size += data_size;
+  }
+
+  // .mspb.ResponseHeader header = 1;
+  if (this->has_header()) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        *this->header_);
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = cached_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void GetAutoIncIdResponse::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:mspb.GetAutoIncIdResponse)
+  GOOGLE_DCHECK_NE(&from, this);
+  const GetAutoIncIdResponse* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const GetAutoIncIdResponse>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:mspb.GetAutoIncIdResponse)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:mspb.GetAutoIncIdResponse)
+    MergeFrom(*source);
+  }
+}
+
+void GetAutoIncIdResponse::MergeFrom(const GetAutoIncIdResponse& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:mspb.GetAutoIncIdResponse)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  ids_.MergeFrom(from.ids_);
+  if (from.has_header()) {
+    mutable_header()->::mspb::ResponseHeader::MergeFrom(from.header());
+  }
+}
+
+void GetAutoIncIdResponse::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:mspb.GetAutoIncIdResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void GetAutoIncIdResponse::CopyFrom(const GetAutoIncIdResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:mspb.GetAutoIncIdResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool GetAutoIncIdResponse::IsInitialized() const {
+  return true;
+}
+
+void GetAutoIncIdResponse::Swap(GetAutoIncIdResponse* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void GetAutoIncIdResponse::InternalSwap(GetAutoIncIdResponse* other) {
+  using std::swap;
+  ids_.InternalSwap(&other->ids_);
+  swap(header_, other->header_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata GetAutoIncIdResponse::GetMetadata() const {
+  protobuf_mspb_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_mspb_2eproto::file_level_metadata[kIndexInFileMessages];
+}
+
+#if PROTOBUF_INLINE_NOT_IN_HEADERS
+// GetAutoIncIdResponse
+
+// .mspb.ResponseHeader header = 1;
+bool GetAutoIncIdResponse::has_header() const {
+  return this != internal_default_instance() && header_ != NULL;
+}
+void GetAutoIncIdResponse::clear_header() {
+  if (GetArenaNoVirtual() == NULL && header_ != NULL) delete header_;
+  header_ = NULL;
+}
+const ::mspb::ResponseHeader& GetAutoIncIdResponse::header() const {
+  const ::mspb::ResponseHeader* p = header_;
+  // @@protoc_insertion_point(field_get:mspb.GetAutoIncIdResponse.header)
+  return p != NULL ? *p : *reinterpret_cast<const ::mspb::ResponseHeader*>(
+      &::mspb::_ResponseHeader_default_instance_);
+}
+::mspb::ResponseHeader* GetAutoIncIdResponse::mutable_header() {
+  
+  if (header_ == NULL) {
+    header_ = new ::mspb::ResponseHeader;
+  }
+  // @@protoc_insertion_point(field_mutable:mspb.GetAutoIncIdResponse.header)
+  return header_;
+}
+::mspb::ResponseHeader* GetAutoIncIdResponse::release_header() {
+  // @@protoc_insertion_point(field_release:mspb.GetAutoIncIdResponse.header)
+  
+  ::mspb::ResponseHeader* temp = header_;
+  header_ = NULL;
+  return temp;
+}
+void GetAutoIncIdResponse::set_allocated_header(::mspb::ResponseHeader* header) {
+  delete header_;
+  header_ = header;
+  if (header) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:mspb.GetAutoIncIdResponse.header)
+}
+
+// repeated uint64 ids = 2;
+int GetAutoIncIdResponse::ids_size() const {
+  return ids_.size();
+}
+void GetAutoIncIdResponse::clear_ids() {
+  ids_.Clear();
+}
+::google::protobuf::uint64 GetAutoIncIdResponse::ids(int index) const {
+  // @@protoc_insertion_point(field_get:mspb.GetAutoIncIdResponse.ids)
+  return ids_.Get(index);
+}
+void GetAutoIncIdResponse::set_ids(int index, ::google::protobuf::uint64 value) {
+  ids_.Set(index, value);
+  // @@protoc_insertion_point(field_set:mspb.GetAutoIncIdResponse.ids)
+}
+void GetAutoIncIdResponse::add_ids(::google::protobuf::uint64 value) {
+  ids_.Add(value);
+  // @@protoc_insertion_point(field_add:mspb.GetAutoIncIdResponse.ids)
+}
+const ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >&
+GetAutoIncIdResponse::ids() const {
+  // @@protoc_insertion_point(field_list:mspb.GetAutoIncIdResponse.ids)
+  return ids_;
+}
+::google::protobuf::RepeatedField< ::google::protobuf::uint64 >*
+GetAutoIncIdResponse::mutable_ids() {
+  // @@protoc_insertion_point(field_mutable_list:mspb.GetAutoIncIdResponse.ids)
+  return &ids_;
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

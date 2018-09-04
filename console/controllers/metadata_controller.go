@@ -13,13 +13,14 @@ import (
 )
 
 const (
-	REQURL_META_CREATEDB = "/metadata/createDb"
-	REQURL_META_GETALLDB = "/metadata/dbDataGetAll"
-	REQURL_META_GETALLDBVIEW = "/metadata/dbDataGetAllViewPage"
-	REQURL_META_CREATETABLE = "/metadata/createTable"
-	REQURL_META_GETALLTABLE = "/metadata/dbTablesDataGetByDbName"
-	REQURL_META_DELTABLE  = "/metadata/delTable"
-	REQURL_META_EDITTABLE = "/metadata/editTable"
+	REQURL_META_CREATEDB        = "/metadata/createDb"
+	REQURL_META_DELETEDB        = "/metadata/deleteDb"
+	REQURL_META_GETALLDB        = "/metadata/dbDataGetAll"
+	REQURL_META_GETALLDBVIEW    = "/metadata/dbDataGetAllViewPage"
+	REQURL_META_CREATETABLE     = "/metadata/createTable"
+	REQURL_META_GETALLTABLE     = "/metadata/dbTablesDataGetByDbName"
+	REQURL_META_DELTABLE        = "/metadata/delTable"
+	REQURL_META_EDITTABLE       = "/metadata/editTable"
 	REQURL_META_TABLERWPOLICY = "/metadata/tableRwPolicy"
 	REQURL_META_GETTABLECOLUMNS = "/metadata/getTableColumns"
 
@@ -31,11 +32,12 @@ const (
  */
 type CreateDbAction struct {
 }
+
 func NewCreateDbAction() *CreateDbAction {
 	return &CreateDbAction{
 	}
 }
-func (ctrl *CreateDbAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *CreateDbAction) Execute(c *gin.Context) (interface{}, error) {
 	dbName := c.PostForm("dbName")
 	if dbName == "" {
 		return nil, common.PARSE_PARAM_ERROR
@@ -49,7 +51,30 @@ func (ctrl *CreateDbAction)Execute(c *gin.Context) (interface{}, error) {
 		return nil, common.PARAM_FORMAT_ERROR
 	}
 
-	return nil, service.NewService().CreateDb(cId, dbName)
+	return service.NewService().CreateDb(cId, dbName)
+}
+
+/**
+ * 删除db
+ */
+type DeleteDbAction struct {
+}
+
+func NewDeleteDbAction() *DeleteDbAction {
+	return &DeleteDbAction{
+	}
+}
+func (dtrl *DeleteDbAction) Execute(c *gin.Context) (interface{}, error) {
+	dbName := c.PostForm("dbName")
+	cIdStr := c.PostForm("clusterId")
+	if dbName == "" || cIdStr == "" {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	cId, err := strconv.Atoi(cIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+	return nil, service.NewService().DeleteDb(cId, dbName)
 }
 
 /**
@@ -57,11 +82,12 @@ func (ctrl *CreateDbAction)Execute(c *gin.Context) (interface{}, error) {
  */
 type GetAllDbAction struct {
 }
+
 func NewGetAllDbAction() *GetAllDbAction {
 	return &GetAllDbAction{
 	}
 }
-func (ctrl *GetAllDbAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *GetAllDbAction) Execute(c *gin.Context) (interface{}, error) {
 	cIdStr := c.PostForm("clusterId")
 	if cIdStr == "" {
 		return nil, common.PARSE_PARAM_ERROR
@@ -79,11 +105,12 @@ func (ctrl *GetAllDbAction)Execute(c *gin.Context) (interface{}, error) {
  */
 type GetAllDbViewAction struct {
 }
+
 func NewGetAllDbViewAction() *GetAllDbViewAction {
 	return &GetAllDbViewAction{
 	}
 }
-func (ctrl *GetAllDbViewAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *GetAllDbViewAction) Execute(c *gin.Context) (interface{}, error) {
 	cIdStr := c.Query("clusterId")
 	if cIdStr == "" {
 		return nil, common.PARSE_PARAM_ERROR
@@ -98,10 +125,10 @@ func (ctrl *GetAllDbViewAction)Execute(c *gin.Context) (interface{}, error) {
 		return nil, err
 	}
 	type GetAllDbViewResp struct {
-		Page    int        `json:"page"`
-		Records int            `json:"records"`
-		Rows    interface{}        `json:"rows"`
-		Total   int                `json:"total"`
+		Page    int         `json:"page"`
+		Records int         `json:"records"`
+		Rows    interface{} `json:"rows"`
+		Total   int         `json:"total"`
 	}
 	return &GetAllDbViewResp{
 		Page:    1,
@@ -116,10 +143,11 @@ func (ctrl *GetAllDbViewAction)Execute(c *gin.Context) (interface{}, error) {
  */
 type CreateTableAction struct {
 }
+
 func NewCreateTableAction() *CreateTableAction {
 	return &CreateTableAction{}
 }
-func (ctrl *CreateTableAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *CreateTableAction) Execute(c *gin.Context) (interface{}, error) {
 	cIdStr := c.PostForm("clusterId")
 	if cIdStr == "" {
 		return nil, common.PARSE_PARAM_ERROR
@@ -164,13 +192,14 @@ func (ctrl *CreateTableAction)Execute(c *gin.Context) (interface{}, error) {
 	log.Debug("columns:%v, regxs:%v", columns, regxs)
 
 	type columnJsonType struct {
-		DataType int `json:"data_type"`
-		Name     string  `json:"name"`
-		PrimaryKey int `json:"primary_key"`
-		DefaultValue string `json:"default_value"`
-		Unsigned bool `json:"unsigned"`
-		Index  bool `json:"index"`
-		Regxs  bool `json:"regxs"`
+		DataType      int    `json:"data_type"`
+		Name          string `json:"name"`
+		PrimaryKey    int    `json:"primary_key"`
+		DefaultValue  string `json:"default_value"`
+		Unsigned      bool   `json:"unsigned"`
+		AutoIncrement bool   `json:"auto_increment"`
+		Index         bool   `json:"index"`
+		Regxs         bool   `json:"regxs"`
 	}
 	var columnJsonArray []columnJsonType
 	if err := json.Unmarshal([]byte(columns), &columnJsonArray); err != nil {
@@ -178,7 +207,7 @@ func (ctrl *CreateTableAction)Execute(c *gin.Context) (interface{}, error) {
 		return nil, common.PARAM_FORMAT_ERROR
 	}
 	//log.Debug("columnJsonArray:%v", columnJsonArray)
-	type regxsJsonType struct{
+	type regxsJsonType struct {
 	}
 	var regxsJsonArray []regxsJsonType
 	if err := json.Unmarshal([]byte(regxs), &regxsJsonArray); err != nil {
@@ -187,7 +216,7 @@ func (ctrl *CreateTableAction)Execute(c *gin.Context) (interface{}, error) {
 	}
 	//log.Debug("regxsJsonArray:%v", regxsJsonArray)
 
-	return nil, service.NewService().CreateTable(cId, dbName, tableName, policy, rangeKeys, isolationLabel, &columnJsonArray, &regxsJsonArray)
+	return service.NewService().CreateTable(cId, dbName, tableName, policy, rangeKeys, isolationLabel, &columnJsonArray, &regxsJsonArray)
 }
 
 /**
@@ -195,10 +224,11 @@ func (ctrl *CreateTableAction)Execute(c *gin.Context) (interface{}, error) {
  */
 type GetAllTableAction struct {
 }
+
 func NewGetAllTableAction() *GetAllTableAction {
 	return &GetAllTableAction{}
 }
-func (ctrl *GetAllTableAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *GetAllTableAction) Execute(c *gin.Context) (interface{}, error) {
 	cIdStr := c.Query("clusterId")
 	if cIdStr == "" {
 		return nil, common.PARSE_PARAM_ERROR
@@ -224,10 +254,11 @@ func (ctrl *GetAllTableAction)Execute(c *gin.Context) (interface{}, error) {
  */
 type DeleteTableAction struct {
 }
+
 func NewDeleteTableAction() *DeleteTableAction {
 	return &DeleteTableAction{}
 }
-func (ctrl *DeleteTableAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *DeleteTableAction) Execute(c *gin.Context) (interface{}, error) {
 	cIdStr := c.PostForm("clusterId")
 	if cIdStr == "" {
 		return nil, common.PARSE_PARAM_ERROR
@@ -256,10 +287,11 @@ func (ctrl *DeleteTableAction)Execute(c *gin.Context) (interface{}, error) {
  */
 type EditTableAction struct {
 }
+
 func NewEditTableAction() *EditTableAction {
 	return &EditTableAction{}
 }
-func (ctrl *EditTableAction)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *EditTableAction) Execute(c *gin.Context) (interface{}, error) {
 
 	cIdStr := c.PostForm("clusterId")
 	if cIdStr == "" {
@@ -292,14 +324,15 @@ func (ctrl *EditTableAction)Execute(c *gin.Context) (interface{}, error) {
 	}
 
 	type columnJsonType struct {
-		Id uint64 `json:"id"`
-		DataType int `json:"data_type"`
-		Name     string  `json:"name"`
-		PrimaryKey int `json:"primary_key"`
-		DefaultValue string `json:"default_value"`
-		Unsigned bool `json:"unsigned"`
-		Index  bool `json:"index"`
-		Regxs  bool `json:"regxs"`
+		Id            uint64 `json:"id"`
+		DataType      int    `json:"data_type"`
+		Name          string `json:"name"`
+		PrimaryKey    int    `json:"primary_key"`
+		DefaultValue  string `json:"default_value"`
+		Unsigned      bool   `json:"unsigned"`
+		AutoIncrement bool   `json:"auto_increment"`
+		Index         bool   `json:"index"`
+		Regxs         bool   `json:"regxs"`
 	}
 	var columnJsonArray []columnJsonType
 	if err := json.Unmarshal([]byte(columns), &columnJsonArray); err != nil {
@@ -307,7 +340,7 @@ func (ctrl *EditTableAction)Execute(c *gin.Context) (interface{}, error) {
 		return nil, common.PARAM_FORMAT_ERROR
 	}
 	log.Debug("columnJsonArray:%v", columnJsonArray)
-	type regxsJsonType struct{
+	type regxsJsonType struct {
 	}
 	var regxsJsonArray []regxsJsonType
 	if err := json.Unmarshal([]byte(regxs), &regxsJsonArray); err != nil {
@@ -360,9 +393,9 @@ func (ctrl *EditTablePolicy) Execute(c *gin.Context) (interface{}, error) {
 
 
 type RangeViewInfo struct {
-
 }
-func NewRangeViewInfo () *RangeViewInfo{
+
+func NewRangeViewInfo() *RangeViewInfo {
 	return &RangeViewInfo{}
 }
 func (ctrl *RangeViewInfo) Execute(c *gin.Context) (interface{}, error) {
@@ -392,10 +425,11 @@ func (ctrl *RangeViewInfo) Execute(c *gin.Context) (interface{}, error) {
  */
 type GetTableColumns struct {
 }
+
 func NewGetTableColumns() *GetTableColumns {
 	return &GetTableColumns{}
 }
-func (ctrl *GetTableColumns)Execute(c *gin.Context) (interface{}, error) {
+func (ctrl *GetTableColumns) Execute(c *gin.Context) (interface{}, error) {
 	cIdStr := c.PostForm("clusterId")
 	if cIdStr == "" {
 		return nil, common.PARSE_PARAM_ERROR

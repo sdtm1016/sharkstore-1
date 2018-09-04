@@ -60,6 +60,10 @@ enum FunctionID {
   kFuncDelete = 12,
   kFuncUpdate = 13,
   KFuncReplace = 14,
+  kFuncWatchGet = 50,
+  kFuncPureGet = 51,
+  kFuncWatchPut = 52,
+  kFuncWatchDel = 53,
   kFuncKvSet = 100,
   kFuncKvGet = 101,
   kFuncKvBatchSet = 102,
@@ -72,7 +76,7 @@ enum FunctionID {
   kFuncLockUpdate = 201,
   kFuncUnlock = 202,
   kFuncUnlockForce = 203,
-  kFuncLockScan = 204,
+  kFuncLockWatch = 204,
   kFuncCreateRange = 1001,
   kFuncDeleteRange = 1002,
   kFuncRangeTransferLeader = 1003,
@@ -81,12 +85,13 @@ enum FunctionID {
   kFuncSetNodeLogLevel = 1006,
   kFuncOfflineRange = 1007,
   kFuncReplaceRange = 1008,
+  kFuncAdmin = 2001,
   FunctionID_INT_MIN_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32min,
   FunctionID_INT_MAX_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32max
 };
 bool FunctionID_IsValid(int value);
 const FunctionID FunctionID_MIN = kFuncHeartbeat;
-const FunctionID FunctionID_MAX = kFuncReplaceRange;
+const FunctionID FunctionID_MAX = kFuncAdmin;
 const int FunctionID_ARRAYSIZE = FunctionID_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* FunctionID_descriptor();

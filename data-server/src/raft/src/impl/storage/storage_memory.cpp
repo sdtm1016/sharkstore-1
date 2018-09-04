@@ -153,9 +153,8 @@ Status MemoryStorage::ApplySnapshot(const pb::SnapshotMeta& meta) {
 
 Status MemoryStorage::Close() { return Status::OK(); }
 
-Status MemoryStorage::Destroy() { return Status::OK(); }
+Status MemoryStorage::Destroy(bool backup) { return Status::OK(); }
 
-Status MemoryStorage::Backup() { return Status::OK(); }
 
 } /* namespace storage */
 } /* namespace impl */

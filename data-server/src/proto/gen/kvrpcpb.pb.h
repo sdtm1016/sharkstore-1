@@ -9142,6 +9142,20 @@ class LockValue : public ::google::protobuf::Message /* @@protoc_insertion_point
   ::std::string* release_id();
   void set_allocated_id(::std::string* id);
 
+  // string by = 7;
+  void clear_by();
+  static const int kByFieldNumber = 7;
+  const ::std::string& by() const;
+  void set_by(const ::std::string& value);
+  #if LANG_CXX11
+  void set_by(::std::string&& value);
+  #endif
+  void set_by(const char* value);
+  void set_by(const char* value, size_t size);
+  ::std::string* mutable_by();
+  ::std::string* release_by();
+  void set_allocated_by(::std::string* by);
+
   // int64 delete_time = 4;
   void clear_delete_time();
   static const int kDeleteTimeFieldNumber = 4;
@@ -9154,21 +9168,15 @@ class LockValue : public ::google::protobuf::Message /* @@protoc_insertion_point
   ::google::protobuf::int64 update_time() const;
   void set_update_time(::google::protobuf::int64 value);
 
-  // bool delete_flag = 6;
-  void clear_delete_flag();
-  static const int kDeleteFlagFieldNumber = 6;
-  bool delete_flag() const;
-  void set_delete_flag(bool value);
-
   // @@protoc_insertion_point(class_scope:kvrpcpb.LockValue)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::internal::ArenaStringPtr value_;
   ::google::protobuf::internal::ArenaStringPtr id_;
+  ::google::protobuf::internal::ArenaStringPtr by_;
   ::google::protobuf::int64 delete_time_;
   ::google::protobuf::int64 update_time_;
-  bool delete_flag_;
   mutable int _cached_size_;
   friend struct protobuf_kvrpcpb_2eproto::TableStruct;
 };
@@ -9269,20 +9277,6 @@ class LockRequest : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::std::string* release_key();
   void set_allocated_key(::std::string* key);
 
-  // string by = 11;
-  void clear_by();
-  static const int kByFieldNumber = 11;
-  const ::std::string& by() const;
-  void set_by(const ::std::string& value);
-  #if LANG_CXX11
-  void set_by(::std::string&& value);
-  #endif
-  void set_by(const char* value);
-  void set_by(const char* value, size_t size);
-  ::std::string* mutable_by();
-  ::std::string* release_by();
-  void set_allocated_by(::std::string* by);
-
   // .kvrpcpb.LockValue value = 2;
   bool has_value() const;
   void clear_value();
@@ -9306,7 +9300,6 @@ class LockRequest : public ::google::protobuf::Message /* @@protoc_insertion_poi
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::internal::ArenaStringPtr key_;
-  ::google::protobuf::internal::ArenaStringPtr by_;
   ::kvrpcpb::LockValue* value_;
   ::timestamp::Timestamp* timestamp_;
   mutable int _cached_size_;
@@ -10024,6 +10017,20 @@ class LockUpdateRequest : public ::google::protobuf::Message /* @@protoc_inserti
   ::std::string* release_update_value();
   void set_allocated_update_value(::std::string* update_value);
 
+  // string by = 11;
+  void clear_by();
+  static const int kByFieldNumber = 11;
+  const ::std::string& by() const;
+  void set_by(const ::std::string& value);
+  #if LANG_CXX11
+  void set_by(::std::string&& value);
+  #endif
+  void set_by(const char* value);
+  void set_by(const char* value, size_t size);
+  ::std::string* mutable_by();
+  ::std::string* release_by();
+  void set_allocated_by(::std::string* by);
+
   // .timestamp.Timestamp timestamp = 10;
   bool has_timestamp() const;
   void clear_timestamp();
@@ -10046,6 +10053,7 @@ class LockUpdateRequest : public ::google::protobuf::Message /* @@protoc_inserti
   ::google::protobuf::internal::ArenaStringPtr key_;
   ::google::protobuf::internal::ArenaStringPtr id_;
   ::google::protobuf::internal::ArenaStringPtr update_value_;
+  ::google::protobuf::internal::ArenaStringPtr by_;
   ::timestamp::Timestamp* timestamp_;
   ::google::protobuf::int64 update_time_;
   mutable int _cached_size_;
@@ -17719,18 +17727,57 @@ inline void LockValue::set_update_time(::google::protobuf::int64 value) {
   // @@protoc_insertion_point(field_set:kvrpcpb.LockValue.update_time)
 }
 
-// bool delete_flag = 6;
-inline void LockValue::clear_delete_flag() {
-  delete_flag_ = false;
+// string by = 7;
+inline void LockValue::clear_by() {
+  by_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline bool LockValue::delete_flag() const {
-  // @@protoc_insertion_point(field_get:kvrpcpb.LockValue.delete_flag)
-  return delete_flag_;
+inline const ::std::string& LockValue::by() const {
+  // @@protoc_insertion_point(field_get:kvrpcpb.LockValue.by)
+  return by_.GetNoArena();
 }
-inline void LockValue::set_delete_flag(bool value) {
+inline void LockValue::set_by(const ::std::string& value) {
   
-  delete_flag_ = value;
-  // @@protoc_insertion_point(field_set:kvrpcpb.LockValue.delete_flag)
+  by_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:kvrpcpb.LockValue.by)
+}
+#if LANG_CXX11
+inline void LockValue::set_by(::std::string&& value) {
+  
+  by_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:kvrpcpb.LockValue.by)
+}
+#endif
+inline void LockValue::set_by(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  by_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:kvrpcpb.LockValue.by)
+}
+inline void LockValue::set_by(const char* value, size_t size) {
+  
+  by_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:kvrpcpb.LockValue.by)
+}
+inline ::std::string* LockValue::mutable_by() {
+  
+  // @@protoc_insertion_point(field_mutable:kvrpcpb.LockValue.by)
+  return by_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* LockValue::release_by() {
+  // @@protoc_insertion_point(field_release:kvrpcpb.LockValue.by)
+  
+  return by_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void LockValue::set_allocated_by(::std::string* by) {
+  if (by != NULL) {
+    
+  } else {
+    
+  }
+  by_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), by);
+  // @@protoc_insertion_point(field_set_allocated:kvrpcpb.LockValue.by)
 }
 
 // -------------------------------------------------------------------
@@ -17868,59 +17915,6 @@ inline void LockRequest::set_allocated_timestamp(::timestamp::Timestamp* timesta
     
   }
   // @@protoc_insertion_point(field_set_allocated:kvrpcpb.LockRequest.timestamp)
-}
-
-// string by = 11;
-inline void LockRequest::clear_by() {
-  by_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline const ::std::string& LockRequest::by() const {
-  // @@protoc_insertion_point(field_get:kvrpcpb.LockRequest.by)
-  return by_.GetNoArena();
-}
-inline void LockRequest::set_by(const ::std::string& value) {
-  
-  by_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:kvrpcpb.LockRequest.by)
-}
-#if LANG_CXX11
-inline void LockRequest::set_by(::std::string&& value) {
-  
-  by_.SetNoArena(
-    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:kvrpcpb.LockRequest.by)
-}
-#endif
-inline void LockRequest::set_by(const char* value) {
-  GOOGLE_DCHECK(value != NULL);
-  
-  by_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:kvrpcpb.LockRequest.by)
-}
-inline void LockRequest::set_by(const char* value, size_t size) {
-  
-  by_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:kvrpcpb.LockRequest.by)
-}
-inline ::std::string* LockRequest::mutable_by() {
-  
-  // @@protoc_insertion_point(field_mutable:kvrpcpb.LockRequest.by)
-  return by_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline ::std::string* LockRequest::release_by() {
-  // @@protoc_insertion_point(field_release:kvrpcpb.LockRequest.by)
-  
-  return by_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline void LockRequest::set_allocated_by(::std::string* by) {
-  if (by != NULL) {
-    
-  } else {
-    
-  }
-  by_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), by);
-  // @@protoc_insertion_point(field_set_allocated:kvrpcpb.LockRequest.by)
 }
 
 // -------------------------------------------------------------------
@@ -18628,6 +18622,59 @@ inline void LockUpdateRequest::set_allocated_timestamp(::timestamp::Timestamp* t
     
   }
   // @@protoc_insertion_point(field_set_allocated:kvrpcpb.LockUpdateRequest.timestamp)
+}
+
+// string by = 11;
+inline void LockUpdateRequest::clear_by() {
+  by_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& LockUpdateRequest::by() const {
+  // @@protoc_insertion_point(field_get:kvrpcpb.LockUpdateRequest.by)
+  return by_.GetNoArena();
+}
+inline void LockUpdateRequest::set_by(const ::std::string& value) {
+  
+  by_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:kvrpcpb.LockUpdateRequest.by)
+}
+#if LANG_CXX11
+inline void LockUpdateRequest::set_by(::std::string&& value) {
+  
+  by_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:kvrpcpb.LockUpdateRequest.by)
+}
+#endif
+inline void LockUpdateRequest::set_by(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  by_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:kvrpcpb.LockUpdateRequest.by)
+}
+inline void LockUpdateRequest::set_by(const char* value, size_t size) {
+  
+  by_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:kvrpcpb.LockUpdateRequest.by)
+}
+inline ::std::string* LockUpdateRequest::mutable_by() {
+  
+  // @@protoc_insertion_point(field_mutable:kvrpcpb.LockUpdateRequest.by)
+  return by_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* LockUpdateRequest::release_by() {
+  // @@protoc_insertion_point(field_release:kvrpcpb.LockUpdateRequest.by)
+  
+  return by_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void LockUpdateRequest::set_allocated_by(::std::string* by) {
+  if (by != NULL) {
+    
+  } else {
+    
+  }
+  by_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), by);
+  // @@protoc_insertion_point(field_set_allocated:kvrpcpb.LockUpdateRequest.by)
 }
 
 // -------------------------------------------------------------------

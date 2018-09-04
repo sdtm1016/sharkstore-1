@@ -34,7 +34,7 @@ func (t *DeleteRangeTask) Step(cluster *Cluster, r *Range) (over bool, task *tas
 		for _, peer := range r.Peers {
 			node := cluster.FindNodeById(peer.GetNodeId())
 			//TODO:可能对堵塞时间比较长
-			err := cluster.cli.DeleteRange(node.GetServerAddr(), r.GetId())
+			err := cluster.cli.DeleteRange(node.GetServerAddr(), r.GetId(), peer.GetId())
 			if err != nil {
 				log.Error("%s delete range to node %d err, wait for gc, error: %v", t.logID, peer.GetNodeId(), err)
 				peerGC(cluster, r.Range, peer)

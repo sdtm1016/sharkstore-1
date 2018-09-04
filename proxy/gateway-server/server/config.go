@@ -46,6 +46,7 @@ type Config struct {
 	Password string `toml:"password,omitempty" json:"password"`
 	Charset  string `toml:"charset,omitempty" json:"charset"`
 
+	Alarm AlarmConfig `toml:"alarm,omitempty" json:"alarm"`
 	Performance PerformConfig `toml:"performance,omitempty" json:"performance"`
 	Cluster     ClusterConfig `toml:"cluster,omitempty" json:"cluster"`
 	Log         LogConfig     `toml:"log,omitempty" json:"log"`
@@ -130,6 +131,10 @@ func (c *Config) LoadConfig(configFileName *string) {
 	if err := c.adjust(); err != nil {
 		log.Panic("validate config failed, err %v", err)
 	}
+}
+
+type AlarmConfig struct {
+	Address string `toml:"address,omitempty" json:"address"`
 }
 
 type PerformConfig struct {
@@ -290,6 +295,7 @@ type BenchMarkConfig struct {
 	DB      string `toml:"db,omitempty" json:"db"`
 	Table   string `toml:"table,omitempty" json:"table"`
 	Batch   int    `toml:"batch,omitempty" json:"batch"`
+	Scope   int    `toml:"scope,omitempty" json:"scope"`
 }
 
 func UpdateConfig(addr string) error{

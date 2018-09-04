@@ -60,10 +60,6 @@ bool parseLogFileName(const std::string &name, uint64_t &seq,
     return true;
 }
 
-bool isBakLogFile(const std::string &name) {
-    return name.find(kLogBackupSubStr) != std::string::npos;
-}
-
 void Footer::Encode() {
     version = htobe16(version);
     index_offset = htobe32(index_offset);

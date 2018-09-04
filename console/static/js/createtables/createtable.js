@@ -56,12 +56,14 @@ $(document).ready(function() {
                 items: dataTypes,
                 valueField: "value",
                 textField: "name",
-                width: 80, align: "center"            
-            }, {
-                title: '默认值',
-                name: "default_value",
-                type: "text",
-                width: 100, align: "center"
+                width: 80, align: "center"
+            // }, {
+            //     title: '默认值(暂不支持)',
+            //     name: "default_value",
+            //     type: "text",
+            //     disable: false,
+            //     width: 100, align: "center"
+
             }, {
             	title: "Unsigned",
                 name: "unsigned",
@@ -76,13 +78,18 @@ $(document).ready(function() {
                 textField: "name",
                 sorting: false
             }, {
+                title: "自增",
+                name: "auto_increment",
+                type: "checkbox",
+                sorting: false
+            }, {
             	title: "动态列",
                 name: "regxs",
                 type: "checkbox",
                 sorting: false
             },{
-                type: "control", 
-                editButton: false, 
+                type: "control",
+                editButton: false,
                 modeSwitchButton: false,
                 headerTemplate: function() {
                     return $("<button class=\"btn btn-primary\">").attr("type", "button").text("提交")
@@ -97,25 +104,57 @@ $(document).ready(function() {
 function myTrim(x) {
     return x.replace(/^\s+|\s+$/gm,'');
 }
+
+function isIntType(dataType) {
+    var typeFlag = false;
+    switch (dataType){
+        case 1, 2, 3, 4:
+            typeFlag = true;
+            break
+        default:
+            ;
+    }
+    return typeFlag;
+}
+
+
 function createDataBaseTable(data) {
 	if(data.length == 0){
 		swal("至少添加一列");
 		return false;
 	}
 	//验证，主键 至少一个主键
-	var flg = false;
+	var pkFlg = false;
+	//验证，自增只能是主键，且只能是int类型能有一个字段
+	var incFlg = true;
+    //验证，自增且只能存在一列
+    var incCount = 0;
+
 	for(var i =0;i<data.length;i++){
-		if(data[i].primary_key){
-			flg = data[i].primary_key;
+		if(data[i].primary_key && !pkFlg){
+            pkFlg = true;
 		}
-		if(flg){
-			break;
-		}
+        if(data[i].auto_increment && (!isIntType(data[i].data_type || !data[i].primary_key ))){
+            incFlg = false;
+            break
+        }
+        if(data[i].primary_key && data[i].auto_increment) {
+            incCount++
+        }
+
 	}
-	if(!flg){
+	if(!pkFlg){
 		swal("至少有一个主键");
 		return false;
 	}
+	if (!incFlg) {
+        swal("只能设置int类型的主键为自增列");
+        return false;
+    }
+    if (incCount > 1){
+        swal("只能有一个int类型的列为自增列");
+        return false;
+    }
 	//提取宽表
 	var regxsList = [];
 	for(var i =0;i<data.length;i++){
@@ -193,3 +232,4 @@ function createDataBaseTable(data) {
     		});
     	});
 }
+

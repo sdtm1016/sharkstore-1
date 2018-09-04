@@ -60,6 +60,12 @@ extern CreateTableResponseDefaultTypeInternal _CreateTableResponse_default_insta
 class Error;
 class ErrorDefaultTypeInternal;
 extern ErrorDefaultTypeInternal _Error_default_instance_;
+class GetAutoIncIdRequest;
+class GetAutoIncIdRequestDefaultTypeInternal;
+extern GetAutoIncIdRequestDefaultTypeInternal _GetAutoIncIdRequest_default_instance_;
+class GetAutoIncIdResponse;
+class GetAutoIncIdResponseDefaultTypeInternal;
+extern GetAutoIncIdResponseDefaultTypeInternal _GetAutoIncIdResponse_default_instance_;
 class GetColumnByIdRequest;
 class GetColumnByIdRequestDefaultTypeInternal;
 extern GetColumnByIdRequestDefaultTypeInternal _GetColumnByIdRequest_default_instance_;
@@ -858,10 +864,10 @@ class RangeHeartbeatRequest : public ::google::protobuf::Message /* @@protoc_ins
 
   // accessors -------------------------------------------------------
 
-  // repeated .mspb.PeerStatus peers_status = 5;
+  // repeated .mspb.PeerStatus peers_status = 8;
   int peers_status_size() const;
   void clear_peers_status();
-  static const int kPeersStatusFieldNumber = 5;
+  static const int kPeersStatusFieldNumber = 8;
   const ::mspb::PeerStatus& peers_status(int index) const;
   ::mspb::PeerStatus* mutable_peers_status(int index);
   ::mspb::PeerStatus* add_peers_status();
@@ -906,9 +912,9 @@ class RangeHeartbeatRequest : public ::google::protobuf::Message /* @@protoc_ins
   ::mspb::RangeStats* release_stats();
   void set_allocated_stats(::mspb::RangeStats* stats);
 
-  // uint64 term = 4;
+  // uint64 term = 7;
   void clear_term();
-  static const int kTermFieldNumber = 4;
+  static const int kTermFieldNumber = 7;
   ::google::protobuf::uint64 term() const;
   void set_term(::google::protobuf::uint64 value);
 
@@ -1624,6 +1630,12 @@ class AskSplitRequest : public ::google::protobuf::Message /* @@protoc_insertion
   ::metapb::Range* release_range();
   void set_allocated_range(::metapb::Range* range);
 
+  // bool force = 4;
+  void clear_force();
+  static const int kForceFieldNumber = 4;
+  bool force() const;
+  void set_force(bool value);
+
   // @@protoc_insertion_point(class_scope:mspb.AskSplitRequest)
  private:
 
@@ -1631,6 +1643,7 @@ class AskSplitRequest : public ::google::protobuf::Message /* @@protoc_insertion
   ::google::protobuf::internal::ArenaStringPtr split_key_;
   ::mspb::RequestHeader* header_;
   ::metapb::Range* range_;
+  bool force_;
   mutable int _cached_size_;
   friend struct protobuf_mspb_2eproto::TableStruct;
 };
@@ -2325,11 +2338,11 @@ class GetNodeIdRequest : public ::google::protobuf::Message /* @@protoc_insertio
   ::google::protobuf::uint32 raft_port() const;
   void set_raft_port(::google::protobuf::uint32 value);
 
-  // uint32 http_port = 4;
-  void clear_http_port();
-  static const int kHttpPortFieldNumber = 4;
-  ::google::protobuf::uint32 http_port() const;
-  void set_http_port(::google::protobuf::uint32 value);
+  // uint32 admin_port = 4;
+  void clear_admin_port();
+  static const int kAdminPortFieldNumber = 4;
+  ::google::protobuf::uint32 admin_port() const;
+  void set_admin_port(::google::protobuf::uint32 value);
 
   // @@protoc_insertion_point(class_scope:mspb.GetNodeIdRequest)
  private:
@@ -2339,7 +2352,7 @@ class GetNodeIdRequest : public ::google::protobuf::Message /* @@protoc_insertio
   ::mspb::RequestHeader* header_;
   ::google::protobuf::uint32 server_port_;
   ::google::protobuf::uint32 raft_port_;
-  ::google::protobuf::uint32 http_port_;
+  ::google::protobuf::uint32 admin_port_;
   mutable int _cached_size_;
   friend struct protobuf_mspb_2eproto::TableStruct;
 };
@@ -5218,6 +5231,241 @@ class CreateTableResponse : public ::google::protobuf::Message /* @@protoc_inser
 };
 // -------------------------------------------------------------------
 
+class GetAutoIncIdRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:mspb.GetAutoIncIdRequest) */ {
+ public:
+  GetAutoIncIdRequest();
+  virtual ~GetAutoIncIdRequest();
+
+  GetAutoIncIdRequest(const GetAutoIncIdRequest& from);
+
+  inline GetAutoIncIdRequest& operator=(const GetAutoIncIdRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  GetAutoIncIdRequest(GetAutoIncIdRequest&& from) noexcept
+    : GetAutoIncIdRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline GetAutoIncIdRequest& operator=(GetAutoIncIdRequest&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetAutoIncIdRequest& default_instance();
+
+  static inline const GetAutoIncIdRequest* internal_default_instance() {
+    return reinterpret_cast<const GetAutoIncIdRequest*>(
+               &_GetAutoIncIdRequest_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    42;
+
+  void Swap(GetAutoIncIdRequest* other);
+  friend void swap(GetAutoIncIdRequest& a, GetAutoIncIdRequest& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline GetAutoIncIdRequest* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  GetAutoIncIdRequest* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const GetAutoIncIdRequest& from);
+  void MergeFrom(const GetAutoIncIdRequest& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(GetAutoIncIdRequest* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // .mspb.RequestHeader header = 1;
+  bool has_header() const;
+  void clear_header();
+  static const int kHeaderFieldNumber = 1;
+  const ::mspb::RequestHeader& header() const;
+  ::mspb::RequestHeader* mutable_header();
+  ::mspb::RequestHeader* release_header();
+  void set_allocated_header(::mspb::RequestHeader* header);
+
+  // uint64 db_id = 2;
+  void clear_db_id();
+  static const int kDbIdFieldNumber = 2;
+  ::google::protobuf::uint64 db_id() const;
+  void set_db_id(::google::protobuf::uint64 value);
+
+  // uint64 table_id = 3;
+  void clear_table_id();
+  static const int kTableIdFieldNumber = 3;
+  ::google::protobuf::uint64 table_id() const;
+  void set_table_id(::google::protobuf::uint64 value);
+
+  // uint32 size = 4;
+  void clear_size();
+  static const int kSizeFieldNumber = 4;
+  ::google::protobuf::uint32 size() const;
+  void set_size(::google::protobuf::uint32 value);
+
+  // @@protoc_insertion_point(class_scope:mspb.GetAutoIncIdRequest)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::mspb::RequestHeader* header_;
+  ::google::protobuf::uint64 db_id_;
+  ::google::protobuf::uint64 table_id_;
+  ::google::protobuf::uint32 size_;
+  mutable int _cached_size_;
+  friend struct protobuf_mspb_2eproto::TableStruct;
+};
+// -------------------------------------------------------------------
+
+class GetAutoIncIdResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:mspb.GetAutoIncIdResponse) */ {
+ public:
+  GetAutoIncIdResponse();
+  virtual ~GetAutoIncIdResponse();
+
+  GetAutoIncIdResponse(const GetAutoIncIdResponse& from);
+
+  inline GetAutoIncIdResponse& operator=(const GetAutoIncIdResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  GetAutoIncIdResponse(GetAutoIncIdResponse&& from) noexcept
+    : GetAutoIncIdResponse() {
+    *this = ::std::move(from);
+  }
+
+  inline GetAutoIncIdResponse& operator=(GetAutoIncIdResponse&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetAutoIncIdResponse& default_instance();
+
+  static inline const GetAutoIncIdResponse* internal_default_instance() {
+    return reinterpret_cast<const GetAutoIncIdResponse*>(
+               &_GetAutoIncIdResponse_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    43;
+
+  void Swap(GetAutoIncIdResponse* other);
+  friend void swap(GetAutoIncIdResponse& a, GetAutoIncIdResponse& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline GetAutoIncIdResponse* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  GetAutoIncIdResponse* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const GetAutoIncIdResponse& from);
+  void MergeFrom(const GetAutoIncIdResponse& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(GetAutoIncIdResponse* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated uint64 ids = 2;
+  int ids_size() const;
+  void clear_ids();
+  static const int kIdsFieldNumber = 2;
+  ::google::protobuf::uint64 ids(int index) const;
+  void set_ids(int index, ::google::protobuf::uint64 value);
+  void add_ids(::google::protobuf::uint64 value);
+  const ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >&
+      ids() const;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >*
+      mutable_ids();
+
+  // .mspb.ResponseHeader header = 1;
+  bool has_header() const;
+  void clear_header();
+  static const int kHeaderFieldNumber = 1;
+  const ::mspb::ResponseHeader& header() const;
+  ::mspb::ResponseHeader* mutable_header();
+  ::mspb::ResponseHeader* release_header();
+  void set_allocated_header(::mspb::ResponseHeader* header);
+
+  // @@protoc_insertion_point(class_scope:mspb.GetAutoIncIdResponse)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint64 > ids_;
+  mutable int _ids_cached_byte_size_;
+  ::mspb::ResponseHeader* header_;
+  mutable int _cached_size_;
+  friend struct protobuf_mspb_2eproto::TableStruct;
+};
+// -------------------------------------------------------------------
+
 class RequestHeader : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:mspb.RequestHeader) */ {
  public:
   RequestHeader();
@@ -5252,7 +5500,7 @@ class RequestHeader : public ::google::protobuf::Message /* @@protoc_insertion_p
                &_RequestHeader_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    42;
+    44;
 
   void Swap(RequestHeader* other);
   friend void swap(RequestHeader& a, RequestHeader& b) {
@@ -5349,7 +5597,7 @@ class ResponseHeader : public ::google::protobuf::Message /* @@protoc_insertion_
                &_ResponseHeader_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    43;
+    45;
 
   void Swap(ResponseHeader* other);
   friend void swap(ResponseHeader& a, ResponseHeader& b) {
@@ -5456,7 +5704,7 @@ class LeaderHint : public ::google::protobuf::Message /* @@protoc_insertion_poin
                &_LeaderHint_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    44;
+    46;
 
   void Swap(LeaderHint* other);
   friend void swap(LeaderHint& a, LeaderHint& b) {
@@ -5568,7 +5816,7 @@ class NoLeader : public ::google::protobuf::Message /* @@protoc_insertion_point(
                &_NoLeader_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    45;
+    47;
 
   void Swap(NoLeader* other);
   friend void swap(NoLeader& a, NoLeader& b) {
@@ -5658,7 +5906,7 @@ class Error : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
                &_Error_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    46;
+    48;
 
   void Swap(Error* other);
   friend void swap(Error& a, Error& b) {
@@ -6251,50 +6499,6 @@ inline void RangeHeartbeatRequest::set_allocated_leader(::metapb::Peer* leader) 
   // @@protoc_insertion_point(field_set_allocated:mspb.RangeHeartbeatRequest.leader)
 }
 
-// uint64 term = 4;
-inline void RangeHeartbeatRequest::clear_term() {
-  term_ = GOOGLE_ULONGLONG(0);
-}
-inline ::google::protobuf::uint64 RangeHeartbeatRequest::term() const {
-  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.term)
-  return term_;
-}
-inline void RangeHeartbeatRequest::set_term(::google::protobuf::uint64 value) {
-  
-  term_ = value;
-  // @@protoc_insertion_point(field_set:mspb.RangeHeartbeatRequest.term)
-}
-
-// repeated .mspb.PeerStatus peers_status = 5;
-inline int RangeHeartbeatRequest::peers_status_size() const {
-  return peers_status_.size();
-}
-inline void RangeHeartbeatRequest::clear_peers_status() {
-  peers_status_.Clear();
-}
-inline const ::mspb::PeerStatus& RangeHeartbeatRequest::peers_status(int index) const {
-  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.peers_status)
-  return peers_status_.Get(index);
-}
-inline ::mspb::PeerStatus* RangeHeartbeatRequest::mutable_peers_status(int index) {
-  // @@protoc_insertion_point(field_mutable:mspb.RangeHeartbeatRequest.peers_status)
-  return peers_status_.Mutable(index);
-}
-inline ::mspb::PeerStatus* RangeHeartbeatRequest::add_peers_status() {
-  // @@protoc_insertion_point(field_add:mspb.RangeHeartbeatRequest.peers_status)
-  return peers_status_.Add();
-}
-inline ::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >*
-RangeHeartbeatRequest::mutable_peers_status() {
-  // @@protoc_insertion_point(field_mutable_list:mspb.RangeHeartbeatRequest.peers_status)
-  return &peers_status_;
-}
-inline const ::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >&
-RangeHeartbeatRequest::peers_status() const {
-  // @@protoc_insertion_point(field_list:mspb.RangeHeartbeatRequest.peers_status)
-  return peers_status_;
-}
-
 // .mspb.RangeStats stats = 6;
 inline bool RangeHeartbeatRequest::has_stats() const {
   return this != internal_default_instance() && stats_ != NULL;
@@ -6333,6 +6537,50 @@ inline void RangeHeartbeatRequest::set_allocated_stats(::mspb::RangeStats* stats
     
   }
   // @@protoc_insertion_point(field_set_allocated:mspb.RangeHeartbeatRequest.stats)
+}
+
+// uint64 term = 7;
+inline void RangeHeartbeatRequest::clear_term() {
+  term_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 RangeHeartbeatRequest::term() const {
+  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.term)
+  return term_;
+}
+inline void RangeHeartbeatRequest::set_term(::google::protobuf::uint64 value) {
+  
+  term_ = value;
+  // @@protoc_insertion_point(field_set:mspb.RangeHeartbeatRequest.term)
+}
+
+// repeated .mspb.PeerStatus peers_status = 8;
+inline int RangeHeartbeatRequest::peers_status_size() const {
+  return peers_status_.size();
+}
+inline void RangeHeartbeatRequest::clear_peers_status() {
+  peers_status_.Clear();
+}
+inline const ::mspb::PeerStatus& RangeHeartbeatRequest::peers_status(int index) const {
+  // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.peers_status)
+  return peers_status_.Get(index);
+}
+inline ::mspb::PeerStatus* RangeHeartbeatRequest::mutable_peers_status(int index) {
+  // @@protoc_insertion_point(field_mutable:mspb.RangeHeartbeatRequest.peers_status)
+  return peers_status_.Mutable(index);
+}
+inline ::mspb::PeerStatus* RangeHeartbeatRequest::add_peers_status() {
+  // @@protoc_insertion_point(field_add:mspb.RangeHeartbeatRequest.peers_status)
+  return peers_status_.Add();
+}
+inline ::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >*
+RangeHeartbeatRequest::mutable_peers_status() {
+  // @@protoc_insertion_point(field_mutable_list:mspb.RangeHeartbeatRequest.peers_status)
+  return &peers_status_;
+}
+inline const ::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >&
+RangeHeartbeatRequest::peers_status() const {
+  // @@protoc_insertion_point(field_list:mspb.RangeHeartbeatRequest.peers_status)
+  return peers_status_;
 }
 
 // -------------------------------------------------------------------
@@ -7080,6 +7328,20 @@ inline void AskSplitRequest::set_allocated_split_key(::std::string* split_key) {
   // @@protoc_insertion_point(field_set_allocated:mspb.AskSplitRequest.split_key)
 }
 
+// bool force = 4;
+inline void AskSplitRequest::clear_force() {
+  force_ = false;
+}
+inline bool AskSplitRequest::force() const {
+  // @@protoc_insertion_point(field_get:mspb.AskSplitRequest.force)
+  return force_;
+}
+inline void AskSplitRequest::set_force(bool value) {
+  
+  force_ = value;
+  // @@protoc_insertion_point(field_set:mspb.AskSplitRequest.force)
+}
+
 // -------------------------------------------------------------------
 
 // AskSplitResponse
@@ -7603,18 +7865,18 @@ inline void GetNodeIdRequest::set_raft_port(::google::protobuf::uint32 value) {
   // @@protoc_insertion_point(field_set:mspb.GetNodeIdRequest.raft_port)
 }
 
-// uint32 http_port = 4;
-inline void GetNodeIdRequest::clear_http_port() {
-  http_port_ = 0u;
+// uint32 admin_port = 4;
+inline void GetNodeIdRequest::clear_admin_port() {
+  admin_port_ = 0u;
 }
-inline ::google::protobuf::uint32 GetNodeIdRequest::http_port() const {
-  // @@protoc_insertion_point(field_get:mspb.GetNodeIdRequest.http_port)
-  return http_port_;
+inline ::google::protobuf::uint32 GetNodeIdRequest::admin_port() const {
+  // @@protoc_insertion_point(field_get:mspb.GetNodeIdRequest.admin_port)
+  return admin_port_;
 }
-inline void GetNodeIdRequest::set_http_port(::google::protobuf::uint32 value) {
+inline void GetNodeIdRequest::set_admin_port(::google::protobuf::uint32 value) {
   
-  http_port_ = value;
-  // @@protoc_insertion_point(field_set:mspb.GetNodeIdRequest.http_port)
+  admin_port_ = value;
+  // @@protoc_insertion_point(field_set:mspb.GetNodeIdRequest.admin_port)
 }
 
 // string version = 5;
@@ -9861,6 +10123,166 @@ inline void CreateTableResponse::set_allocated_header(::mspb::ResponseHeader* he
 
 // -------------------------------------------------------------------
 
+// GetAutoIncIdRequest
+
+// .mspb.RequestHeader header = 1;
+inline bool GetAutoIncIdRequest::has_header() const {
+  return this != internal_default_instance() && header_ != NULL;
+}
+inline void GetAutoIncIdRequest::clear_header() {
+  if (GetArenaNoVirtual() == NULL && header_ != NULL) delete header_;
+  header_ = NULL;
+}
+inline const ::mspb::RequestHeader& GetAutoIncIdRequest::header() const {
+  const ::mspb::RequestHeader* p = header_;
+  // @@protoc_insertion_point(field_get:mspb.GetAutoIncIdRequest.header)
+  return p != NULL ? *p : *reinterpret_cast<const ::mspb::RequestHeader*>(
+      &::mspb::_RequestHeader_default_instance_);
+}
+inline ::mspb::RequestHeader* GetAutoIncIdRequest::mutable_header() {
+  
+  if (header_ == NULL) {
+    header_ = new ::mspb::RequestHeader;
+  }
+  // @@protoc_insertion_point(field_mutable:mspb.GetAutoIncIdRequest.header)
+  return header_;
+}
+inline ::mspb::RequestHeader* GetAutoIncIdRequest::release_header() {
+  // @@protoc_insertion_point(field_release:mspb.GetAutoIncIdRequest.header)
+  
+  ::mspb::RequestHeader* temp = header_;
+  header_ = NULL;
+  return temp;
+}
+inline void GetAutoIncIdRequest::set_allocated_header(::mspb::RequestHeader* header) {
+  delete header_;
+  header_ = header;
+  if (header) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:mspb.GetAutoIncIdRequest.header)
+}
+
+// uint64 db_id = 2;
+inline void GetAutoIncIdRequest::clear_db_id() {
+  db_id_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 GetAutoIncIdRequest::db_id() const {
+  // @@protoc_insertion_point(field_get:mspb.GetAutoIncIdRequest.db_id)
+  return db_id_;
+}
+inline void GetAutoIncIdRequest::set_db_id(::google::protobuf::uint64 value) {
+  
+  db_id_ = value;
+  // @@protoc_insertion_point(field_set:mspb.GetAutoIncIdRequest.db_id)
+}
+
+// uint64 table_id = 3;
+inline void GetAutoIncIdRequest::clear_table_id() {
+  table_id_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 GetAutoIncIdRequest::table_id() const {
+  // @@protoc_insertion_point(field_get:mspb.GetAutoIncIdRequest.table_id)
+  return table_id_;
+}
+inline void GetAutoIncIdRequest::set_table_id(::google::protobuf::uint64 value) {
+  
+  table_id_ = value;
+  // @@protoc_insertion_point(field_set:mspb.GetAutoIncIdRequest.table_id)
+}
+
+// uint32 size = 4;
+inline void GetAutoIncIdRequest::clear_size() {
+  size_ = 0u;
+}
+inline ::google::protobuf::uint32 GetAutoIncIdRequest::size() const {
+  // @@protoc_insertion_point(field_get:mspb.GetAutoIncIdRequest.size)
+  return size_;
+}
+inline void GetAutoIncIdRequest::set_size(::google::protobuf::uint32 value) {
+  
+  size_ = value;
+  // @@protoc_insertion_point(field_set:mspb.GetAutoIncIdRequest.size)
+}
+
+// -------------------------------------------------------------------
+
+// GetAutoIncIdResponse
+
+// .mspb.ResponseHeader header = 1;
+inline bool GetAutoIncIdResponse::has_header() const {
+  return this != internal_default_instance() && header_ != NULL;
+}
+inline void GetAutoIncIdResponse::clear_header() {
+  if (GetArenaNoVirtual() == NULL && header_ != NULL) delete header_;
+  header_ = NULL;
+}
+inline const ::mspb::ResponseHeader& GetAutoIncIdResponse::header() const {
+  const ::mspb::ResponseHeader* p = header_;
+  // @@protoc_insertion_point(field_get:mspb.GetAutoIncIdResponse.header)
+  return p != NULL ? *p : *reinterpret_cast<const ::mspb::ResponseHeader*>(
+      &::mspb::_ResponseHeader_default_instance_);
+}
+inline ::mspb::ResponseHeader* GetAutoIncIdResponse::mutable_header() {
+  
+  if (header_ == NULL) {
+    header_ = new ::mspb::ResponseHeader;
+  }
+  // @@protoc_insertion_point(field_mutable:mspb.GetAutoIncIdResponse.header)
+  return header_;
+}
+inline ::mspb::ResponseHeader* GetAutoIncIdResponse::release_header() {
+  // @@protoc_insertion_point(field_release:mspb.GetAutoIncIdResponse.header)
+  
+  ::mspb::ResponseHeader* temp = header_;
+  header_ = NULL;
+  return temp;
+}
+inline void GetAutoIncIdResponse::set_allocated_header(::mspb::ResponseHeader* header) {
+  delete header_;
+  header_ = header;
+  if (header) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:mspb.GetAutoIncIdResponse.header)
+}
+
+// repeated uint64 ids = 2;
+inline int GetAutoIncIdResponse::ids_size() const {
+  return ids_.size();
+}
+inline void GetAutoIncIdResponse::clear_ids() {
+  ids_.Clear();
+}
+inline ::google::protobuf::uint64 GetAutoIncIdResponse::ids(int index) const {
+  // @@protoc_insertion_point(field_get:mspb.GetAutoIncIdResponse.ids)
+  return ids_.Get(index);
+}
+inline void GetAutoIncIdResponse::set_ids(int index, ::google::protobuf::uint64 value) {
+  ids_.Set(index, value);
+  // @@protoc_insertion_point(field_set:mspb.GetAutoIncIdResponse.ids)
+}
+inline void GetAutoIncIdResponse::add_ids(::google::protobuf::uint64 value) {
+  ids_.Add(value);
+  // @@protoc_insertion_point(field_add:mspb.GetAutoIncIdResponse.ids)
+}
+inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >&
+GetAutoIncIdResponse::ids() const {
+  // @@protoc_insertion_point(field_list:mspb.GetAutoIncIdResponse.ids)
+  return ids_;
+}
+inline ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >*
+GetAutoIncIdResponse::mutable_ids() {
+  // @@protoc_insertion_point(field_mutable_list:mspb.GetAutoIncIdResponse.ids)
+  return &ids_;
+}
+
+// -------------------------------------------------------------------
+
 // RequestHeader
 
 // uint64 cluster_id = 1;
@@ -10098,6 +10520,10 @@ inline void Error::set_allocated_no_leader(::mspb::NoLeader* no_leader) {
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

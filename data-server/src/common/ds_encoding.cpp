@@ -304,7 +304,6 @@ bool SkipValue(const std::string &data, size_t &offset) {
         default:
             return false;
     }
-    return false;
 }
 
 static const uint8_t kIntMin = 0x80;

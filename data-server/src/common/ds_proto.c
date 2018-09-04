@@ -32,7 +32,7 @@ void ds_serialize_header(const ds_header_t *header, ds_proto_header_t *proto_hea
     short2buff(header->func_id, proto_header->func_id);
 
     proto_header->proto_type = header->proto_type;
-    proto_header->stream_hash = header->stream_hash;
+    proto_header->flags = header->flags;
 }
 
 void ds_unserialize_header(const ds_proto_header_t *proto_header, ds_header_t *header) {
@@ -47,7 +47,7 @@ void ds_unserialize_header(const ds_proto_header_t *proto_header, ds_header_t *h
     header->func_id = buff2short(proto_header->func_id);
 
     header->proto_type = proto_header->proto_type;
-    header->stream_hash = proto_header->stream_hash;
+    header->flags = proto_header->flags;
 }
 
 int ds_get_body_length(struct fast_task_info *task) {

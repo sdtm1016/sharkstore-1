@@ -640,7 +640,6 @@ func (m *Metric) handleClusterMetric(w http.ResponseWriter, r *http.Request) {
 		log.Warn("invalid param clusterId, err[%v]", err)
 		return
 	}
-	log.Debug("recv cluster[%d] metric", clusterId)
 	//namespace := r.FormValue("namespace")
 	//subsystem := r.FormValue("subsystem")
 	bufferLen := int(r.ContentLength)
@@ -662,7 +661,7 @@ func (m *Metric) handleClusterMetric(w http.ResponseWriter, r *http.Request) {
 		reply.Message = err.Error()
 		log.Warn("do cluster metric[%s] failed, err[%v]", string(buffer.Bytes()), err)
 	}
-
+	log.Info("recv cluster[%d] cluster metric success", clusterId)
 	return
 }
 
@@ -683,7 +682,6 @@ func (m *Metric) handleNodeMetric(w http.ResponseWriter, r *http.Request) {
 		log.Warn("invalid param clusterId, err[%v]", err)
 		return
 	}
-	log.Debug("recv cluster[%d] node metric", clusterId)
 	namespace := r.FormValue("namespace")
 	subsystem := r.FormValue("subsystem")
 	bufferLen := int(r.ContentLength)
@@ -709,6 +707,7 @@ func (m *Metric) handleNodeMetric(w http.ResponseWriter, r *http.Request) {
 		reply.Message = err.Error()
 		log.Warn("do cluster node metric[%s] failed, err[%v]", string(buffer.Bytes()), err)
 	}
+	log.Info("recv cluster[%d] node[%v] metric", clusterId, namespace)
 	return
 }
 
@@ -729,7 +728,6 @@ func (m *Metric) handleRangeMetric(w http.ResponseWriter, r *http.Request) {
 		log.Warn("invalid param clusterId, err[%v]", err)
 		return
 	}
-	log.Debug("recv cluster[%d] range metric", clusterId)
 	bufferLen := int(r.ContentLength)
 	if bufferLen <= 0 || bufferLen > 1024*1024*10 {
 		bufferLen = 512
@@ -751,6 +749,7 @@ func (m *Metric) handleRangeMetric(w http.ResponseWriter, r *http.Request) {
 		reply.Message = err.Error()
 		log.Warn("do cluster range metric[%s] failed, err[%v]", string(buffer.Bytes()), err)
 	}
+	log.Info("recv cluster[%d] range metric", clusterId)
 	return
 }
 
@@ -764,7 +763,6 @@ func (m *Metric) handleScheduleMetric(w http.ResponseWriter, r *http.Request) {
 		log.Warn("invalid param clusterId, err[%v]", err)
 		return
 	}
-	log.Debug("recv cluster[%d] metric", clusterId)
 	//namespace := r.FormValue("namespace")
 	//subsystem := r.FormValue("subsystem")
 	bufferLen := int(r.ContentLength)
@@ -786,7 +784,7 @@ func (m *Metric) handleScheduleMetric(w http.ResponseWriter, r *http.Request) {
 		reply.Message = err.Error()
 		log.Warn("do schedule metric[%s] failed, err[%v]", string(buffer.Bytes()), err)
 	}
-
+	log.Info("recv cluster[%d] schedule metric", clusterId)
 	return
 }
 
@@ -800,7 +798,6 @@ func (m *Metric) handleHotspotMetric(w http.ResponseWriter, r *http.Request) {
 		log.Warn("invalid param clusterId, err[%v]", err)
 		return
 	}
-	log.Debug("recv cluster[%d] metric", clusterId)
 	//namespace := r.FormValue("namespace")
 	//subsystem := r.FormValue("subsystem")
 	bufferLen := int(r.ContentLength)
@@ -822,7 +819,7 @@ func (m *Metric) handleHotspotMetric(w http.ResponseWriter, r *http.Request) {
 		reply.Message = err.Error()
 		log.Warn("do hotspot metric[%s] failed, err[%v]", string(buffer.Bytes()), err)
 	}
-
+	log.Info("recv cluster[%d] hotspot metric", clusterId)
 	return
 }
 
@@ -995,6 +992,10 @@ func (m *Metric) handleTcpDbMetric(w http.ResponseWriter, r *http.Request) {
 	m.connsLock.Unlock()
 	m.wg.Add(1)
 	go m.work(c)
+}
+
+func (m *Metric) handleAppPing(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func (m *Metric) handleTcpTableMetric(w http.ResponseWriter, r *http.Request) {

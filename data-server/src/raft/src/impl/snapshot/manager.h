@@ -24,6 +24,9 @@ public:
     uint64_t SendingCount() const;
     uint64_t ApplyingCount() const;
 
+    std::string GetSendingDesc() const;
+    std::string GetApplyingDesc() const;
+
 private:
     const SnapshotOptions opt_;
 

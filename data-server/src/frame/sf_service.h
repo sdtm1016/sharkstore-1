@@ -40,7 +40,7 @@ static inline void sf_regist_body_length_callback(
 static inline void sf_set_proto_header_size(int size) { sf_set_header_size(size); }
 
 int sf_service_run(int argc, char *argv[], const char *server_name);
-
+int sf_service_run_test(const char* confStr);
 #ifdef __cplusplus
 }
 #endif

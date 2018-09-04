@@ -32,6 +32,7 @@
 #include <google/protobuf/unknown_field_set.h>
 #include "metapb.pb.h"
 #include "kvrpcpb.pb.h"
+#include "watchpb.pb.h"
 // @@protoc_insertion_point(includes)
 namespace raft_cmdpb {
 class CmdID;
@@ -106,6 +107,8 @@ enum CmdType {
   KvDelete = 18,
   KvBatchDel = 19,
   KvRangeDel = 20,
+  KvWatchPut = 21,
+  KvWatchDel = 22,
   AdminSplit = 30,
   AdminMerge = 31,
   AdminLeaderChange = 32,
@@ -1079,6 +1082,24 @@ class Command : public ::google::protobuf::Message /* @@protoc_insertion_point(c
   ::kvrpcpb::KvRangeDeleteRequest* release_kv_range_del_req();
   void set_allocated_kv_range_del_req(::kvrpcpb::KvRangeDeleteRequest* kv_range_del_req);
 
+  // .watchpb.KvWatchPutRequest kv_watch_put_req = 20;
+  bool has_kv_watch_put_req() const;
+  void clear_kv_watch_put_req();
+  static const int kKvWatchPutReqFieldNumber = 20;
+  const ::watchpb::KvWatchPutRequest& kv_watch_put_req() const;
+  ::watchpb::KvWatchPutRequest* mutable_kv_watch_put_req();
+  ::watchpb::KvWatchPutRequest* release_kv_watch_put_req();
+  void set_allocated_kv_watch_put_req(::watchpb::KvWatchPutRequest* kv_watch_put_req);
+
+  // .watchpb.KvWatchDeleteRequest kv_watch_del_req = 21;
+  bool has_kv_watch_del_req() const;
+  void clear_kv_watch_del_req();
+  static const int kKvWatchDelReqFieldNumber = 21;
+  const ::watchpb::KvWatchDeleteRequest& kv_watch_del_req() const;
+  ::watchpb::KvWatchDeleteRequest* mutable_kv_watch_del_req();
+  ::watchpb::KvWatchDeleteRequest* release_kv_watch_del_req();
+  void set_allocated_kv_watch_del_req(::watchpb::KvWatchDeleteRequest* kv_watch_del_req);
+
   // .raft_cmdpb.SplitRequest admin_split_req = 30;
   bool has_admin_split_req() const;
   void clear_admin_split_req();
@@ -1170,6 +1191,8 @@ class Command : public ::google::protobuf::Message /* @@protoc_insertion_point(c
   ::kvrpcpb::KvDeleteRequest* kv_delete_req_;
   ::kvrpcpb::KvBatchDeleteRequest* kv_batch_del_req_;
   ::kvrpcpb::KvRangeDeleteRequest* kv_range_del_req_;
+  ::watchpb::KvWatchPutRequest* kv_watch_put_req_;
+  ::watchpb::KvWatchDeleteRequest* kv_watch_del_req_;
   ::raft_cmdpb::SplitRequest* admin_split_req_;
   ::raft_cmdpb::MergeRequest* admin_merge_req_;
   ::raft_cmdpb::LeaderChangeRequest* admin_leader_change_req_;
@@ -2512,6 +2535,86 @@ inline void Command::set_allocated_kv_range_del_req(::kvrpcpb::KvRangeDeleteRequ
     
   }
   // @@protoc_insertion_point(field_set_allocated:raft_cmdpb.Command.kv_range_del_req)
+}
+
+// .watchpb.KvWatchPutRequest kv_watch_put_req = 20;
+inline bool Command::has_kv_watch_put_req() const {
+  return this != internal_default_instance() && kv_watch_put_req_ != NULL;
+}
+inline void Command::clear_kv_watch_put_req() {
+  if (GetArenaNoVirtual() == NULL && kv_watch_put_req_ != NULL) delete kv_watch_put_req_;
+  kv_watch_put_req_ = NULL;
+}
+inline const ::watchpb::KvWatchPutRequest& Command::kv_watch_put_req() const {
+  const ::watchpb::KvWatchPutRequest* p = kv_watch_put_req_;
+  // @@protoc_insertion_point(field_get:raft_cmdpb.Command.kv_watch_put_req)
+  return p != NULL ? *p : *reinterpret_cast<const ::watchpb::KvWatchPutRequest*>(
+      &::watchpb::_KvWatchPutRequest_default_instance_);
+}
+inline ::watchpb::KvWatchPutRequest* Command::mutable_kv_watch_put_req() {
+  
+  if (kv_watch_put_req_ == NULL) {
+    kv_watch_put_req_ = new ::watchpb::KvWatchPutRequest;
+  }
+  // @@protoc_insertion_point(field_mutable:raft_cmdpb.Command.kv_watch_put_req)
+  return kv_watch_put_req_;
+}
+inline ::watchpb::KvWatchPutRequest* Command::release_kv_watch_put_req() {
+  // @@protoc_insertion_point(field_release:raft_cmdpb.Command.kv_watch_put_req)
+  
+  ::watchpb::KvWatchPutRequest* temp = kv_watch_put_req_;
+  kv_watch_put_req_ = NULL;
+  return temp;
+}
+inline void Command::set_allocated_kv_watch_put_req(::watchpb::KvWatchPutRequest* kv_watch_put_req) {
+  delete kv_watch_put_req_;
+  kv_watch_put_req_ = kv_watch_put_req;
+  if (kv_watch_put_req) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:raft_cmdpb.Command.kv_watch_put_req)
+}
+
+// .watchpb.KvWatchDeleteRequest kv_watch_del_req = 21;
+inline bool Command::has_kv_watch_del_req() const {
+  return this != internal_default_instance() && kv_watch_del_req_ != NULL;
+}
+inline void Command::clear_kv_watch_del_req() {
+  if (GetArenaNoVirtual() == NULL && kv_watch_del_req_ != NULL) delete kv_watch_del_req_;
+  kv_watch_del_req_ = NULL;
+}
+inline const ::watchpb::KvWatchDeleteRequest& Command::kv_watch_del_req() const {
+  const ::watchpb::KvWatchDeleteRequest* p = kv_watch_del_req_;
+  // @@protoc_insertion_point(field_get:raft_cmdpb.Command.kv_watch_del_req)
+  return p != NULL ? *p : *reinterpret_cast<const ::watchpb::KvWatchDeleteRequest*>(
+      &::watchpb::_KvWatchDeleteRequest_default_instance_);
+}
+inline ::watchpb::KvWatchDeleteRequest* Command::mutable_kv_watch_del_req() {
+  
+  if (kv_watch_del_req_ == NULL) {
+    kv_watch_del_req_ = new ::watchpb::KvWatchDeleteRequest;
+  }
+  // @@protoc_insertion_point(field_mutable:raft_cmdpb.Command.kv_watch_del_req)
+  return kv_watch_del_req_;
+}
+inline ::watchpb::KvWatchDeleteRequest* Command::release_kv_watch_del_req() {
+  // @@protoc_insertion_point(field_release:raft_cmdpb.Command.kv_watch_del_req)
+  
+  ::watchpb::KvWatchDeleteRequest* temp = kv_watch_del_req_;
+  kv_watch_del_req_ = NULL;
+  return temp;
+}
+inline void Command::set_allocated_kv_watch_del_req(::watchpb::KvWatchDeleteRequest* kv_watch_del_req) {
+  delete kv_watch_del_req_;
+  kv_watch_del_req_ = kv_watch_del_req;
+  if (kv_watch_del_req) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:raft_cmdpb.Command.kv_watch_del_req)
 }
 
 // .raft_cmdpb.SplitRequest admin_split_req = 30;

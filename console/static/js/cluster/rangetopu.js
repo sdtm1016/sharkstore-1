@@ -261,9 +261,9 @@ app.controller('rangeTopoCtrl', ['$rootScope', '$scope', '$http', '$timeout', fu
                     },
                     success: function (data) {
                         if (data.code === 0) {
-                            swal("删除成功!", data.message, "success");
+                            swal("删除成功!", "删除成功", "success");
                         } else {
-                            swal("删除失败", data.message, "error");
+                            swal("删除失败", data.msg, "error");
                         }
 
                     },
@@ -300,7 +300,7 @@ app.controller('rangeTopoCtrl', ['$rootScope', '$scope', '$http', '$timeout', fu
                             swal("添加成功!", "添加成功", "success");
                             window.location.reload();
                         } else {
-                            swal("添加失败", data.message, "error");
+                            swal("添加失败", data.msg, "error");
                         }
                     },
                     error: function (res) {
@@ -341,7 +341,7 @@ app.controller('rangeTopoCtrl', ['$rootScope', '$scope', '$http', '$timeout', fu
                             swal("下线成功!", "下线成功!", "success");
                             window.location.reload();
                         } else {
-                            swal("下线失败", data.message, "error");
+                            swal("下线失败", data.msg, "error");
                         }
                     },
                     error: function (res) {
@@ -377,7 +377,7 @@ app.controller('rangeTopoCtrl', ['$rootScope', '$scope', '$http', '$timeout', fu
                         if (data.code === 0) {
                             swal("切换成功!", "切换成功", "success");
                         } else {
-                            swal("切换失败", data.message, "error");
+                            swal("切换失败", data.msg, "error");
                         }
                     },
                     error: function (res) {
@@ -411,9 +411,9 @@ app.controller('rangeTopoCtrl', ['$rootScope', '$scope', '$http', '$timeout', fu
                     },
                     success: function (data) {
                         if (data.code === 0) {
-                            swal("删除成功!", data.message, "success");
+                            swal("删除成功!", "删除成功", "success");
                         } else {
-                            swal("删除失败", data.message, "error");
+                            swal("删除失败", data.msg, "error");
                         }
 
                     },
@@ -450,7 +450,7 @@ app.controller('rangeTopoCtrl', ['$rootScope', '$scope', '$http', '$timeout', fu
                         if (data.code === 0) {
                             swal("迁移成功!", "迁移成功", "success");
                         } else {
-                            swal("迁移失败", data.message, "error");
+                            swal("迁移失败", data.msg, "error");
                         }
                     },
                     error: function (res) {

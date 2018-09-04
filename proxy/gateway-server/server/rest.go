@@ -6,6 +6,7 @@ import (
 
 	"util/bufalloc"
 	"util/log"
+	"model/pkg/metapb"
 )
 
 type Field_ struct {
@@ -47,13 +48,19 @@ type Filter_ struct {
 	Order []*Order `json:"order"`
 }
 
+type AggreFunc struct {
+	Function string `json:"func"`
+	Field    string `json:"field"`
+}
+
 type Command struct {
-	Version string          `json:"version"`
-	Type    string          `json:"type"`
-	Field   []string        `json:"field"`
-	Values  [][]interface{} `json:"values"`
-	Filter  *Filter_        `json:"filter"`
-	PKs     [][]*And        `json:"pks"`
+	Version   string          `json:"version"`
+	Type      string          `json:"type"`
+	Field     []string        `json:"field"`
+	Values    [][]interface{} `json:"values"`
+	Filter    *Filter_        `json:"filter"`
+	PKs       [][]*And        `json:"pks"`
+	AggreFunc []*AggreFunc    `json:"aggrefunc"`
 }
 
 type Query struct {
@@ -64,22 +71,22 @@ type Query struct {
 }
 
 type CreateDatabase struct {
-	Sign         string   `json:"sign"`
-	DatabaseName string   `json:"databasename"`
+	Sign         string `json:"sign"`
+	DatabaseName string `json:"databasename"`
 }
 
 type Column struct {
 	Name       string `json:"name"`
 	DataType   string `json:"datatype"`
-	PrimaryKey bool `json:"primarykey"`
-	Unsigned bool `json:"unsigned"`
+	PrimaryKey bool   `json:"primarykey"`
+	Unsigned   bool   `json:"unsigned"`
 }
 
 type CreateTable struct {
-	Sign         string   `json:"sign"`
-	DatabaseName string   `json:"databasename"`
-	TableName string   `json:"tablename"`
-	Columns []*Column `json:"columns"`
+	Sign         string    `json:"sign"`
+	DatabaseName string    `json:"databasename"`
+	TableName    string    `json:"tablename"`
+	Columns      []*Column `json:"columns"`
 }
 
 type Reply struct {
@@ -89,8 +96,17 @@ type Reply struct {
 	Message      string          `json:"message"`
 }
 
+type TableProperty struct {
+	Columns []*metapb.Column `json:"columns"`
+	Regxs   []*metapb.Column `json:"regxs"`
+}
+
 func (q *Query) parseColumnNames() []string {
 	return q.Command.Field
+}
+
+func (q *Query) parseAggreFuncs() []*AggreFunc {
+	return q.Command.AggreFunc
 }
 
 func (q *Query) parseRowValues(buffer bufalloc.Buffer) ([]InsertRowValue, error) {
@@ -102,7 +118,7 @@ func (q *Query) parseRowValues(buffer bufalloc.Buffer) ([]InsertRowValue, error)
 	indexes := make([]int, 0, len(q.Command.Values)*len(q.Command.Field))
 	for _, vs := range q.Command.Values {
 		if len(vs) != len(q.Command.Field) {
-			return nil, errors.New(fmt.Sprintf("len(values) != len(field) %v,%v",vs,q.Command.Field))
+			return nil, errors.New(fmt.Sprintf("len(values) != len(field) %v,%v", vs, q.Command.Field))
 		}
 		for _, v := range vs {
 			if v == nil {
@@ -277,6 +293,21 @@ func (q *Query) parseScope() *Scope {
 		return nil
 	}
 	return q.Command.Filter.Scope
+}
+
+func (q *Query) parseSelectCols(t *Table) []*SelColumn{
+	var columns []*SelColumn
+	for _, c := range q.parseColumnNames() {
+		columns = append(columns, &SelColumn{col: c})
+	}
+	for _, aggre := range q.parseAggreFuncs() {
+		if aggre.Function == "count" && aggre.Field == "*" {
+			columns = append(columns, &SelColumn{aggreFunc: aggre.Function})
+		} else {
+			columns = append(columns, &SelColumn{aggreFunc: aggre.Function, col:aggre.Field})
+		}
+	}
+	return columns
 }
 
 //func Float64ToByte(float float64) []byte {

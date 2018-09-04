@@ -69,21 +69,24 @@ func expo(base, cap, n int) int {
 type backoffType int
 
 const (
-	boKVRPC backoffType = iota
-	boMSRPC
-	boRangeMiss
-	boServerBusy
+	BoKVRPC      backoffType = iota
+	BoMSRPC
+	BoCacheLoad
+	BoRangeMiss
+	BoServerBusy
 )
 
 func (t backoffType) createFn() func() int {
 	switch t {
-	case boKVRPC:
+	case BoKVRPC:
 		return NewBackoffFn(100, 2000, EqualJitter)
-	case boMSRPC:
+	case BoMSRPC:
+		return NewBackoffFn(300, 2000, EqualJitter)
+	case BoCacheLoad:
 		return NewBackoffFn(500, 3000, EqualJitter)
-	case boRangeMiss:
+	case BoRangeMiss:
 		return NewBackoffFn(100, 500, NoJitter)
-	case boServerBusy:
+	case BoServerBusy:
 		return NewBackoffFn(2000, 10000, EqualJitter)
 	}
 	return nil
@@ -91,13 +94,15 @@ func (t backoffType) createFn() func() int {
 
 func (t backoffType) String() string {
 	switch t {
-	case boKVRPC:
+	case BoKVRPC:
 		return "dsRPC"
-	case boMSRPC:
+	case BoMSRPC:
 		return "msRPC"
-	case boRangeMiss:
+	case BoCacheLoad:
+		return "cacheLoad"
+	case BoRangeMiss:
 		return "rangeMiss"
-	case boServerBusy:
+	case BoServerBusy:
 		return "serverBusy"
 	}
 	return ""
@@ -105,12 +110,11 @@ func (t backoffType) String() string {
 
 // Maximum total sleep time(in ms) for kv commands.
 const (
-	MsMaxBackoff            = 5000
-	ScannerNextMaxBackoff   = 20000
-	SetMaxBackoff           = 20000
-	BatchGetMaxBackoff      = 20000
-	GetMaxBackoff           = 20000
-	RawkvMaxBackoff         = 20000
+	MsMaxBackoff          = 5000
+	ScannerNextMaxBackoff = 20000
+	InsertMaxBackoff      = 5000
+	GetMaxBackoff         = 20000
+	RawkvMaxBackoff       = 20000
 )
 
 var commitMaxBackoff = 20000
@@ -173,11 +177,15 @@ func (b *Backoffer) Backoff(typ backoffType, err error) error {
 	return nil
 }
 
+func (b *Backoffer) CombineTime(sleep int) {
+	b.totalSleep += sleep
+}
+
 func (b *Backoffer) String() string {
 	if b.totalSleep == 0 {
 		return ""
 	}
-	return fmt.Sprintf(" backoff(%dms %s)", b.totalSleep, b.types)
+	return fmt.Sprintf("backoff(%dms %s)", b.totalSleep, b.types)
 }
 
 // Clone creates a new Backoffer which keeps current Backoffer's sleep time and errors, and shares

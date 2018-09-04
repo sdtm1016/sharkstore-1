@@ -60,7 +60,7 @@ uint64_t LogIndex::Term(uint64_t index) const {
     }
 }
 
-uint64_t LogIndex::Offset(uint64_t index) const {
+uint32_t LogIndex::Offset(uint64_t index) const {
     auto it = items_.find(index);
     if (it != items_.cend()) {
         return it->second.offset();

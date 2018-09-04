@@ -345,10 +345,10 @@ void AddDescriptorsImpl() {
       "\002\022\020\n\014VOTE_REQUEST\020\003\022\021\n\rVOTE_RESPONSE\020\004\022\025"
       "\n\021HEARTBEAT_REQUEST\020\005\022\026\n\022HEARTBEAT_RESPO"
       "NSE\020\006\022\024\n\020SNAPSHOT_REQUEST\020\007\022\020\n\014SNAPSHOT_"
-      "ACK\020\010\022\031\n\025LOCAL_SNAPSHOT_STATUS\020\t\022\021\n\rLOCA"
-      "L_MSG_HUP\020\n\022\022\n\016LOCAL_MSG_PROP\020\013\022\022\n\016LOCAL"
-      "_MSG_TICK\020\014\022\024\n\020PRE_VOTE_REQUEST\020\r\022\025\n\021PRE"
-      "_VOTE_RESPONSE\020\016b\006proto3"
+      "ACK\020\t\022\021\n\rLOCAL_MSG_HUP\020\n\022\022\n\016LOCAL_MSG_PR"
+      "OP\020\013\022\022\n\016LOCAL_MSG_TICK\020\014\022\024\n\020PRE_VOTE_REQ"
+      "UEST\020\r\022\025\n\021PRE_VOTE_RESPONSE\020\016\022\031\n\025LOCAL_S"
+      "NAPSHOT_STATUS\020\017b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
       descriptor, 1784);
@@ -428,13 +428,13 @@ bool MessageType_IsValid(int value) {
     case 5:
     case 6:
     case 7:
-    case 8:
     case 9:
     case 10:
     case 11:
     case 12:
     case 13:
     case 14:
+    case 15:
       return true;
     default:
       return false;

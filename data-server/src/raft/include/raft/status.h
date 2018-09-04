@@ -12,6 +12,7 @@ namespace raft {
 struct ServerStatus {
     uint64_t total_snap_applying = 0;
     uint64_t total_snap_sending = 0;
+    uint64_t total_rafts_count = 0;
 };
 
 struct ReplicaStatus {

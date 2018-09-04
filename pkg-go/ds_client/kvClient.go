@@ -4,7 +4,9 @@ import (
 	"errors"
 
 	"model/pkg/kvrpcpb"
+	"model/pkg/watchpb"
 	"util/log"
+
 	"golang.org/x/net/context"
 )
 
@@ -25,7 +27,6 @@ type KvClient interface {
 	LockUpdate(ctx context.Context, addr string, req *kvrpcpb.DsLockUpdateRequest) (*kvrpcpb.DsLockUpdateResponse, error)
 	Unlock(ctx context.Context, addr string, req *kvrpcpb.DsUnlockRequest) (*kvrpcpb.DsUnlockResponse, error)
 	UnlockForce(ctx context.Context, addr string, req *kvrpcpb.DsUnlockForceRequest) (*kvrpcpb.DsUnlockForceResponse, error)
-	LockScan(ctx context.Context, addr string, req *kvrpcpb.DsLockScanRequest) (*kvrpcpb.DsLockScanResponse, error)
 
 	KvSet(ctx context.Context, addr string, req *kvrpcpb.DsKvSetRequest) (*kvrpcpb.DsKvSetResponse, error)
 	KvGet(ctx context.Context, addr string, req *kvrpcpb.DsKvGetRequest) (*kvrpcpb.DsKvGetResponse, error)
@@ -35,6 +36,11 @@ type KvClient interface {
 	KvDelete(ctx context.Context, addr string, req *kvrpcpb.DsKvDeleteRequest) (*kvrpcpb.DsKvDeleteResponse, error)
 	KvBatchDelete(ctx context.Context, addr string, req *kvrpcpb.DsKvBatchDeleteRequest) (*kvrpcpb.DsKvBatchDeleteResponse, error)
 	KvRangeDelete(ctx context.Context, addr string, req *kvrpcpb.DsKvRangeDeleteRequest) (*kvrpcpb.DsKvRangeDeleteResponse, error)
+
+	Watch(ctx context.Context, addr string, req *watchpb.DsWatchRequest) (*watchpb.DsWatchResponse, error)
+	WatchPut(ctx context.Context, addr string, req *watchpb.DsKvWatchPutRequest) (*watchpb.DsKvWatchPutResponse, error)
+	WatchDelete(ctx context.Context, addr string, req *watchpb.DsKvWatchDeleteRequest) (*watchpb.DsKvWatchDeleteResponse, error)
+	WatchGet(ctx context.Context, addr string, req *watchpb.DsKvWatchGetMultiRequest) (*watchpb.DsKvWatchGetMultiResponse, error)
 }
 
 type KvRpcClient struct {
@@ -149,14 +155,6 @@ func (c *KvRpcClient) UnlockForce(ctx context.Context, addr string, req *kvrpcpb
 	resp, err := conn.UnlockForce(ctx, req)
 	return resp, err
 }
-func (c *KvRpcClient) LockScan(ctx context.Context, addr string, req *kvrpcpb.DsLockScanRequest) (*kvrpcpb.DsLockScanResponse, error) {
-	conn, err := c.getConn(addr)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := conn.LockScan(ctx, req)
-	return resp, err
-}
 
 func (c *KvRpcClient) KvSet(ctx context.Context, addr string, req *kvrpcpb.DsKvSetRequest) (*kvrpcpb.DsKvSetResponse, error) {
 	conn, err := c.getConn(addr)
@@ -221,6 +219,39 @@ func (c *KvRpcClient) KvRangeDelete(ctx context.Context, addr string, req *kvrpc
 		return nil, err
 	}
 	resp, err := conn.KvRangeDel(ctx, req)
+	return resp, err
+}
+
+func (c *KvRpcClient) Watch(ctx context.Context, addr string, req *watchpb.DsWatchRequest) (*watchpb.DsWatchResponse, error) {
+	conn, err := c.getConn(addr)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := conn.Watch(ctx, req)
+	return resp, err
+}
+func (c *KvRpcClient) WatchPut(ctx context.Context, addr string, req *watchpb.DsKvWatchPutRequest) (*watchpb.DsKvWatchPutResponse, error) {
+	conn, err := c.getConn(addr)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := conn.WatchPut(ctx, req)
+	return resp, err
+}
+func (c *KvRpcClient) WatchDelete(ctx context.Context, addr string, req *watchpb.DsKvWatchDeleteRequest) (*watchpb.DsKvWatchDeleteResponse, error) {
+	conn, err := c.getConn(addr)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := conn.WatchDelete(ctx, req)
+	return resp, err
+}
+func (c *KvRpcClient) WatchGet(ctx context.Context, addr string, req *watchpb.DsKvWatchGetMultiRequest) (*watchpb.DsKvWatchGetMultiResponse, error) {
+	conn, err := c.getConn(addr)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := conn.WatchGet(ctx, req)
 	return resp, err
 }
 

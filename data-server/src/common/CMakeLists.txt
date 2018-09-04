@@ -5,6 +5,7 @@ set(common_SOURCES
     ds_encoding.cpp
     socket_session_impl.cpp
     socket_base.cpp
+    socket_message.cpp
     socket_server.cpp
     socket_client.cpp
     )

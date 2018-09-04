@@ -86,7 +86,7 @@ func (t *DeletePeerTask) stepDeleteRange(cluster *Cluster, r *Range) (over bool)
 	// try delete direcly, if fail then put to gc
 	var err error
 	for i := 0; i < defaultMaxDeletePeerRetryTimes; i++ {
-		err = cluster.cli.DeleteRange(node.GetServerAddr(), r.GetId())
+		err = cluster.cli.DeleteRange(node.GetServerAddr(), r.GetId(), t.peer.GetId())
 		if err != nil {
 			log.Warn("%s delete range failed, target node: %d, err: %v", t.logID, t.peer.GetNodeId(), err)
 		} else {

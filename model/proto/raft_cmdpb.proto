@@ -4,6 +4,7 @@ package raft_cmdpb;
 import "metapb.proto";
 import "kvrpcpb.proto";
 import "gogoproto/gogo.proto";
+import "watchpb.proto";
 
 option (gogoproto.marshaler_all) = true;
 option (gogoproto.sizer_all) = true;
@@ -63,7 +64,10 @@ enum CmdType {
     KvDelete       = 18;
     KvBatchDel     = 19;
     KvRangeDel     = 20;
-
+    
+    KvWatchPut     = 21;
+    KvWatchDel     = 22;
+    
     AdminSplit     = 30;
     AdminMerge     = 31;
     AdminLeaderChange = 32;
@@ -97,7 +101,10 @@ message Command {
     kvrpcpb.KvDeleteRequest         kv_delete_req            = 17;
     kvrpcpb.KvBatchDeleteRequest    kv_batch_del_req         = 18;
     kvrpcpb.KvRangeDeleteRequest    kv_range_del_req         = 19;
-
+	  
+	watchpb.KvWatchPutRequest       kv_watch_put_req         = 20;
+	watchpb.KvWatchDeleteRequest    kv_watch_del_req         = 21;
+	  
     SplitRequest                      admin_split_req        = 30;
     MergeRequest                      admin_merge_req        = 31;
     LeaderChangeRequest               admin_leader_change_req = 32;

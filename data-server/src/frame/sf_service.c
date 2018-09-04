@@ -212,6 +212,64 @@ int sf_service_run(int argc, char *argv[], const char *server_name) {
     return 0;
 }
 
+
+int sf_service_run_test(const char* confStr) {
+    int result;
+    //char pid_filename[MAX_PATH_SIZE];
+    //bool stop;
+
+    g_current_time = time(NULL);
+    g_up_time = g_current_time;
+    srand(g_up_time);
+
+    log_init2();
+    log_set_time_precision(&g_log_context, LOG_TIME_PRECISION_MSECOND);
+
+    do {
+
+        daemon_init(false);
+        umask(0);
+
+        if ((result = sf_load_config_buffer(confStr,"ds-test")) != 0) {
+            break;
+        }
+
+        if ((result = sf_setup_signal_handler()) != 0) {
+            break;
+        }
+
+        if ((result = sf_service_init()) != 0) {
+            break;
+        }
+
+        if ((result = setup_schedule_tasks()) != 0) {
+            break;
+        }
+
+        log_set_cache(true);
+
+    } while (0);
+
+    if (result != 0) {
+        FLOG_CRIT("exit abnormally!\n");
+        log_destroy();
+        return result;
+    }
+
+    servicer_loop();
+
+    if (g_schedule_flag) {
+        pthread_kill(schedule_tid, SIGINT);
+    }
+    sf_service_destroy();
+
+
+    FLOG_INFO("exit normally.\n");
+
+    log_destroy();
+    return 0;
+}
+
 static int setup_schedule_tasks() {
 #define SCHEDULE_ENTRIES_COUNT 4
 

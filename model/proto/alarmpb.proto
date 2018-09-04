@@ -11,9 +11,9 @@ option (gogoproto.sizer_all) = true;
 option (gogoproto.unmarshaler_all) = true;
 
 service Alarm {
-    rpc TaskAlarm(TaskAlarmRequest) returns (TaskAlarmResponse) {}
+//    rpc TaskAlarm(TaskAlarmRequest) returns (TaskAlarmResponse) {}
     rpc NodeRangeAlarm(NodeRangeAlarmRequest) returns (NodeRangeAlarmResponse) {}
-    rpc AliveAlarm(AliveRequest) returns (AliveResponse) {}
+//    rpc AliveAlarm(AliveRequest) returns (AliveResponse) {}
     rpc SimpleAlarm(SimpleRequest) returns (SimpleResponse) {}
 }
 

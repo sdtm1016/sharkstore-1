@@ -12,6 +12,7 @@ import (
 	//"util"
 	"proxy/store/dskv"
 	"util/log"
+	"master-server/engine/errors"
 )
 
 func (p *Proxy) HandleSelect(db string, stmt *sqlparser.Select, args []interface{}) (*mysql.Result, error) {
@@ -251,7 +252,7 @@ func (p *Proxy) rangeSelectRemote(kvproxy *dskv.KvProxy, sreq *kvrpcpb.SelectReq
 		}
 		if resp.GetCode() != 0 {
 			log.Error("remote server return code: %v", resp.GetCode())
-			continue
+			return nil,errors.New(fmt.Sprintf("response code is err %v",resp.GetCode()))
 		}
 		rangeCount++
 

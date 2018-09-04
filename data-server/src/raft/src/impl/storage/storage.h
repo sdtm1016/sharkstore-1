@@ -75,10 +75,7 @@ public:
     virtual Status Close() = 0;
 
     // Delete all data
-    virtual Status Destroy() = 0;
-
-    // backup to other directory
-    virtual Status Backup() = 0;
+    virtual Status Destroy(bool backup = false) = 0;
 };
 
 } /* namespace storage */

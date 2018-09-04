@@ -18,7 +18,7 @@ public:
     MetaFile(const MetaFile&) = delete;
     MetaFile& operator=(const MetaFile&) = delete;
 
-    Status Open();
+    Status Open(bool readonly = false);
     Status Close();
     Status Sync();
     Status Destroy();

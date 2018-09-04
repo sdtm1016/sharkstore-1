@@ -356,6 +356,7 @@ func parsePreprocessing(_sql string) (string, []string) {
 	return sql, pks
 }
 
+//todo opt
 func parseCreateTableSql(sql string) *metapb.Table {
 	var primaryKeys []string
 	sql, primaryKeys = parsePreprocessing(sql)

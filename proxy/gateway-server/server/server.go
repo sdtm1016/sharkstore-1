@@ -164,7 +164,7 @@ func initMetricSender(cfg *Config)  {
 	ips := util.GetLocalIps()
 	addr := fmt.Sprintf("%s:%d", ips[0], cfg.SqlPort)
 	//performance monitor about mysql port [addr] transport to metric server[cfg.MetricAddr]
-	metric.GsMetric= metric.NewMetric(cfg.Cluster.ID, addr, cfg.Metric.Address, cfg.Performance.SlowLogMaxLen)
+	metric.GsMetric= metric.NewMetric(cfg.Cluster.ID, addr, cfg.Metric.Address, cfg.Performance.SlowLogMaxLen, cfg.Alarm.Address)
 }
 
 func (s *Server) GetCfg() *Config{

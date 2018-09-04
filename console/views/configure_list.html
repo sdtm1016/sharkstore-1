@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配置详情列表</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link href="/static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="/static/css/plugins/bootstrap-table/bootstrap-table.min.css" rel="stylesheet">
+    <link href="/static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="/static/css/animate.css" rel="stylesheet">
+    <link href="/static/css/custom.min.css" rel="stylesheet">
+    <link href="/static/css/style.css?v=4.1.0" rel="stylesheet">
+    <link href="/static/css/plugins/sweetalert/sweetalert.css" rel="stylesheet">
+    <script src="/static/js/plugins/sweetalert/sweetalert.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/easyui.css">
+</head>
+<body class="gray-bg" style="margin-left: 10px;">
+<div class="monitor-title">
+    <span>配置详情列表</span>
+</div>
+<div class="example-wrap" style="margin-top: 10px; overflow:scroll">
+    <!-- todo add delete update
+     <div class="hidden-xs table-btns" id="confListsToolbar" role="group">
+       <button type="button" class="btn btn-primary  btn-rounded" onclick="forceUnLock()">强制解锁</button>
+    </div>
+    -->
+    <input type="text" hidden="true" value="{[{.clusterId}]}" id="clusterId" name="clusterId"/>
+    <input type="text" hidden="true" value="{[{.dbName}]}" id="dbName" name="dbName"/>
+    <input type="text" hidden="true" value="{[{.tableName}]}" id="tableName" name="tableName"/>
+    <table id="confLists" data-height="400" data-mobile-responsive="true">
+    </table>
+</div>
+<div class="pull-right pagination">
+    <ul class="pagination pagination-outline">
+        <li class="page-first disabled"><a href="javascript:void(0) ">«</a></li>
+        <li class="page-pre disabled"><a href="javascript:void(0) ">‹</a></li>
+        <li class="page-number active"><a href="javascript:void(0)"><span id="currentPage"></span></a></li>
+        <li class="page-next"><a href="javascript:void(0) ">›</a></li>
+    </ul>
+</div>
+<script src="/static/js/jquery.min.js?v=2.1.4"></script>
+<script src="/static/js/bootstrap.min.js?v=3.3.6"></script>
+<script src="/static/js/plugins/bootstrap-table/bootstrap-table.min.js"></script>
+<script src="/static/js/plugins/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script src="/static/js/angular/angular.min.js"></script>
+<script src="/static/js/jquery.easyui.min.js"></script>
+<script src="/static/js/commons/utils.js?v=1.0.1"></script>
+<script src="/static/js/apply/conflist.js?v=1.0.1"></script>
+</body>
+</html>

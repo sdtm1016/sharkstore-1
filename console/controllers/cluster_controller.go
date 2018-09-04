@@ -9,9 +9,7 @@ import (
 	"console/service"
 	"console/common"
 	"util/log"
-	"github.com/gin-contrib/sessions"
 	"console/right"
-	"fmt"
 )
 
 const (
@@ -33,20 +31,20 @@ func NewClusterGetAllAction() *ClusterGetAllAction {
 	}
 }
 func (ctrl *ClusterGetAllAction) Execute(c *gin.Context) (interface{}, error) {
-	userName := sessions.Default(c).Get("user_name").(string)
-	user := right.GetCacheUser(userName)
-	if user == nil {
-		return nil, fmt.Errorf("no user cached %v", userName)
+	userRight, ok := c.Get("userRight")
+	if !ok {
+		return nil, common.NO_RIGHT
 	}
+	userR := userRight.(*right.User)
 	var clusterIds []int64
-	for id, r := range user.Right {
+	for id, r := range userR.Right {
 		if id == 0 && r == 1 {
-			log.Debug("admin [%v] get all cluster", userName)
+			log.Debug("admin [%v] get all cluster", userR.Name)
 			return service.NewService().GetAllClusters()
 		}
 		clusterIds = append(clusterIds, id)
 	}
-	log.Debug("user [%v] get cluster list: %v", userName, clusterIds)
+	log.Debug("user [%v] get cluster list: %v", userR.Name, clusterIds)
 	return service.NewService().GetClusterById(clusterIds...)
 }
 
@@ -71,7 +69,7 @@ func (ctrl *ClusterGetByIdAction) Execute(c *gin.Context) (interface{}, error) {
 	}
 	log.Debug("query cluster: %v info", cId)
 	clusters, err := service.NewService().GetClusterById(cId)
-	if err != nil {
+	if err != nil || len(clusters) == 0 {
 		return nil, err
 	}
 	return clusters[0], nil

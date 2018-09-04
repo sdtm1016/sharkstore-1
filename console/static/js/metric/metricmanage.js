@@ -44,7 +44,7 @@ app.controller('myFbaseClusterInfo', function($rootScope, $scope, $http, $timeou
 
                     $('#metricConfigDetail').modal('show');
                 }else{
-                    swal("获取集群监控配置异常！", data.message, "error");
+                    swal("获取集群监控配置异常！", data.msg, "error");
                 }
             },
             error: function(res){
@@ -82,7 +82,7 @@ function update() {
                 //关闭模态框
                 $('#metricConfigDetail').modal('hide');
             }else {
-                swal("设置失败", data.message, "error");
+                swal("设置失败", data.msg, "error");
             }
         },
         error: function(res){

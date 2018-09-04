@@ -1,5 +1,7 @@
 #include "apply_task.h"
 
+#include <sstream>
+
 namespace sharkstore {
 namespace raft {
 namespace impl {
@@ -51,15 +53,24 @@ void ApplySnapTask::run(SnapResult* result) {
             return;
         }
 
+        // 等待接收远端发送数据块
         MessagePtr data;
         result->status = waitNextData(&data);
-        if (!result->status.ok()) return;
-
-        result->status = applyData(data, over);
-        sendAck(data->snapshot().seq(), !result->status.ok());
         if (!result->status.ok()) {
             return;
         }
+
+        // 应用数据块
+        size_t bytes = data->ByteSizeLong();
+        result->status = applyData(data, over);
+        if (!result->status.ok()) {
+            return;
+        }
+        result->bytes_count += bytes;
+        result->blocks_count++;
+
+        // 给远端发送ACK
+        sendAck(data->snapshot().seq(), !result->status.ok());
     }
 }
 
@@ -87,8 +98,8 @@ Status ApplySnapTask::applyData(MessagePtr data, bool& over) {
     auto seq = snapshot.seq();
     if (seq != prev_seq_ + 1) {
         return Status(Status::kInvalidArgument, "discontinuous seq",
-                      std::string("prev:") + std::to_string(prev_seq_) + ", msg:" +
-                          std::to_string(seq));
+                      std::string("prev:") + std::to_string(prev_seq_.load()) +
+                      ", msg:" + std::to_string(seq));
     }
 
     // 第一条
@@ -147,6 +158,18 @@ void ApplySnapTask::Cancel() {
     }
 
     cv_.notify_one();
+}
+
+std::string ApplySnapTask::Description() const {
+    std::ostringstream ss;
+    ss << "{";
+    ss << "\"id\": " << GetContext().id << ", ";
+    ss << "\"from\": " << GetContext().from << ", ";
+    ss << "\"term\": " << GetContext().term << ", ";
+    ss << "\"uuid\": " << GetContext().uuid << ",";
+    ss << "\"seq\": " << prev_seq_;
+    ss << "}";
+    return ss.str();
 }
 
 } /* namespace impl */

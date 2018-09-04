@@ -45,7 +45,7 @@ app.controller('mySchedulerInfo', function($rootScope, $scope, $http, $timeout) 
                               swal("调度任务增加成功！", "调度任务增加成功!", "success");
                               window.location.reload();
                           }else{
-                              swal("调度任务失败！", data.message, "error");
+                              swal("调度任务失败！", data.msg, "error");
                           }
                       },
                       error: function(res){
@@ -83,7 +83,7 @@ app.controller('mySchedulerInfo', function($rootScope, $scope, $http, $timeout) 
                              swal("移除调度任务成功！", "移除调度任务成功!", "success");
                              window.location.reload();
                          }else{
-                             swal("移除调度任务失败！", data.message, "error");
+                             swal("移除调度任务失败！", data.msg, "error");
                          }
                      },
                      error: function(res){

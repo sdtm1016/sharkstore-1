@@ -1,4 +1,5 @@
 set (proto_SOURCES
+    gen/ds_admin.pb.cc
     gen/errorpb.pb.cc
     gen/eventpb.pb.cc
     gen/funcpb.pb.cc
@@ -11,6 +12,7 @@ set (proto_SOURCES
     gen/statspb.pb.cc
     gen/taskpb.pb.cc
     gen/timestamp.pb.cc
+    gen/watchpb.pb.cc
 )
 
 add_library(sharkstore-proto STATIC ${proto_SOURCES})

@@ -34,7 +34,7 @@ public:
     virtual void Stop();
 
     ProtoMessage *GetRequest(const void *data) {
-        return socket_session_->GetProtoMessage(data);
+        return GetProtoMessage(data);
     }
 
     //timeout:ms

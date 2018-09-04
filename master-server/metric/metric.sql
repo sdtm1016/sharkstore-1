@@ -245,13 +245,46 @@ CREATE TABLE IF NOT EXISTS `table_meta` (
   PRIMARY KEY (`cluster_id`, `db_name`, `table_name`, `update_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `fbase_lock_nsp` (
-    `namespace`   varchar(64) NOT NULL,
-    `cluster_id`  bigint(20) NOT NULL,
+CREATE TABLE IF NOT EXISTS `fbase_sql_apply` (
+    `id`          varchar(64) NOT NULL,
+    `db_name`     varchar(64) NOT NULL,
+    `table_name`  varchar(64)) NOT NULL,
+    `sentence`    varchar(512)  NOT NULL,
+    `status`      tinyint(1)  NOT NULL COMMENT '1：待审核， 2：通过，3：驳回，',
     `applyer`     varchar(64) NOT NULL,
+    `auditor`     varchar(64),
     `create_time` bigint(20) NOT NULL,
-	  PRIMARY KEY (`namespace`, `cluster_id`)
-)
+    `remark`      varchar(128),
+	  PRIMARY KEY (`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `fbase_lock_nsp` (
+    `id`          varchar(64) NOT NULL,
+    `db_name`     varchar(64) NOT NULL,
+    `table_name`  varchar(64) NOT NULL,
+    `cluster_id`  bigint(20) NOT NULL,
+    `db_id`       bigint(20),
+    `table_id`    bigint(20),
+    `status`      tinyint(1)  Not null COMMENT '1：待审核， 2：通过，3：驳回，',
+    `applyer`     varchar(64) NOT NULL,
+    `auditor`     varchar(64),
+    `create_time` bigint(20) NOT NULL,
+	  PRIMARY KEY (`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `fbase_configure_nsp` (
+    `id`          varchar(64) NOT NULL,
+    `db_name`     varchar(64) NOT NULL,
+    `table_name`  varchar(64) NOT NULL,
+    `cluster_id`  bigint(20) NOT NULL,
+    `db_id`       bigint(20),
+    `table_id`    bigint(20),
+    `status`      tinyint(1)  Not null COMMENT '1：待审核， 2：通过，3：驳回，',
+    `applyer`     varchar(64) NOT NULL,
+    `auditor`     varchar(64),
+    `create_time` bigint(20) NOT NULL,
+	  PRIMARY KEY (`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `range_stats` (
     `cluster_id`  bigint(20) NOT NULL,
@@ -264,12 +297,12 @@ CREATE TABLE IF NOT EXISTS `range_stats` (
     `approximate_size`     bigint(20) NOT NULL,
     `update_time` bigint(20) NOT NULL,
 	  PRIMARY KEY (`cluster_id`, `range_id`)
-)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `metric_server` (
-    `addr`  bigint(20) NOT NULL,
+    `addr` varchar(32) NOT NULL,
 	  PRIMARY KEY (`addr`)
-)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 #需要初始化fbase_role, fbase_privilege
 insert into fbase_role values (3, "普通用户")

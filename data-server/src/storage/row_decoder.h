@@ -58,6 +58,8 @@ public:
     Status DecodeAndFilter(const std::string& key, const std::string& buf,
                            RowResult* result, bool* matched);
 
+    std::string DebugString() const;
+
 private:
     Status decodePrimaryKeys(const std::string& key, RowResult* result);
 

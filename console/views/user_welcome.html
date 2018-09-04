@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户信息</title>
+    <title>首页</title>
     <meta name="keywords" content="">
     <meta name="description" content="">
     <link rel="shortcut icon" href="/static/favicon.ico">
@@ -15,62 +15,18 @@
     <link href="/static/css/style.css?v=4.1.0" rel="stylesheet">
     <link href="/static/css/plugins/sweetalert/sweetalert.css" rel="stylesheet">
     <script src="/static/js/plugins/sweetalert/sweetalert.min.js"></script>
-
-
     <link rel="stylesheet" type="text/css" href="/static/css/easyui.css">
 </head>
-<body class="gray-bg" style="margin-left: 10px;" ng-app="myClusterInfo">
-<div class="example-wrap" ng-controller="myFbaseClusterInfo" style="margin-top: 10px;">
-    <div ng-if="clusterList == null">
-        <p>没有集群</p>
-    </div>
-    <div ng-if="clusterList != null">
-        <table class="table table-striped table-bordered space-list-table" id="table">
-            <thead>
-            <tr class="space-list-name">
-                <th class="spaceName" style="text-align: center; vertical-align: middle;width: 5%">集群ID</th>
-                <th class="regionCode" style="text-align: center; vertical-align: middle;width: 10%">集群名称</th>
-                <th class="regionCode" style="text-align: center; vertical-align: middle;width: 15%">集群URL</th>
-                <th class="regionCode" style="text-align: center; vertical-align: middle;width: 15%">网关(http)</th>
-                <th class="regionCode" style="text-align: center; vertical-align: middle;width: 15%">网关(sql)</th>
-                <th class="createTime"  style="text-align: center; vertical-align: middle;width: 7%">创建时间</th>
-                <th class="isAutoextend"  style="text-align: center; vertical-align: middle;width: 7%">自动扩容</th>
-                <th class="isAutoextend"  style="text-align: center; vertical-align: middle;width: 7%">自动failover</th>
-                <th class="isAutoextend"  style="text-align: center; vertical-align: middle;width: 7%">自动迁移</th>
-                <th class="operate" style="text-align: center; vertical-align: middle;width: 19%">操作</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="space in clusterList track by $index" >
-                <td style="vertical-align:middle; text-align:center;">{{space.id}}</td>
-                <td style="vertical-align:middle; text-align:center;">{{space.name}}</td>
-                <td style="vertical-align:middle; text-align:center;">{{space.master_url}}</td>
-                <td style="vertical-align:middle; text-align:center;">{{space.gateway_http}}</td>
-                <td style="vertical-align:middle; text-align:center;">{{space.gateway_sql}}</td>
-                <td style="vertical-align:middle; text-align:center;">{{space.create_time * 1000 | date:'yyyy-MM-dd HH:mm:ss' }}</td>
-                <td style="vertical-align:middle; text-align:center;">
-                    <div class="switchbtn" ng-class="{'switchbtn-on':!space.auto_split}" ng-click="toggleAutoMigrate(space, 'auto_split')">
-                        <div class="switchbtn-inside"></div>
-                    </div>
-                </td>
-                <td style="vertical-align:middle; text-align:center;">
-                    <div class="switchbtn" ng-class="{'switchbtn-on':!space.auto_failover}" ng-click="toggleAutoMigrate(space, 'auto_failover')">
-                        <div class="switchbtn-inside"></div>
-                    </div>
-                </td>
-                <td style="vertical-align:middle; text-align:center;">
-                    <div class="switchbtn" ng-class="{'switchbtn-on':!space.auto_transfer}" ng-click="toggleAutoMigrate(space, 'auto_transfer')">
-                        <div class="switchbtn-inside"></div>
-                    </div>
-                </td>
-                <td style="vertical-align:middle; text-align:center;" class="table-btns">
-                    <a class="btn btn-primary btn-rounded" ng-click="viewClusterSourceInfo(space)">元数据</a>
-                    <a class="btn btn-primary btn-rounded" ng-click="viewClusterInfo(space)">查看集群</a>
-                    <a class="btn btn-primary btn-rounded" ng-click="viewClusterMaster(space)">查看ms分布</a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+<body style="margin-left: 10px;">
+<!-- /.row -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="jumbotron">
+            <h2> 欢迎光临</h2>
+            <p> sharkstore管理平台，在此你可以查看并管理你的数据库、lock，有任何问题请与jimdb@jd.com联系</p>
+            <!--<p><a class="btn btn-primary btn-lg" role="button">Learn more</a>
+            </p>-->
+        </div>
     </div>
 </div>
 </body>
@@ -80,7 +36,4 @@
 <script src="/static/js/plugins/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
 <script src="/static/js/angular/angular.min.js"></script>
 <script type="text/javascript" src="/static/js/jquery.easyui.min.js"></script>
-<script src="/static/js/commons/utils.js"></script>
-<script src="/static/js/bootstrap-table-demo.js"></script>
-
 </html>

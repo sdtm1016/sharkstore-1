@@ -1,5 +1,6 @@
 _Pragma("once");
 
+#include <atomic>
 #include "meta_file.h"
 #include "storage.h"
 
@@ -22,7 +23,13 @@ public:
         // 启动时检测到文件损坏是否继续，若是则备份可以正常打开工作
         bool allow_corrupt_startup = false;
 
-        // 只读模式
+        // 创建时日志的起始index，之前的视作被截断
+        uint64_t initial_first_index = 0;
+
+        // 每次操作都执行sync
+        bool always_sync = false;
+
+        // 只读模式打开
         bool readonly = false;
     };
 
@@ -51,8 +58,7 @@ public:
     void AppliedTo(uint64_t applied) override;
 
     Status Close() override;
-    Status Destroy() override;
-    Status Backup() override;
+    Status Destroy(bool backup = false) override;
 
     size_t FilesCount() const { return log_files_.size(); }
 
@@ -63,16 +69,14 @@ public:
     void TEST_Add_Corruption3();
 #endif
 
-    Status CheckCorrupt();
-
 private:
     static Status checkLogsValidate(const std::map<uint64_t, uint64_t>& logs);
 
     Status initDir();
+    Status initMeta();
     Status listLogs(std::map<uint64_t, uint64_t>* logs);
     Status openLogs();
     Status closeLogs();
-    Status removeBakups();  // 删除备份的日志文件
 
     // 截断旧日志
     Status truncateOld(uint64_t index);
@@ -83,8 +87,6 @@ private:
 
     Status tryRotate();
     Status save(const EntryPtr& e);
-    LogFile* locate(uint64_t index) const;
-    Status load(uint64_t index, EntryPtr* e) const;
 
 private:
     const uint64_t id_ = 0;
@@ -97,8 +99,9 @@ private:
     uint64_t applied_ = 0;  // 大于applied_的不可截断
 
     std::vector<LogFile*> log_files_;
-    uint64_t next_file_seq_ = 1;
     uint64_t last_index_ = 0;
+
+    std::atomic<bool> destroyed_ = {false};
 };
 
 } /* namespace storage */

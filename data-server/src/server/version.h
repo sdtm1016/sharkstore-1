@@ -5,7 +5,14 @@ namespace dataserver {
 namespace server {
 
 std::string GetGitDescribe();
+
 std::string GetVersionInfo();
+
+std::string GetBuildDate();
+
+std::string GetBuildType();
+
+std::string GetRocksdbVersion();
 
 } /* namespace server */
 } /* namespace dataserver */

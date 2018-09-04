@@ -124,7 +124,7 @@ message TpStats {
 
 message SlowLog {
     string slow_log       = 1;
-    double lats           = 2;
+    int64  lats           = 2;
 }
 
 message SlowLogStats {

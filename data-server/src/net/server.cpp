@@ -17,7 +17,7 @@ Server::Server(const ServerOptions& opt)
 Server::~Server() { Stop(); }
 
 Status Server::ListenAndServe(const std::string& listen_ip, uint16_t listen_port,
-                              const MsgHandler& handler) {
+                              const Handler& handler) {
     std::string bind_ip = listen_ip;
     if (bind_ip.empty()) {
         bind_ip = "0.0.0.0";
@@ -32,7 +32,7 @@ Status Server::ListenAndServe(const std::string& listen_ip, uint16_t listen_port
         return Status(Status::kIOError, "listen", e.what());
     }
 
-    msg_handler_ = handler;
+    handler_ = handler;
     context_pool_->Start();
 
     doAccept();
@@ -66,7 +66,7 @@ void Server::doAccept() {
             FLOG_WARN("[Net] accept max connection limit reached: %lu",
                       opt_.max_connections);
         } else {
-            std::make_shared<Session>(opt_.session_opt, msg_handler_, std::move(socket))
+            std::make_shared<Session>(opt_.session_opt, handler_, std::move(socket))
                 ->Start();
         }
 

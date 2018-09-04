@@ -1,9 +1,9 @@
 package util
 
 import (
-	"io"
-	"fmt"
 	"encoding/binary"
+	"fmt"
+	"io"
 )
 
 const (
@@ -19,8 +19,8 @@ type Message interface {
 	SetFuncId(uint16)
 	GetMsgId() uint64
 	SetMsgId(uint64)
-	GetStreamHash() uint8
-	SetStreamHash(uint8)
+	GetFlags() uint8
+	SetFlags(uint8)
 	GetProtoType() uint8
 	SetProtoType(uint8)
 	GetTimeout() uint32
@@ -28,8 +28,6 @@ type Message interface {
 	GetData() []byte
 	SetData([]byte)
 }
-
-
 
 // The RPC format is header + protocol buffer body
 // Header is 24 bytes, format:
@@ -52,7 +50,7 @@ func WriteMessage(w io.Writer, msg Message) error {
 	// msg ID      8 bytes
 	binary.BigEndian.PutUint64(header[10:18], msg.GetMsgId())
 	// Stream hash 1 bytes
-	header[18] = byte(msg.GetStreamHash())
+	header[18] = byte(msg.GetFlags())
 	// proto type  1 bytes  [0: protobuf 1: json ......]
 	header[19] = byte(msg.GetProtoType())
 	// time out     4 bytes

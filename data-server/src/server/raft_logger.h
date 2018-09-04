@@ -9,8 +9,8 @@ namespace server {
 
 class RaftLogger : public raft::Logger {
 public:
-    RaftLogger() {}
-    ~RaftLogger() {}
+    RaftLogger() = default;
+    ~RaftLogger() = default;
 
     bool IsEnableDebug() override;
     bool IsEnableInfo() override;

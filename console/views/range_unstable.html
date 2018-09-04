@@ -23,7 +23,7 @@
     <input type="text" hidden="true" value="{[{.dbName}]}" id="dbName" name="dbName"/>
     <input type="text" hidden="true" value="{[{.clusterId}]}" id="clusterId" name="clusterId"/>
     <div>
-        <span>副本数不正常的range数共 {{size}} 条记录</span>
+        <span>副本不正常的range数共 <b> {{size}} </b> 条记录（不能说明有问题，只能说明副本当前不足，有可能在补副本中）</span>
     </div>
     <table class="table table-striped table-bordered space-list-table" id="table">
         <thead>

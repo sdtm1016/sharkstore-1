@@ -1003,6 +1003,7 @@ static void doLogEx(LogContext *pContext, struct timeval *tv, \
 			"call pthread_mutex_lock fail, " \
 			"errno: %d, error info: %s", \
 			__LINE__, result, STRERROR(result));
+		return;
 	}
 
 	if (text_len + 64 > LOG_BUFF_SIZE)

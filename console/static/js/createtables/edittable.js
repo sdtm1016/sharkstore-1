@@ -21,7 +21,7 @@ $(document).ready(function() {
         	"clusterId":clusterId
         },
 		success: function(data){
-		    console.log("--------table detail "+ data)
+		    console.log("--------table detail "+ data);
 			if(data.code === 0){
 				for(var i=0;i<data.data.columns.length;i++){
 					columnsArray.push(data.data.columns[i]);
@@ -91,13 +91,13 @@ $(document).ready(function() {
                 textField: "name",
                 editing: false,
                 width: 80, align: "center"            
-            }, {
-                title: '默认值',
-                name: "default_value",
-                type: "text",
-                width: 100, 
-                editing: false,
-                align: "center"
+            // }, {
+            //     title: '默认值',
+            //     name: "default_value",
+            //     type: "text",
+            //     width: 100,
+            //     editing: false,
+            //     align: "center"
             }, {
             	title: "Unsigned",
                 name: "unsigned",
@@ -111,7 +111,14 @@ $(document).ready(function() {
                 width: 80,
                 editing: false,
                 align: "center"
-            }, {
+            },{
+                title: "自增id",
+                name: "auto_increment",
+                type: "checkbox",
+                width: 80,
+                editing: false,
+                align: "center"
+            },{
             	title: "动态列",
                 name: "regxs",
                 type: "checkbox",
@@ -135,55 +142,42 @@ function myTrim(x) {
     return x.replace(/^\s+|\s+$/gm,'');
 }
 function createDataBaseTable(data) {
-	var dataTypes = [{
-    	name: "Tinyint",
-        value: 1
-    }, {
-        name: "Smallint",
-        value: 2
-    }, {
-        name: "Int",
-        value: 3
-    }, {
-        name: "BigInt",
-        value: 4
-    }, {
-        name: "Float",
-        value: 5
-    }, {
-        name: "Double",
-        value: 6
-    }, {
-        name: "Varchar",
-        value: 7
-    }, {
-        name: "Binary",
-        value: 8
-    }, {
-        name: "Date",
-        value: 9
-    }, {
-        name: "TimeStamp",
-        value: 10
-    }];
 	if(data.length == 0){
 		swal("至少添加一列");
 		return false;
 	}
-	//验证，主键 至少一个主键
-	var flg = false;
-	for(var i =0;i<data.length;i++){
-		if(data[i].primary_key){
-			flg = data[i].primary_key;
-		}
-		if(flg){
-			break;
-		}
-	}
-	if(!flg){
-		swal("至少有一个主键");
-		return false;
-	}
+    //验证，主键 至少一个主键
+    var pkFlg = false;
+    //验证，自增只能是主键，且只能是int类型能有一个字段
+    var incFlg = true;
+    //验证，自增且只能存在一列
+    var incCount = 0;
+
+    for(var i =0;i<data.length;i++){
+        if(data[i].primary_key && !pkFlg){
+            pkFlg = true;
+        }
+        if(data[i].auto_increment && (!isIntType(data[i].data_type || !data[i].primary_key ))){
+            incFlg = false;
+            break
+        }
+        if(data[i].primary_key && data[i].auto_increment) {
+            incCount++
+        }
+
+    }
+    if(!pkFlg){
+        swal("至少有一个主键");
+        return false;
+    }
+    if (!incFlg) {
+        swal("只能设置int类型的主键为自增列");
+        return false;
+    }
+    if (incCount > 1){
+        swal("只能有一个int类型的列为自增列");
+        return false;
+    }
 	//提取宽表
 	var regxsList = [];
 	for(var i =0;i<data.length;i++){

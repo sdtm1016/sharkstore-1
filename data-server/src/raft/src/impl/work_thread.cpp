@@ -155,7 +155,7 @@ void WorkThread::run() {
                 assert(work.owner > 0);
                 LOG_ERROR("raft[%llu] throw an exception: %s. removed.",
                           work.owner, e.what());
-                server_->RemoveRaft(work.owner, true);
+                server_->RemoveRaft(work.owner);
             }
         } else {
             // shutdown

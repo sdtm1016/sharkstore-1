@@ -20,7 +20,7 @@ public:
     SnapWorker(const SnapWorker&) = delete;
     SnapWorker& operator=(const SnapWorker&) = delete;
 
-    void post(const std::shared_ptr<SnapTask>& task);
+    void Post(const std::shared_ptr<SnapTask>& task);
 
 private:
     void runTask();

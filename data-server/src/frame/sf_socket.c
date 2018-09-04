@@ -396,8 +396,8 @@ static void sf_event_send(int sock, short event, void *arg) {
         send_bytes = task->length - task->offset;
 
         FLOG_DEBUG("client ip: %s, fd: %d, session: %" PRId64
-                " ready to send_bytes: %d",
-                task->client_ip, sock, session->session_id, send_bytes);
+                " ready to totle_bytes: %d send_bytes: %d",
+                task->client_ip, sock, session->session_id, task->length, send_bytes);
 
         bytes = write(sock, task->data + task->offset, send_bytes);
         if (bytes < 0) {
@@ -435,6 +435,9 @@ static void sf_event_send(int sock, short event, void *arg) {
 
         // send end and recycle task
         if (task->offset >= task->length) {
+            FLOG_DEBUG("client ip: %s, fd: %d, session: %" PRId64
+                      " send end. totle_bytes: %d ",
+                       task->client_ip, sock, session->session_id, task->length);
             task->length = 0;
             task->offset = 0;
             context->send_done_callback(task);

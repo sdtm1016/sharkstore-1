@@ -176,6 +176,8 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Command, kv_delete_req_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Command, kv_batch_del_req_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Command, kv_range_del_req_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Command, kv_watch_put_req_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Command, kv_watch_del_req_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Command, admin_split_req_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Command, admin_merge_req_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Command, admin_leader_change_req_),
@@ -213,9 +215,9 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_ATTR
   { 31, -1, sizeof(LeaderChangeResponse)},
   { 36, -1, sizeof(CmdID)},
   { 43, -1, sizeof(Command)},
-  { 74, -1, sizeof(PeerTask)},
-  { 81, -1, sizeof(SnapshotKVPair)},
-  { 88, -1, sizeof(SnapshotContext)},
+  { 76, -1, sizeof(PeerTask)},
+  { 83, -1, sizeof(SnapshotKVPair)},
+  { 90, -1, sizeof(SnapshotContext)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -260,6 +262,7 @@ void TableStruct::InitDefaultsImpl() {
   ::google::protobuf::internal::InitProtobufDefaults();
   ::metapb::protobuf_metapb_2eproto::InitDefaults();
   ::kvrpcpb::protobuf_kvrpcpb_2eproto::InitDefaults();
+  ::watchpb::protobuf_watchpb_2eproto::InitDefaults();
   _SplitRequest_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_SplitRequest_default_instance_);_SplitResponse_default_instance_._instance.DefaultConstruct();
@@ -324,6 +327,10 @@ void TableStruct::InitDefaultsImpl() {
       ::kvrpcpb::KvBatchDeleteRequest::internal_default_instance());
   _Command_default_instance_._instance.get_mutable()->kv_range_del_req_ = const_cast< ::kvrpcpb::KvRangeDeleteRequest*>(
       ::kvrpcpb::KvRangeDeleteRequest::internal_default_instance());
+  _Command_default_instance_._instance.get_mutable()->kv_watch_put_req_ = const_cast< ::watchpb::KvWatchPutRequest*>(
+      ::watchpb::KvWatchPutRequest::internal_default_instance());
+  _Command_default_instance_._instance.get_mutable()->kv_watch_del_req_ = const_cast< ::watchpb::KvWatchDeleteRequest*>(
+      ::watchpb::KvWatchDeleteRequest::internal_default_instance());
   _Command_default_instance_._instance.get_mutable()->admin_split_req_ = const_cast< ::raft_cmdpb::SplitRequest*>(
       ::raft_cmdpb::SplitRequest::internal_default_instance());
   _Command_default_instance_._instance.get_mutable()->admin_merge_req_ = const_cast< ::raft_cmdpb::MergeRequest*>(
@@ -355,68 +362,73 @@ void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
       "\n\020raft_cmdpb.proto\022\nraft_cmdpb\032\014metapb.p"
-      "roto\032\rkvrpcpb.proto\"v\n\014SplitRequest\022\016\n\006l"
-      "eader\030\001 \001(\004\022\021\n\tsplit_key\030\002 \001(\014\022!\n\005epoch\030"
-      "\003 \001(\0132\022.metapb.RangeEpoch\022 \n\tnew_range\030\004"
-      " \001(\0132\r.metapb.Range\"\017\n\rSplitResponse\"\016\n\014"
-      "MergeRequest\"\017\n\rMergeResponse\"J\n\023LeaderC"
-      "hangeRequest\022\020\n\010range_id\030\001 \001(\004\022!\n\005epoch\030"
-      "\002 \001(\0132\022.metapb.RangeEpoch\"\026\n\024LeaderChang"
-      "eResponse\"%\n\005CmdID\022\017\n\007node_id\030\001 \001(\004\022\013\n\003s"
-      "eq\030\002 \001(\004\"\210\n\n\007Command\022!\n\006cmd_id\030\001 \001(\0132\021.r"
-      "aft_cmdpb.CmdID\022%\n\010cmd_type\030\002 \001(\0162\023.raft"
-      "_cmdpb.CmdType\022(\n\014verify_epoch\030\003 \001(\0132\022.m"
-      "etapb.RangeEpoch\0220\n\016kv_raw_get_req\030\004 \001(\013"
-      "2\030.kvrpcpb.KvRawGetRequest\0220\n\016kv_raw_put"
-      "_req\030\005 \001(\0132\030.kvrpcpb.KvRawPutRequest\0226\n\021"
-      "kv_raw_delete_req\030\006 \001(\0132\033.kvrpcpb.KvRawD"
-      "eleteRequest\0228\n\022kv_raw_execute_req\030\007 \001(\013"
-      "2\034.kvrpcpb.KvRawExecuteRequest\022*\n\nselect"
-      "_req\030\010 \001(\0132\026.kvrpcpb.SelectRequest\022*\n\nin"
-      "sert_req\030\t \001(\0132\026.kvrpcpb.InsertRequest\022*"
-      "\n\ndelete_req\030\n \001(\0132\026.kvrpcpb.DeleteReque"
-      "st\0225\n\020batch_insert_req\030\013 \001(\0132\033.kvrpcpb.B"
-      "atchInsertRequest\022)\n\nkv_set_req\030\014 \001(\0132\025."
-      "kvrpcpb.KvSetRequest\022)\n\nkv_get_req\030\r \001(\013"
-      "2\025.kvrpcpb.KvGetRequest\0224\n\020kv_batch_set_"
-      "req\030\016 \001(\0132\032.kvrpcpb.KvBatchSetRequest\0224\n"
-      "\020kv_batch_get_req\030\017 \001(\0132\032.kvrpcpb.KvBatc"
-      "hGetRequest\022+\n\013kv_scan_req\030\020 \001(\0132\026.kvrpc"
-      "pb.KvScanRequest\022/\n\rkv_delete_req\030\021 \001(\0132"
-      "\030.kvrpcpb.KvDeleteRequest\0227\n\020kv_batch_de"
-      "l_req\030\022 \001(\0132\035.kvrpcpb.KvBatchDeleteReque"
-      "st\0227\n\020kv_range_del_req\030\023 \001(\0132\035.kvrpcpb.K"
-      "vRangeDeleteRequest\0221\n\017admin_split_req\030\036"
-      " \001(\0132\030.raft_cmdpb.SplitRequest\0221\n\017admin_"
-      "merge_req\030\037 \001(\0132\030.raft_cmdpb.MergeReques"
-      "t\022@\n\027admin_leader_change_req\030  \001(\0132\037.raf"
-      "t_cmdpb.LeaderChangeRequest\022&\n\010lock_req\030"
-      "( \001(\0132\024.kvrpcpb.LockRequest\0223\n\017lock_upda"
-      "te_req\030) \001(\0132\032.kvrpcpb.LockUpdateRequest"
-      "\022*\n\nunlock_req\030* \001(\0132\026.kvrpcpb.UnlockReq"
-      "uest\0225\n\020unlock_force_req\030+ \001(\0132\033.kvrpcpb"
-      ".UnlockForceRequest\"P\n\010PeerTask\022(\n\014verif"
-      "y_epoch\030\001 \001(\0132\022.metapb.RangeEpoch\022\032\n\004pee"
-      "r\030\002 \001(\0132\014.metapb.Peer\",\n\016SnapshotKVPair\022"
-      "\013\n\003key\030\001 \001(\014\022\r\n\005value\030\002 \001(\014\".\n\017SnapshotC"
-      "ontext\022\033\n\004meta\030\001 \001(\0132\r.metapb.Range*\371\002\n\007"
-      "CmdType\022\013\n\007Invalid\020\000\022\n\n\006RawGet\020\001\022\n\n\006RawP"
-      "ut\020\002\022\r\n\tRawDelete\020\003\022\016\n\nRawExecute\020\004\022\n\n\006S"
-      "elect\020\007\022\n\n\006Insert\020\010\022\n\n\006Delete\020\t\022\n\n\006Updat"
-      "e\020\n\022\013\n\007Replace\020\013\022\017\n\013BatchInsert\020\014\022\t\n\005KvS"
-      "et\020\r\022\t\n\005KvGet\020\016\022\016\n\nKvBatchSet\020\017\022\016\n\nKvBat"
-      "chGet\020\020\022\n\n\006KvScan\020\021\022\014\n\010KvDelete\020\022\022\016\n\nKvB"
-      "atchDel\020\023\022\016\n\nKvRangeDel\020\024\022\016\n\nAdminSplit\020"
-      "\036\022\016\n\nAdminMerge\020\037\022\025\n\021AdminLeaderChange\020 "
-      "\022\010\n\004Lock\020(\022\016\n\nLockUpdate\020)\022\n\n\006Unlock\020*\022\017"
-      "\n\013UnlockForce\020+b\006proto3"
+      "roto\032\rkvrpcpb.proto\032\rwatchpb.proto\"v\n\014Sp"
+      "litRequest\022\016\n\006leader\030\001 \001(\004\022\021\n\tsplit_key\030"
+      "\002 \001(\014\022!\n\005epoch\030\003 \001(\0132\022.metapb.RangeEpoch"
+      "\022 \n\tnew_range\030\004 \001(\0132\r.metapb.Range\"\017\n\rSp"
+      "litResponse\"\016\n\014MergeRequest\"\017\n\rMergeResp"
+      "onse\"J\n\023LeaderChangeRequest\022\020\n\010range_id\030"
+      "\001 \001(\004\022!\n\005epoch\030\002 \001(\0132\022.metapb.RangeEpoch"
+      "\"\026\n\024LeaderChangeResponse\"%\n\005CmdID\022\017\n\007nod"
+      "e_id\030\001 \001(\004\022\013\n\003seq\030\002 \001(\004\"\367\n\n\007Command\022!\n\006c"
+      "md_id\030\001 \001(\0132\021.raft_cmdpb.CmdID\022%\n\010cmd_ty"
+      "pe\030\002 \001(\0162\023.raft_cmdpb.CmdType\022(\n\014verify_"
+      "epoch\030\003 \001(\0132\022.metapb.RangeEpoch\0220\n\016kv_ra"
+      "w_get_req\030\004 \001(\0132\030.kvrpcpb.KvRawGetReques"
+      "t\0220\n\016kv_raw_put_req\030\005 \001(\0132\030.kvrpcpb.KvRa"
+      "wPutRequest\0226\n\021kv_raw_delete_req\030\006 \001(\0132\033"
+      ".kvrpcpb.KvRawDeleteRequest\0228\n\022kv_raw_ex"
+      "ecute_req\030\007 \001(\0132\034.kvrpcpb.KvRawExecuteRe"
+      "quest\022*\n\nselect_req\030\010 \001(\0132\026.kvrpcpb.Sele"
+      "ctRequest\022*\n\ninsert_req\030\t \001(\0132\026.kvrpcpb."
+      "InsertRequest\022*\n\ndelete_req\030\n \001(\0132\026.kvrp"
+      "cpb.DeleteRequest\0225\n\020batch_insert_req\030\013 "
+      "\001(\0132\033.kvrpcpb.BatchInsertRequest\022)\n\nkv_s"
+      "et_req\030\014 \001(\0132\025.kvrpcpb.KvSetRequest\022)\n\nk"
+      "v_get_req\030\r \001(\0132\025.kvrpcpb.KvGetRequest\0224"
+      "\n\020kv_batch_set_req\030\016 \001(\0132\032.kvrpcpb.KvBat"
+      "chSetRequest\0224\n\020kv_batch_get_req\030\017 \001(\0132\032"
+      ".kvrpcpb.KvBatchGetRequest\022+\n\013kv_scan_re"
+      "q\030\020 \001(\0132\026.kvrpcpb.KvScanRequest\022/\n\rkv_de"
+      "lete_req\030\021 \001(\0132\030.kvrpcpb.KvDeleteRequest"
+      "\0227\n\020kv_batch_del_req\030\022 \001(\0132\035.kvrpcpb.KvB"
+      "atchDeleteRequest\0227\n\020kv_range_del_req\030\023 "
+      "\001(\0132\035.kvrpcpb.KvRangeDeleteRequest\0224\n\020kv"
+      "_watch_put_req\030\024 \001(\0132\032.watchpb.KvWatchPu"
+      "tRequest\0227\n\020kv_watch_del_req\030\025 \001(\0132\035.wat"
+      "chpb.KvWatchDeleteRequest\0221\n\017admin_split"
+      "_req\030\036 \001(\0132\030.raft_cmdpb.SplitRequest\0221\n\017"
+      "admin_merge_req\030\037 \001(\0132\030.raft_cmdpb.Merge"
+      "Request\022@\n\027admin_leader_change_req\030  \001(\013"
+      "2\037.raft_cmdpb.LeaderChangeRequest\022&\n\010loc"
+      "k_req\030( \001(\0132\024.kvrpcpb.LockRequest\0223\n\017loc"
+      "k_update_req\030) \001(\0132\032.kvrpcpb.LockUpdateR"
+      "equest\022*\n\nunlock_req\030* \001(\0132\026.kvrpcpb.Unl"
+      "ockRequest\0225\n\020unlock_force_req\030+ \001(\0132\033.k"
+      "vrpcpb.UnlockForceRequest\"P\n\010PeerTask\022(\n"
+      "\014verify_epoch\030\001 \001(\0132\022.metapb.RangeEpoch\022"
+      "\032\n\004peer\030\002 \001(\0132\014.metapb.Peer\",\n\016SnapshotK"
+      "VPair\022\013\n\003key\030\001 \001(\014\022\r\n\005value\030\002 \001(\014\".\n\017Sna"
+      "pshotContext\022\033\n\004meta\030\001 \001(\0132\r.metapb.Rang"
+      "e*\231\003\n\007CmdType\022\013\n\007Invalid\020\000\022\n\n\006RawGet\020\001\022\n"
+      "\n\006RawPut\020\002\022\r\n\tRawDelete\020\003\022\016\n\nRawExecute\020"
+      "\004\022\n\n\006Select\020\007\022\n\n\006Insert\020\010\022\n\n\006Delete\020\t\022\n\n"
+      "\006Update\020\n\022\013\n\007Replace\020\013\022\017\n\013BatchInsert\020\014\022"
+      "\t\n\005KvSet\020\r\022\t\n\005KvGet\020\016\022\016\n\nKvBatchSet\020\017\022\016\n"
+      "\nKvBatchGet\020\020\022\n\n\006KvScan\020\021\022\014\n\010KvDelete\020\022\022"
+      "\016\n\nKvBatchDel\020\023\022\016\n\nKvRangeDel\020\024\022\016\n\nKvWat"
+      "chPut\020\025\022\016\n\nKvWatchDel\020\026\022\016\n\nAdminSplit\020\036\022"
+      "\016\n\nAdminMerge\020\037\022\025\n\021AdminLeaderChange\020 \022\010"
+      "\n\004Lock\020(\022\016\n\nLockUpdate\020)\022\n\n\006Unlock\020*\022\017\n\013"
+      "UnlockForce\020+b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 2223);
+      descriptor, 2381);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "raft_cmdpb.proto", &protobuf_RegisterTypes);
   ::metapb::protobuf_metapb_2eproto::AddDescriptors();
   ::kvrpcpb::protobuf_kvrpcpb_2eproto::AddDescriptors();
+  ::watchpb::protobuf_watchpb_2eproto::AddDescriptors();
 }
 } // anonymous namespace
 
@@ -458,6 +470,8 @@ bool CmdType_IsValid(int value) {
     case 18:
     case 19:
     case 20:
+    case 21:
+    case 22:
     case 30:
     case 31:
     case 32:
@@ -2459,6 +2473,8 @@ const int Command::kKvScanReqFieldNumber;
 const int Command::kKvDeleteReqFieldNumber;
 const int Command::kKvBatchDelReqFieldNumber;
 const int Command::kKvRangeDelReqFieldNumber;
+const int Command::kKvWatchPutReqFieldNumber;
+const int Command::kKvWatchDelReqFieldNumber;
 const int Command::kAdminSplitReqFieldNumber;
 const int Command::kAdminMergeReqFieldNumber;
 const int Command::kAdminLeaderChangeReqFieldNumber;
@@ -2571,6 +2587,16 @@ Command::Command(const Command& from)
   } else {
     kv_range_del_req_ = NULL;
   }
+  if (from.has_kv_watch_put_req()) {
+    kv_watch_put_req_ = new ::watchpb::KvWatchPutRequest(*from.kv_watch_put_req_);
+  } else {
+    kv_watch_put_req_ = NULL;
+  }
+  if (from.has_kv_watch_del_req()) {
+    kv_watch_del_req_ = new ::watchpb::KvWatchDeleteRequest(*from.kv_watch_del_req_);
+  } else {
+    kv_watch_del_req_ = NULL;
+  }
   if (from.has_admin_split_req()) {
     admin_split_req_ = new ::raft_cmdpb::SplitRequest(*from.admin_split_req_);
   } else {
@@ -2641,6 +2667,8 @@ void Command::SharedDtor() {
   if (this != internal_default_instance()) delete kv_delete_req_;
   if (this != internal_default_instance()) delete kv_batch_del_req_;
   if (this != internal_default_instance()) delete kv_range_del_req_;
+  if (this != internal_default_instance()) delete kv_watch_put_req_;
+  if (this != internal_default_instance()) delete kv_watch_del_req_;
   if (this != internal_default_instance()) delete admin_split_req_;
   if (this != internal_default_instance()) delete admin_merge_req_;
   if (this != internal_default_instance()) delete admin_leader_change_req_;
@@ -2751,6 +2779,14 @@ void Command::Clear() {
     delete kv_range_del_req_;
   }
   kv_range_del_req_ = NULL;
+  if (GetArenaNoVirtual() == NULL && kv_watch_put_req_ != NULL) {
+    delete kv_watch_put_req_;
+  }
+  kv_watch_put_req_ = NULL;
+  if (GetArenaNoVirtual() == NULL && kv_watch_del_req_ != NULL) {
+    delete kv_watch_del_req_;
+  }
+  kv_watch_del_req_ = NULL;
   if (GetArenaNoVirtual() == NULL && admin_split_req_ != NULL) {
     delete admin_split_req_;
   }
@@ -3024,6 +3060,30 @@ bool Command::MergePartialFromCodedStream(
         break;
       }
 
+      // .watchpb.KvWatchPutRequest kv_watch_put_req = 20;
+      case 20: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(162u /* 162 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_kv_watch_put_req()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // .watchpb.KvWatchDeleteRequest kv_watch_del_req = 21;
+      case 21: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(170u /* 170 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_kv_watch_del_req()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
       // .raft_cmdpb.SplitRequest admin_split_req = 30;
       case 30: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
@@ -3248,6 +3308,18 @@ void Command::SerializeWithCachedSizes(
       19, *this->kv_range_del_req_, output);
   }
 
+  // .watchpb.KvWatchPutRequest kv_watch_put_req = 20;
+  if (this->has_kv_watch_put_req()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      20, *this->kv_watch_put_req_, output);
+  }
+
+  // .watchpb.KvWatchDeleteRequest kv_watch_del_req = 21;
+  if (this->has_kv_watch_del_req()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      21, *this->kv_watch_del_req_, output);
+  }
+
   // .raft_cmdpb.SplitRequest admin_split_req = 30;
   if (this->has_admin_split_req()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
@@ -3434,6 +3506,20 @@ void Command::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageNoVirtualToArray(
         19, *this->kv_range_del_req_, deterministic, target);
+  }
+
+  // .watchpb.KvWatchPutRequest kv_watch_put_req = 20;
+  if (this->has_kv_watch_put_req()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        20, *this->kv_watch_put_req_, deterministic, target);
+  }
+
+  // .watchpb.KvWatchDeleteRequest kv_watch_del_req = 21;
+  if (this->has_kv_watch_del_req()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageNoVirtualToArray(
+        21, *this->kv_watch_del_req_, deterministic, target);
   }
 
   // .raft_cmdpb.SplitRequest admin_split_req = 30;
@@ -3628,6 +3714,20 @@ size_t Command::ByteSizeLong() const {
         *this->kv_range_del_req_);
   }
 
+  // .watchpb.KvWatchPutRequest kv_watch_put_req = 20;
+  if (this->has_kv_watch_put_req()) {
+    total_size += 2 +
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        *this->kv_watch_put_req_);
+  }
+
+  // .watchpb.KvWatchDeleteRequest kv_watch_del_req = 21;
+  if (this->has_kv_watch_del_req()) {
+    total_size += 2 +
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        *this->kv_watch_del_req_);
+  }
+
   // .raft_cmdpb.SplitRequest admin_split_req = 30;
   if (this->has_admin_split_req()) {
     total_size += 2 +
@@ -3766,6 +3866,12 @@ void Command::MergeFrom(const Command& from) {
   if (from.has_kv_range_del_req()) {
     mutable_kv_range_del_req()->::kvrpcpb::KvRangeDeleteRequest::MergeFrom(from.kv_range_del_req());
   }
+  if (from.has_kv_watch_put_req()) {
+    mutable_kv_watch_put_req()->::watchpb::KvWatchPutRequest::MergeFrom(from.kv_watch_put_req());
+  }
+  if (from.has_kv_watch_del_req()) {
+    mutable_kv_watch_del_req()->::watchpb::KvWatchDeleteRequest::MergeFrom(from.kv_watch_del_req());
+  }
   if (from.has_admin_split_req()) {
     mutable_admin_split_req()->::raft_cmdpb::SplitRequest::MergeFrom(from.admin_split_req());
   }
@@ -3834,6 +3940,8 @@ void Command::InternalSwap(Command* other) {
   swap(kv_delete_req_, other->kv_delete_req_);
   swap(kv_batch_del_req_, other->kv_batch_del_req_);
   swap(kv_range_del_req_, other->kv_range_del_req_);
+  swap(kv_watch_put_req_, other->kv_watch_put_req_);
+  swap(kv_watch_del_req_, other->kv_watch_del_req_);
   swap(admin_split_req_, other->admin_split_req_);
   swap(admin_merge_req_, other->admin_merge_req_);
   swap(admin_leader_change_req_, other->admin_leader_change_req_);
@@ -4586,6 +4694,86 @@ void Command::set_allocated_kv_range_del_req(::kvrpcpb::KvRangeDeleteRequest* kv
     
   }
   // @@protoc_insertion_point(field_set_allocated:raft_cmdpb.Command.kv_range_del_req)
+}
+
+// .watchpb.KvWatchPutRequest kv_watch_put_req = 20;
+bool Command::has_kv_watch_put_req() const {
+  return this != internal_default_instance() && kv_watch_put_req_ != NULL;
+}
+void Command::clear_kv_watch_put_req() {
+  if (GetArenaNoVirtual() == NULL && kv_watch_put_req_ != NULL) delete kv_watch_put_req_;
+  kv_watch_put_req_ = NULL;
+}
+const ::watchpb::KvWatchPutRequest& Command::kv_watch_put_req() const {
+  const ::watchpb::KvWatchPutRequest* p = kv_watch_put_req_;
+  // @@protoc_insertion_point(field_get:raft_cmdpb.Command.kv_watch_put_req)
+  return p != NULL ? *p : *reinterpret_cast<const ::watchpb::KvWatchPutRequest*>(
+      &::watchpb::_KvWatchPutRequest_default_instance_);
+}
+::watchpb::KvWatchPutRequest* Command::mutable_kv_watch_put_req() {
+  
+  if (kv_watch_put_req_ == NULL) {
+    kv_watch_put_req_ = new ::watchpb::KvWatchPutRequest;
+  }
+  // @@protoc_insertion_point(field_mutable:raft_cmdpb.Command.kv_watch_put_req)
+  return kv_watch_put_req_;
+}
+::watchpb::KvWatchPutRequest* Command::release_kv_watch_put_req() {
+  // @@protoc_insertion_point(field_release:raft_cmdpb.Command.kv_watch_put_req)
+  
+  ::watchpb::KvWatchPutRequest* temp = kv_watch_put_req_;
+  kv_watch_put_req_ = NULL;
+  return temp;
+}
+void Command::set_allocated_kv_watch_put_req(::watchpb::KvWatchPutRequest* kv_watch_put_req) {
+  delete kv_watch_put_req_;
+  kv_watch_put_req_ = kv_watch_put_req;
+  if (kv_watch_put_req) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:raft_cmdpb.Command.kv_watch_put_req)
+}
+
+// .watchpb.KvWatchDeleteRequest kv_watch_del_req = 21;
+bool Command::has_kv_watch_del_req() const {
+  return this != internal_default_instance() && kv_watch_del_req_ != NULL;
+}
+void Command::clear_kv_watch_del_req() {
+  if (GetArenaNoVirtual() == NULL && kv_watch_del_req_ != NULL) delete kv_watch_del_req_;
+  kv_watch_del_req_ = NULL;
+}
+const ::watchpb::KvWatchDeleteRequest& Command::kv_watch_del_req() const {
+  const ::watchpb::KvWatchDeleteRequest* p = kv_watch_del_req_;
+  // @@protoc_insertion_point(field_get:raft_cmdpb.Command.kv_watch_del_req)
+  return p != NULL ? *p : *reinterpret_cast<const ::watchpb::KvWatchDeleteRequest*>(
+      &::watchpb::_KvWatchDeleteRequest_default_instance_);
+}
+::watchpb::KvWatchDeleteRequest* Command::mutable_kv_watch_del_req() {
+  
+  if (kv_watch_del_req_ == NULL) {
+    kv_watch_del_req_ = new ::watchpb::KvWatchDeleteRequest;
+  }
+  // @@protoc_insertion_point(field_mutable:raft_cmdpb.Command.kv_watch_del_req)
+  return kv_watch_del_req_;
+}
+::watchpb::KvWatchDeleteRequest* Command::release_kv_watch_del_req() {
+  // @@protoc_insertion_point(field_release:raft_cmdpb.Command.kv_watch_del_req)
+  
+  ::watchpb::KvWatchDeleteRequest* temp = kv_watch_del_req_;
+  kv_watch_del_req_ = NULL;
+  return temp;
+}
+void Command::set_allocated_kv_watch_del_req(::watchpb::KvWatchDeleteRequest* kv_watch_del_req) {
+  delete kv_watch_del_req_;
+  kv_watch_del_req_ = kv_watch_del_req;
+  if (kv_watch_del_req) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:raft_cmdpb.Command.kv_watch_del_req)
 }
 
 // .raft_cmdpb.SplitRequest admin_split_req = 30;

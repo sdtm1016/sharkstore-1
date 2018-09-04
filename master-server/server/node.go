@@ -1,66 +1,68 @@
 package server
 
 import (
-	"sync"
-	"time"
 	"fmt"
+	"sync"
 	"sync/atomic"
+	"time"
 
 	"model/pkg/metapb"
-	"golang.org/x/net/context"
-	"github.com/juju/errors"
 	"model/pkg/mspb"
 	"util/log"
+
+	"github.com/juju/errors"
+	"golang.org/x/net/context"
 )
 
 var (
-	DefaultFaultTimeout = time.Minute
-	DefaultMaxBigTaskNum  = 3
-	DefaultMaxTaskNum = 50
+	DefaultFaultTimeout  = time.Minute
+	DefaultMaxBigTaskNum = 3
+	DefaultMaxTaskNum    = 50
 )
 
 // TODO 机器不同导致的分片数量
 type Node struct {
 	*metapb.Node
-    // metapb.Node属性锁
-	lock          sync.RWMutex
+	// metapb.Node属性锁
+	lock sync.RWMutex
 
-	ranges        *RegionCache
-	blocked       bool
-	stats         *mspb.NodeStats
+	ranges          *RegionCache
+	blocked         bool
+	stats           *mspb.NodeStats
 	LastHeartbeatTS time.Time
-	Trace         bool
-	opsStat		  *NodeOpsStat
+	Trace           bool
+	opsStat         *NodeOpsStat
 	// 创建/删除range副本失败产生的垃圾副本,n/2以上的节点挂掉、手动处理不可用的副本
 	// 远程GC DS上的垃圾range副本
-	trashReplicas    *ReplicaCache
+	trashReplicas *ReplicaCache
 }
 
 const CacheSize = 100
+
 type NodeOpsStat struct {
 	writeOps [CacheSize]uint64
-	hit uint64
+	hit      uint64
 }
 
-func (opsStat *NodeOpsStat) Hit(v uint64){
-	hit := atomic.AddUint64(&(opsStat.hit),1)
+func (opsStat *NodeOpsStat) Hit(v uint64) {
+	hit := atomic.AddUint64(&(opsStat.hit), 1)
 	opsStat.writeOps[hit%CacheSize] = v
 }
 
-func (opsStat *NodeOpsStat) GetMax() uint64{
+func (opsStat *NodeOpsStat) GetMax() uint64 {
 	var max uint64 = 0
-	for i:=0 ; i<CacheSize ;i++ {
+	for i := 0; i < CacheSize; i++ {
 		v := opsStat.writeOps[i]
-		if  v > max {
+		if v > max {
 			max = v
 		}
 	}
 	return max
 }
 
-func (opsStat *NodeOpsStat) Clear() uint64{
+func (opsStat *NodeOpsStat) Clear() uint64 {
 	var max uint64 = 0
-	for i:=0 ; i<CacheSize ;i++ {
+	for i := 0; i < CacheSize; i++ {
 		opsStat.writeOps[i] = 0
 	}
 	return max
@@ -68,11 +70,11 @@ func (opsStat *NodeOpsStat) Clear() uint64{
 
 func NewNode(node *metapb.Node) *Node {
 	return &Node{
-		Node: node,
-		stats: &mspb.NodeStats{},
-		opsStat:&NodeOpsStat{},
-		ranges: NewRegionCache(),
-		trashReplicas: NewReplicaCache(),
+		Node:            node,
+		stats:           &mspb.NodeStats{},
+		opsStat:         &NodeOpsStat{},
+		ranges:          NewRegionCache(),
+		trashReplicas:   NewReplicaCache(),
 		LastHeartbeatTS: time.Now(),
 	}
 }
@@ -105,21 +107,21 @@ func (n *Node) GetRange(id uint64) (*Range, bool) {
 	return n.ranges.FindRangeByID(id)
 }
 
-func (n *Node) GetAllRanges() ([]*Range) {
+func (n *Node) GetAllRanges() []*Range {
 	if n == nil {
 		return nil
 	}
 	return n.ranges.GetAllRange()
 }
 
-func (n *Node) GetAllTrashReplicas() ([]*metapb.Replica) {
+func (n *Node) GetAllTrashReplicas() []*metapb.Replica {
 	if n == nil {
 		return nil
 	}
 	return n.trashReplicas.GetAllReplica()
 }
 
-func (n *Node) GetAllTrashRangeIds() ([]uint64) {
+func (n *Node) GetAllTrashRangeIds() []uint64 {
 	if n == nil {
 		return nil
 	}
@@ -142,7 +144,7 @@ func (n *Node) DeleteTrashReplica(id uint64) {
 	return
 }
 
-func (n *Node) GetRangesSize() (int) {
+func (n *Node) GetRangesSize() int {
 	if n == nil {
 		return 0
 	}
@@ -163,7 +165,7 @@ func (n *Node) GetLeaderCount() uint32 {
 	return n.stats.GetRangeLeaderCount()
 }
 
-func (n *Node)IsFault() bool {
+func (n *Node) IsFault() bool {
 	if n == nil {
 		return false
 	}
@@ -171,7 +173,7 @@ func (n *Node)IsFault() bool {
 		n.State == metapb.NodeState_N_Logout
 }
 
-func (n *Node)IsLogout() bool {
+func (n *Node) IsLogout() bool {
 	if n == nil {
 		return false
 	}
@@ -259,7 +261,6 @@ func (n *Node) isDown() bool {
 	}
 	return n.GetState() == metapb.NodeState_N_Logout
 }
-
 
 func (n *Node) leaderCount() uint64 {
 	if n == nil {
@@ -379,7 +380,7 @@ func (n *Node) mergeLabels(labels []*metapb.NodeLabel) {
 	if n == nil {
 		return
 	}
-	L:
+L:
 	for _, newLabel := range labels {
 		for _, label := range n.Labels {
 			if label.Key == newLabel.Key {
@@ -396,10 +397,10 @@ func (n *Node) randFollowerRange() *Range {
 		return nil
 	}
 	for _, r := range n.GetAllRanges() {
-	    if r.GetLeader().GetNodeId() != n.GetId() {
-		    return r
-	    }
-    }
+		if r.GetLeader().GetNodeId() != n.GetId() {
+			return r
+		}
+	}
 	return nil
 }
 
@@ -416,9 +417,9 @@ func (n *Node) randLeaderRange() *Range {
 }
 
 type NodeCache struct {
-	lock      sync.RWMutex
-	nodeIs    map[uint64]*Node
-	nodeNs    map[string]*Node
+	lock   sync.RWMutex
+	nodeIs map[uint64]*Node
+	nodeNs map[string]*Node
 }
 
 func NewNodeCache() *NodeCache {
@@ -497,10 +498,10 @@ func (nc *NodeCache) Size() int {
 }
 
 type TrashReplicaGCWorker struct {
-	name             string
-	ctx              context.Context
-	cancel           context.CancelFunc
-	interval         time.Duration
+	name     string
+	ctx      context.Context
+	cancel   context.CancelFunc
+	interval time.Duration
 }
 
 func NewTrashReplicaGCWorker(wm *WorkerManager, interval time.Duration) Worker {
@@ -546,7 +547,7 @@ func (tr *TrashReplicaGCWorker) Work(cluster *Cluster) {
 				default:
 				}
 				log.Debug("delete trash replicas from login node, rangeId:[%d]", rep.GetRangeId())
-				err := cluster.cli.DeleteRange(node.GetServerAddr(), rep.GetRangeId())
+				err := cluster.cli.DeleteRange(node.GetServerAddr(), rep.GetRangeId(), rep.GetPeer().GetId())
 				if err == nil {
 					log.Debug("delete trash replicas from login node, rangeId:[%d], peerId:[%d]", rep.GetRangeId(), rep.GetPeer().GetId())
 					key := []byte(fmt.Sprintf("%s%d", PREFIX_REPLICA, rep.GetPeer().GetId()))
@@ -575,10 +576,10 @@ func (tr *TrashReplicaGCWorker) Stop() {
 }
 
 type HbRingBuf struct {
-	lock 	sync.RWMutex
-	cap		uint32
-	wPos    uint32
-	buf		[]time.Time
+	lock sync.RWMutex
+	cap  uint32
+	wPos uint32
+	buf  []time.Time
 }
 
 func NewHbRingBuf(cap uint32) *HbRingBuf {
@@ -586,13 +587,13 @@ func NewHbRingBuf(cap uint32) *HbRingBuf {
 		return nil
 	}
 	return &HbRingBuf{
-		cap:cap,
-		wPos:0,
-		buf:make([]time.Time, cap),
+		cap:  cap,
+		wPos: 0,
+		buf:  make([]time.Time, cap),
 	}
 }
 
-func (rb *HbRingBuf)SetCurHbTime() {
+func (rb *HbRingBuf) SetCurHbTime() {
 	rb.lock.Lock()
 	rb.buf[rb.wPos] = time.Now()
 	rb.wPos++
@@ -602,37 +603,37 @@ func (rb *HbRingBuf)SetCurHbTime() {
 	rb.lock.Unlock()
 }
 
-func (rb *HbRingBuf)GetLastHbTime() time.Time {
+func (rb *HbRingBuf) GetLastHbTime() time.Time {
 	rb.lock.RLock()
 	var t time.Time
 	if rb.wPos == 0 {
-		t = rb.buf[rb.cap - 1]
+		t = rb.buf[rb.cap-1]
 	} else {
-		t = rb.buf[rb.wPos - 1]
+		t = rb.buf[rb.wPos-1]
 	}
 	rb.lock.RUnlock()
 	return t
 }
 
-func (rb *HbRingBuf)ResetHbRingBuf() {
+func (rb *HbRingBuf) ResetHbRingBuf() {
 	rb.lock.Lock()
 	rb.wPos = 0
 	rb.buf = make([]time.Time, rb.cap)
 	rb.lock.Unlock()
 }
 
-func (rb *HbRingBuf)CalcMaxHbDiff() (time.Duration, error) {
+func (rb *HbRingBuf) CalcMaxHbDiff() (time.Duration, error) {
 	rb.lock.RLock()
 	if rb.buf[rb.wPos].IsZero() {
 		rb.lock.RUnlock()
 		return time.Duration(0), errors.New(fmt.Sprintf("hbringbuf is not full, cap:[%d], remain:[%d]",
-			rb.cap, rb.cap - rb.wPos))
+			rb.cap, rb.cap-rb.wPos))
 	}
 	var d time.Duration
 	if rb.wPos == 0 {
-		d = rb.buf[rb.cap - 1].Sub(rb.buf[rb.wPos])
+		d = rb.buf[rb.cap-1].Sub(rb.buf[rb.wPos])
 	} else {
-		d = rb.buf[rb.wPos - 1].Sub(rb.buf[rb.wPos])
+		d = rb.buf[rb.wPos-1].Sub(rb.buf[rb.wPos])
 	}
 	rb.lock.RUnlock()
 	return d, nil
@@ -640,12 +641,12 @@ func (rb *HbRingBuf)CalcMaxHbDiff() (time.Duration, error) {
 
 type Distribution struct {
 	nodeId uint64
-	count int
+	count  int
 }
 
 type Distributions []Distribution
 
-func (d Distributions) Len() int{
+func (d Distributions) Len() int {
 	return len(d)
 }
 

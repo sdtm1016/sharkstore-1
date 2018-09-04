@@ -3,11 +3,13 @@ package mock_ms
 import (
 	"net"
 	"fmt"
+	"sync"
 	"util/log"
 	"strings"
 	"strconv"
 	"net/http"
 	"encoding/json"
+	"sync/atomic"
 
 	"google.golang.org/grpc"
 	"model/pkg/mspb"
@@ -19,16 +21,20 @@ import (
 	"pkg-go/ds_client"
 )
 
+var idBase uint64
 type Cluster struct {
 	id       uint64
 	db       *DbCache
 	tables   *TableCache
-	node     *metapb.Node
+	nodes     map[uint64]*metapb.Node
 	rpc      string
     host     string
 
+	rLock       sync.RWMutex
+
 	cli      client.SchClient
 	server   *server.Server
+	grpcServer *grpc.Server
 }
 
 
@@ -39,6 +45,7 @@ func NewCluster(rpc, host string) *Cluster {
 	    host: host,
 	    db: NewDbCache(),
 	    tables: NewTableCache(),
+	    nodes: make(map[uint64]*metapb.Node),
     }
 }
 
@@ -47,6 +54,8 @@ func (c *Cluster) SetDb(db *metapb.DataBase) {
 }
 
 func (c *Cluster) SetTable(t *metapb.Table) {
+	c.rLock.Lock()
+	defer c.rLock.Unlock()
 	db, _ := c.db.FindDb(t.GetDbName())
 	table := NewTable(t)
 	db.tables.Add(table)
@@ -54,10 +63,14 @@ func (c *Cluster) SetTable(t *metapb.Table) {
 }
 
 func (c *Cluster) SetNode(node *metapb.Node) {
-	c.node = node
+	c.rLock.Lock()
+	defer c.rLock.Unlock()
+	c.nodes[node.GetId()] = node
 }
 
 func (c *Cluster) SetRange(r *metapb.Range) {
+	c.rLock.Lock()
+	defer c.rLock.Unlock()
 	t, _ := c.tables.FindTableById(r.GetTableId())
 	t.ranges.Add(NewRange(r))
 }
@@ -75,9 +88,12 @@ func (c *Cluster) Start() {
 	if err = s.Serve(lis); err != nil {
 		log.Fatal("failed to serve: %v", err)
 	}
+	c.grpcServer = s
+
 }
 
 func (c *Cluster) Stop() {
+	c.grpcServer.Stop()
 
 }
 
@@ -103,7 +119,7 @@ func (c *Cluster) GetRoute(ctx context.Context, req *mspb.GetRouteRequest) (*msp
 }
 
 func (c *Cluster) NodeHeartbeat(ctx context.Context, req *mspb.NodeHeartbeatRequest) (*mspb.NodeHeartbeatResponse, error) {
-	resp := &mspb.NodeHeartbeatResponse{Header: &mspb.ResponseHeader{}, NodeId: c.node.GetId()}
+	resp := &mspb.NodeHeartbeatResponse{Header: &mspb.ResponseHeader{}, NodeId: req.GetNodeId()}
 	return resp, nil
 }
 
@@ -126,12 +142,12 @@ func (c *Cluster) NodeLogin(ctx context.Context, req *mspb.NodeLoginRequest) (*m
 }
 
 func (c *Cluster) GetNode(ctx context.Context, req *mspb.GetNodeRequest) (*mspb.GetNodeResponse, error) {
-	resp := &mspb.GetNodeResponse{Header: &mspb.ResponseHeader{}, Node: c.node}
+	resp := &mspb.GetNodeResponse{Header: &mspb.ResponseHeader{}, Node: c.nodes[req.GetId()]}
 	return resp, nil
 }
 
 func (c *Cluster) GetNodeId(ctx context.Context, req *mspb.GetNodeIdRequest) (*mspb.GetNodeIdResponse, error) {
-	if c.node == nil {
+	if c.nodes == nil || len(c.nodes) == 0 {
 		if client, ok := peer.FromContext(ctx); ok {
 			ip, _, err := net.SplitHostPort(client.Addr.String())
 			if err != nil {
@@ -139,17 +155,17 @@ func (c *Cluster) GetNodeId(ctx context.Context, req *mspb.GetNodeIdRequest) (*m
 			}
 			serverAddr := fmt.Sprintf("%s:%d", ip, req.GetServerPort())
 			raftAddr := fmt.Sprintf("%s:%d", ip, req.GetRaftPort())
-			httpAddr := fmt.Sprintf("%s:%d", ip, req.GetHttpPort())
+			httpAddr := fmt.Sprintf("%s:%d", ip, req.GetAdminPort())
 			node := &metapb.Node{
 				Id: 1,
 				ServerAddr: serverAddr,
 				RaftAddr: raftAddr,
-				HttpAddr: httpAddr,
+				AdminAddr: httpAddr,
 			}
-			c.node = node
+			c.nodes[1] = node
 		}
 	}
-	resp := &mspb.GetNodeIdResponse{Header: &mspb.ResponseHeader{}, NodeId: c.node.GetId(), Clearup: false}
+	resp := &mspb.GetNodeIdResponse{Header: &mspb.ResponseHeader{}, NodeId: c.nodes[1].GetId(), Clearup: false}
 	return resp, nil
 }
 
@@ -217,6 +233,17 @@ func (c *Cluster) CreateTable(ctx context.Context, req *mspb.CreateTableRequest)
 	return nil, nil
 }
 
+func (c *Cluster) GetAutoIncId(ctx context.Context, req *mspb.GetAutoIncIdRequest) (*mspb.GetAutoIncIdResponse, error) {
+	log.Info("ms mock: get auto_increment id")
+	size := req.GetSize_()
+	ids := make([]uint64, 0)
+	for len(ids) < int(size) {
+		ids = append(ids, atomic.AddUint64(&idBase, 1))
+	}
+	log.Info("auto_increment ids : %v", ids)
+	resp := &mspb.GetAutoIncIdResponse{Header: &mspb.ResponseHeader{}, Ids: ids}
+	return resp, nil
+}
 
 type HttpReply httpReply
 

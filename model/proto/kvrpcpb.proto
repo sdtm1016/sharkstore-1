@@ -497,14 +497,14 @@ message LockValue {
     string id               = 3;
     int64 delete_time       = 4;
     int64 update_time       = 5;
-    bool delete_flag        = 6;
+    //int64 delete_flag       = 6;
+    string by               = 7;
 }
 
 message LockRequest {
     bytes key               = 1;
     LockValue value         = 2;
     timestamp.Timestamp timestamp  = 10;
-    string by               = 11;
 }
 
 message DsLockRequest {
@@ -540,6 +540,7 @@ message LockUpdateRequest {
     int64 update_time       = 5;
     bytes update_value      = 6;
     timestamp.Timestamp timestamp  = 10;
+    string by               = 11;
 }
 
 message DsLockUpdateRequest {

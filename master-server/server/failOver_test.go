@@ -23,7 +23,7 @@ func TestNodeFailOverNormal(t *testing.T) {
 	ds_1 := NewMockDs(dsAddr_1)
 	node1, _, err := cluster.GetNodeId(dsAddr_1, "", "", "")
 	if err != nil {
-		t.Fatal("GetNodeId error:[%v]", err)
+		t.Fatalf("GetNodeId error:[%v]", err)
 	}
 	assert.NotEqual(t, node1.Id, 0, "Donot generate node id")
 	assert.Equal(t, node1.State, metapb.NodeState_N_Initial, "node state error")
@@ -115,7 +115,7 @@ func TestNodeFailOverBornAgain(t *testing.T) {
 		NodeId: ds_1.NodeId,
 	}
 	server.handleNodeHeartbeat(nil, req)
-	assert.Equal(t, node1.State, metapb.NodeState_N_Tombstone, "node state error")
+	assert.Equal(t, node1.State, metapb.NodeState_N_Offline, "node state error")
 	server.handleNodeHeartbeat(nil, req)
 	assert.Equal(t, node1.State, metapb.NodeState_N_Login, "node state error")
 }
@@ -156,8 +156,12 @@ func TestNodeFailOverToDead(t *testing.T) {
 		NodeId: ds_1.NodeId,
 	}
 	server.handleNodeHeartbeat(nil, req)
-	assert.Equal(t, node1.State, metapb.NodeState_N_Tombstone, "node state error")
+	assert.Equal(t, node1.State, metapb.NodeState_N_Offline, "node state error")
 
+	time.Sleep(4 * time.Second)
+	failOver.Work(cluster)
+
+	cluster.opt.MaxNodeDownTime = time.Second
 	time.Sleep(1 * time.Second)
 	failOver.Work(cluster)
 	assert.Equal(t, node1.State, metapb.NodeState_N_Logout, "node state error")
@@ -173,14 +177,14 @@ func TestNodeFailOverNeverBorn(t *testing.T) {
 	ds_1 := NewMockDs(dsAddr_1)
 	node1, _, err := cluster.GetNodeId(dsAddr_1, "", "", "")
 	if err != nil {
-		t.Fatal("GetNodeId error:[%v]", err)
+		t.Fatalf("GetNodeId error:[%v]", err)
 	}
 	assert.NotEqual(t, node1.Id, 0, "Donot generate node id")
 	assert.Equal(t, node1.State, metapb.NodeState_N_Initial, "node state error")
 	ds_1.SetNodeId(node1.Id)
 
 	if err := cluster.NodeLogin(ds_1.NodeId); err != nil {
-		t.Fatal("NodeLogin error:[%v]", err)
+		t.Fatalf("NodeLogin error:[%v]", err)
 	}
 	assert.Equal(t, node1.State, metapb.NodeState_N_Login, "node state error")
 
@@ -194,32 +198,32 @@ func TestNodeFailOverNeverBorn(t *testing.T) {
 	assert.Equal(t, node1.State, metapb.NodeState_N_Tombstone, "node state error")
 
 	time.Sleep(1 * time.Second)
-	// 不连续发送DefaultDsRecoveryInterim / DefaultDsHearbeatInterval次心跳
+	cluster.opt.MaxNodeDownTime = time.Second
+	failOver.Work(cluster)
+	assert.Equal(t, node1.State, metapb.NodeState_N_Logout, "node state error")
+
+	// 连续发送DefaultDsRecoveryInterim / DefaultDsHearbeatInterval次心跳
 	req := &mspb.NodeHeartbeatRequest{
 		NodeId: ds_1.NodeId,
 	}
 	server.handleNodeHeartbeat(nil, req)
-	assert.Equal(t, node1.State, metapb.NodeState_N_Tombstone, "node state error")
+	assert.Equal(t, node1.State, metapb.NodeState_N_Logout, "node state error")
 
-	time.Sleep(1 * time.Second)
-	failOver.Work(cluster)
+	server.handleNodeHeartbeat(nil, req)
 	assert.Equal(t, node1.State, metapb.NodeState_N_Logout, "node state error")
 }
 
 func createCluster(t *testing.T) (c *Cluster, s *Server) {
 	modifyDefault(1, 2, 5)
 
-	cluster := newLocalCluster(newMockIDAllocator())
-	defer closeLocalCluster(cluster)
-
+	cluster := newBoltDbCluster(t, newMockIDAllocator())
 	server := new(Server)
 	server.cluster = cluster
 	return cluster, server
 }
 
-func closeCluster(c *Cluster) {
-	c.store.Close()
-	clearData()
+func closeCluster(c *Cluster)  {
+	closeLocalCluster(c)
 }
 
 func modifyDefault(t1, t2, t3 uint32) {

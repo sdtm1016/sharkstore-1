@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 #include <thread>
+#include <functional>
 
 #include "number_statemachine.h"
 #include "raft/raft.h"

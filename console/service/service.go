@@ -15,38 +15,55 @@ import (
 )
 import (
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/satori/go.uuid"
 )
 import (
+	"model/pkg/ds_admin"
+	"model/pkg/kvrpcpb"
 	"console/models"
 	"console/common"
 	"console/config"
+	"console/right"
 	"util/log"
-	"util/ttlcache"
 	"strconv"
 	"errors"
 	"sync"
+	"crypto/md5"
+	"encoding/hex"
 )
 
 const (
 	//DB_NAME = "fbase_mock_console"
-	DB_NAME     = "fbase"
-	LOCK_DBNAME = "lock"
-	LOCK_COLUMN = "lock_col"
+	DB_NAME = "fbase"
 
-	TABLE_NAME_USER      = "fbase_user"
-	TABLE_NAME_CLUSTER   = "fbase_cluster"
-	TABLE_NAME_ROLE      = "fbase_role"
-	TABLE_NAME_PRIVILEGE = "fbase_privilege"
-	TABLE_NAME_LOCK_NSP  = "fbase_lock_nsp"
-	TABLE_NAME_METRIC_SERVER   = "metric_server"
+	TABLE_NAME_USER          = "fbase_user"
+	TABLE_NAME_CLUSTER       = "fbase_cluster"
+	TABLE_NAME_ROLE          = "fbase_role"
+	TABLE_NAME_PRIVILEGE     = "fbase_privilege"
+	TABLE_NAME_SQL_APPLY     = "fbase_sql_apply"
+	TABLE_NAME_LOCK_NSP      = "fbase_lock_nsp"
+	TABLE_NAME_CONFIGURE_NSP = "fbase_configure_nsp"
+	TABLE_NAME_METRIC_SERVER = "metric_server"
+
+	STATUS_APPLY  = 1
+	STATUS_AUDIT  = 2
+	STATUS_REJECT = 3
+
+	LOCK_CLIENT_NAMESPACE_PREFIX = ""
 )
+
+var Columns = []*models.Column{
+	{Name: "k", DataType: 7, PrimaryKey: 1, Index: true},
+	{Name: "version", DataType: 4, Index: true},
+	{Name: "v", DataType: 7, Index: true},
+	{Name: "extend", DataType: 7, Index: true},
+}
 
 var serviceInstance *Service = nil
 
 type Service struct {
 	config     *config.Config
 	db         *sql.DB
-	adminCache *ttlcache.TTLCache
 }
 
 func NewService() *Service {
@@ -109,7 +126,7 @@ func (s *Service) GetClusterById(ids ...int64) ([]*models.ClusterInfo, error) {
 
 func (s *Service) GetAllClusters() ([]*models.ClusterInfo, error) {
 	rows, err := s.db.Query(fmt.Sprintf(`SELECT id, cluster_name, cluster_url, gateway_http, gateway_sql, cluster_sign,
-		auto_transfer, auto_failover, auto_split, create_time FROM %s`, TABLE_NAME_CLUSTER))
+		auto_transfer, auto_failover, auto_split, create_time FROM %s order by id`, TABLE_NAME_CLUSTER))
 	if err != nil {
 		log.Error("db select is failed. err:[%v]", err)
 		return nil, common.DB_ERROR
@@ -151,7 +168,40 @@ func (s *Service) CreateCluster(cId int, cName, masterUrl, gateHttpUrl, gateSqlU
 	return nil
 }
 
-func (s *Service) CreateDb(cId int, dbName string) error {
+func (s *Service) CreateDb(cId int, dbName string) (*models.DbInfo, error) {
+	info, err := s.selectClusterById(cId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(info.Id, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["name"] = dbName
+
+	var createDbResp = struct {
+		Code int           `json:"code"`
+		Msg  string        `json:"message"`
+		Data models.DbInfo `json:"data"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/database/create", reqParams, &createDbResp); err != nil {
+		return nil, err
+	}
+	if createDbResp.Code != 0 {
+		log.Error("master createdb is failed. err:[%v]", createDbResp)
+		return nil, common.INTERNAL_ERROR
+	}
+
+	return &createDbResp.Data, nil
+}
+
+func (s *Service) DeleteDb(cId int, dbName string) error {
 	info, err := s.selectClusterById(cId)
 	if err != nil {
 		return err
@@ -166,19 +216,19 @@ func (s *Service) CreateDb(cId int, dbName string) error {
 	reqParams := make(map[string]interface{})
 	reqParams["d"] = ts
 	reqParams["s"] = sign
-	reqParams["name"] = dbName
+	reqParams["dbName"] = dbName
 
-	var createDbResp = struct {
-		Code int         `json:"code"`
-		Msg  string      `json:"message"`
-		Data interface{} `json:"data"`
+	var deleteDbResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
 	}{}
-	if err := sendGetReq(info.MasterUrl, "/manage/database/create", reqParams, &createDbResp); err != nil {
-		return err
+	if err := sendGetReq(info.MasterUrl, "/manage/database/delete", reqParams, &deleteDbResp); err != nil {
+		log.Error("send delete db error, %v", err)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: err.Error()}
 	}
-	if createDbResp.Code != 0 {
-		log.Error("master createdb is failed. err:[%v]", createDbResp)
-		return common.INTERNAL_ERROR
+	if deleteDbResp.Code != 0 {
+		log.Error("master deleteDb is failed. err:[%v]", deleteDbResp)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: deleteDbResp.Msg}
 	}
 
 	return nil
@@ -217,13 +267,13 @@ func (s *Service) GetAllDb(cId int) (*[]models.DbInfo, error) {
 	return &(getAllDbResp.Data), nil
 }
 
-func (s *Service) CreateTable(cId int, dbName, tableName, policy, rangeKeys, isolationLabel string, columnJsonArray, regxsJsonArray interface{}) error {
+func (s *Service) CreateTable(cId int, dbName, tableName, policy, rangeKeys, isolationLabel string, columnJsonArray, regxsJsonArray interface{}) (*models.TableInfo, error) {
 	info, err := s.selectClusterById(cId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if info == nil {
-		return common.CLUSTER_NOTEXISTS_ERROR
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
 	}
 
 	ts := time.Now().Unix()
@@ -255,19 +305,19 @@ func (s *Service) CreateTable(cId int, dbName, tableName, policy, rangeKeys, iso
 	reqParams["properties"] = r3
 
 	var createTableResp = struct {
-		Code int         `json:"code"`
-		Msg  string      `json:"message"`
-		Data interface{} `json:"data"`
+		Code int              `json:"code"`
+		Msg  string           `json:"message"`
+		Data models.TableInfo `json:"data"`
 	}{}
 	if err := sendPostReqStrBody(info.MasterUrl, "/manage/table/create", reqParams, &createTableResp); err != nil {
-		return err
+		return nil, err
 	}
 	if createTableResp.Code != 0 {
 		log.Error("master createTable is failed. err:[%v]", createTableResp)
-		return common.INTERNAL_ERROR
+		return nil, common.INTERNAL_ERROR
 	}
 
-	return nil
+	return &createTableResp.Data, nil
 }
 
 func (s *Service) GetAllTables(cId int, dbId, dbName string) (*[]models.TableInfo, error) {
@@ -516,7 +566,7 @@ func (s *Service) GetMasterAll(cId int, token string) (*models.Member, error) {
 	return masterNodesResp.Data, nil
 }
 
-func (s *Service) GetMasterLeader(cId int, token string) (interface{}, error) {
+func (s *Service) GetMasterLeader(cId int, token string) (*models.MsNode, error) {
 	info, err := s.selectClusterById(cId)
 	if err != nil {
 		return nil, err
@@ -532,11 +582,11 @@ func (s *Service) GetMasterLeader(cId int, token string) (interface{}, error) {
 	reqParams["s"] = sign
 
 	var masterLeaderResp = struct {
-		Code int         `json:"code"`
-		Msg  string      `json:"message"`
-		Data interface{} `json:"data"`
+		Code int            `json:"code"`
+		Msg  string         `json:"message"`
+		Data *models.MsNode `json:"data"`
 	}{}
-	if err := sendGetReq(info.MasterUrl, "manage/master/getleader", reqParams, &masterLeaderResp); err != nil {
+	if err := sendGetReq(info.MasterUrl, "/manage/master/getleader", reqParams, &masterLeaderResp); err != nil {
 		return nil, err
 	}
 	if masterLeaderResp.Code != 0 {
@@ -565,7 +615,7 @@ func (s *Service) InitCluster(cId int, masterUrl string, isolationLabel string, 
 	}
 	if initClusterResp.Code != 0 {
 		log.Error("init cluster is failed. err:[%v]", initClusterResp)
-		return fmt.Errorf(initClusterResp.Msg)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: initClusterResp.Msg}
 	}
 	return nil
 }
@@ -596,7 +646,7 @@ func (s *Service) GetNodeViewInfo(cId int) ([]*models.DsNode, error) {
 	}
 	if nodeInfoResp.Code != 0 {
 		log.Error("get node info failed. err:[%v]", nodeInfoResp)
-		return nil, fmt.Errorf(nodeInfoResp.Msg)
+		return nil, common.INTERNAL_ERROR
 	}
 	return nodeInfoResp.Data, nil
 }
@@ -627,7 +677,7 @@ func (s *Service) SetNodeLogOut(clusterId, nodeId int) error {
 	}
 	if nodeLogoutResp.Code != 0 {
 		log.Error("set node logout failed. err:[%v]", nodeLogoutResp)
-		return fmt.Errorf(nodeLogoutResp.Msg)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: nodeLogoutResp.Msg}
 	}
 	return nil
 }
@@ -658,7 +708,7 @@ func (s *Service) SetNodeUpgrade(clusterId, nodeId int) error {
 	}
 	if nodeUpgradeResp.Code != 0 {
 		log.Error("node upgrade failed. err:[%v]", nodeUpgradeResp)
-		return fmt.Errorf(nodeUpgradeResp.Msg)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: nodeUpgradeResp.Msg}
 	}
 	return nil
 }
@@ -690,7 +740,7 @@ func (s *Service) SetNodeLogIn(clusterId, nodeId int) (error) {
 	}
 	if nodeLoginResp.Code != 0 {
 		log.Error("set node login failed. err:[%v]", nodeLoginResp)
-		return fmt.Errorf(nodeLoginResp.Msg)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: nodeLoginResp.Msg}
 	}
 	return nil
 }
@@ -722,7 +772,7 @@ func (s *Service) SetNodeLogLevel(clusterId, nodeId int, logLevel string) (error
 	}
 	if nodeLogLevelResp.Code != 0 {
 		log.Error("set node log level failed. err:[%v]", nodeLogLevelResp)
-		return fmt.Errorf(nodeLogLevelResp.Msg)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: nodeLogLevelResp.Msg}
 	}
 	return nil
 }
@@ -758,7 +808,7 @@ func (s *Service) TaskOperate(clusterId int, operate string, taskIds string) (in
 	}
 	if resp.Code != 0 {
 		log.Error("task get all failed. err:[%v]", resp)
-		return nil, fmt.Errorf(resp.Msg)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: resp.Msg}
 	}
 	return resp.Data, nil
 }
@@ -792,7 +842,7 @@ func (s *Service) GetPresentTask(clusterId int) (interface{}, error) {
 	}
 	if resp.Code != 0 {
 		log.Error("task get all failed. err:[%v]", resp)
-		return nil, fmt.Errorf(resp.Msg)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: resp.Msg}
 	}
 	return resp.Data, nil
 }
@@ -828,7 +878,7 @@ func (s *Service) DeletePeer(clusterId int, rangeId, peerId string) (interface{}
 	}
 	if peerDeleteResp.Code != 0 {
 		log.Error("delete node failed. err:[%v]", peerDeleteResp)
-		return nil, fmt.Errorf(peerDeleteResp.Msg)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: peerDeleteResp.Msg}
 	}
 	return peerDeleteResp.Data, nil
 }
@@ -854,15 +904,15 @@ func (s *Service) AddPeer(clusterId int, rangeId string) error {
 	reqParams["rangeId"] = rangeId
 
 	var peerAddResp = struct {
-		Code int         `json:"code"`
-		Msg  string      `json:"message"`
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
 	}{}
 	if err := sendGetReq(info.MasterUrl, "/manage/range/add/peer", reqParams, &peerAddResp); err != nil {
 		return err
 	}
 	if peerAddResp.Code != 0 {
 		log.Error("add peer failed. err:[%v]", peerAddResp)
-		return fmt.Errorf(peerAddResp.Msg)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: peerAddResp.Msg}
 	}
 	return nil
 }
@@ -893,7 +943,7 @@ func (s *Service) DeleteNodes(clusterId int, nodeIds string) error {
 	}
 	if nodeDeleteResp.Code != 0 {
 		log.Error("delete node failed. err:[%v]", nodeDeleteResp)
-		return fmt.Errorf(nodeDeleteResp.Msg)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: nodeDeleteResp.Msg}
 	}
 	return nil
 }
@@ -925,7 +975,7 @@ func (s *Service) GetRangeTopoByNodeId(clusterId, nodeId int) (interface{}, erro
 	}
 	if getRangeTopoOfNodeResp.Code != 0 {
 		log.Error("getting range topology of node[nodeId=%d] failed. err:[%v]", nodeId, getRangeTopoOfNodeResp)
-		return nil, fmt.Errorf(getRangeTopoOfNodeResp.Msg)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: getRangeTopoOfNodeResp.Msg}
 	}
 	return getRangeTopoOfNodeResp.Data, nil
 }
@@ -963,6 +1013,204 @@ func (s *Service) UpdateNodeIsolationLabel(clusterId, nodeId int, isolationLabel
 	return nil
 }
 
+func (s *Service) GetConfigOfNode(clusterId, nodeId int, configKeys string) (interface{}, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["nodeId"] = nodeId
+	reqParams["getConfigKey"] = configKeys
+
+	var getConfigOfNodeResp = struct {
+		Code int                      `json:"code"`
+		Msg  string                   `json:"message"`
+		Data []*ds_adminpb.ConfigItem `json:"data"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/node/getConfigOfNode", reqParams, &getConfigOfNodeResp); err != nil {
+		return nil, err
+	}
+	if getConfigOfNodeResp.Code != 0 {
+		log.Error("get config of node[nodeId=%d, clusterId=%d] failed. err:[%v]", nodeId, clusterId, getConfigOfNodeResp)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: getConfigOfNodeResp.Msg}
+	}
+	return getConfigOfNodeResp.Data, nil
+}
+
+func (s *Service) SetConfigOfNode(clusterId, nodeId int, setConfig string) (interface{}, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["nodeId"] = nodeId
+	reqParams["setConfig"] = setConfig
+
+	var setConfigOfNodeResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/node/setConfigOfNode", reqParams, &setConfigOfNodeResp); err != nil {
+		return nil, err
+	}
+	if setConfigOfNodeResp.Code != 0 {
+		log.Error("set config of node[nodeId=%d, clusterId=%d] failed. err:[%v]", nodeId, clusterId, setConfigOfNodeResp)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: setConfigOfNodeResp.Msg}
+	}
+	return nil, nil
+}
+
+func (s *Service) GetDsInfoOfNode(clusterId, nodeId int, path string) (interface{}, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["nodeId"] = nodeId
+	reqParams["dsInfoPath"] = path
+
+	var getDsInfoOfNodeResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
+		Data string `json:"data"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/node/getDsInfoOfNode", reqParams, &getDsInfoOfNodeResp); err != nil {
+		return nil, err
+	}
+	if getDsInfoOfNodeResp.Code != 0 {
+		log.Error("get ds_info of node[nodeId=%d, clusterId=%d] failed. err:[%v]", nodeId, clusterId, getDsInfoOfNodeResp)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: getDsInfoOfNodeResp.Msg}
+	}
+	return getDsInfoOfNodeResp.Data, nil
+}
+
+func (s *Service) ClearQueueOfNode(clusterId, nodeId int, queueType string) (interface{}, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["nodeId"] = nodeId
+	reqParams["queueType"] = queueType
+
+	var clearQueueOfNodeResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
+		Data uint64 `json:"data"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/node/clearQueueOfNode", reqParams, &clearQueueOfNodeResp); err != nil {
+		return nil, err
+	}
+	if clearQueueOfNodeResp.Code != 0 {
+		log.Error("clear queue of node[nodeId=%d, clusterId=%d] failed. err:[%v]", nodeId, clusterId, clearQueueOfNodeResp)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: clearQueueOfNodeResp.Msg}
+	}
+	return clearQueueOfNodeResp.Data, nil
+}
+
+func (s *Service) GetPendingQueuesOfNode(clusterId, nodeId int, pendingType, count string) (interface{}, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["nodeId"] = nodeId
+	reqParams["pendingType"] = pendingType
+	reqParams["count"] = count
+
+	var getPendingQueuesOfNodeResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
+		Data string `json:"data"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/node/getPendingQueuesOfNode", reqParams, &getPendingQueuesOfNodeResp); err != nil {
+		return nil, err
+	}
+	if getPendingQueuesOfNodeResp.Code != 0 {
+		log.Error("get pending queues of node[nodeId=%d, clusterId=%d] failed. err:[%v]", nodeId, clusterId, getPendingQueuesOfNodeResp)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: getPendingQueuesOfNodeResp.Msg}
+	}
+	return getPendingQueuesOfNodeResp.Data, nil
+}
+
+func (s *Service) FlushDBOfNode(clusterId, nodeId int, wait bool) (interface{}, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["nodeId"] = nodeId
+	reqParams["wait"] = wait
+
+	var flushDBOfNodeResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/node/flushDBOfNode", reqParams, &flushDBOfNodeResp); err != nil {
+		return nil, err
+	}
+	if flushDBOfNodeResp.Code != 0 {
+		log.Error("flush db of node[nodeId=%d, clusterId=%d, wait=%t] failed. err:[%v]", nodeId, clusterId, wait, flushDBOfNodeResp)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: flushDBOfNodeResp.Msg}
+	}
+	return nil, nil
+}
+
+
 func (s *Service) SetClusterToggle(clusterId int, autoTransfer, autoFailover, autoSplit string) error {
 	info, err := s.selectClusterById(clusterId)
 	if err != nil {
@@ -992,15 +1240,15 @@ func (s *Service) SetClusterToggle(clusterId int, autoTransfer, autoFailover, au
 	}
 	if clusterToggleSetResp.Code != 0 {
 		log.Error("delete node failed. err:[%v]", clusterToggleSetResp)
-		return fmt.Errorf(clusterToggleSetResp.Msg)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: clusterToggleSetResp.Msg}
 	} else {
 		//改库
 		info.AutoFailoverUnable, _ = strconv.ParseBool(autoFailover)
 		info.AutoTransferUnable, _ = strconv.ParseBool(autoTransfer)
-		info.AutoSplitUnable, _ =  strconv.ParseBool(autoSplit)
+		info.AutoSplitUnable, _ = strconv.ParseBool(autoSplit)
 		log.Debug("start to update database, %v", info)
 		if err := s.insertClusterById(info); err != nil {
-			return fmt.Errorf("更新集群开关失败")
+			return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: fmt.Sprintf("更新集群开关失败, %s", err.Error())}
 		}
 	}
 	return nil
@@ -1033,7 +1281,7 @@ func (s *Service) GetSchedulerAll(clusterId int) (map[string]bool, error) {
 	}
 	if getScheduleResp.Code != 0 {
 		log.Error("get cluster[%d] scheduler failed. err:[%v]", clusterId, getScheduleResp)
-		return nil, fmt.Errorf(getScheduleResp.Msg)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: getScheduleResp.Msg}
 	}
 	return getScheduleResp.Data, nil
 }
@@ -1057,8 +1305,8 @@ func (s *Service) GetSchedulerDetail(clusterId int, name string) (interface{}, e
 	reqParams["name"] = name
 
 	var scheduleDetailResp = struct {
-		Code int             `json:"code"`
-		Msg  string          `json:"message"`
+		Code int         `json:"code"`
+		Msg  string      `json:"message"`
 		Data interface{} `json:"data"`
 	}{}
 	if err := sendGetReq(info.MasterUrl, "/manage/scheduler/detail", reqParams, &scheduleDetailResp); err != nil {
@@ -1066,7 +1314,7 @@ func (s *Service) GetSchedulerDetail(clusterId int, name string) (interface{}, e
 	}
 	if scheduleDetailResp.Code != 0 {
 		log.Error("get cluster[%d] scheduler %s detail failed. err:[%v]", clusterId, name, scheduleDetailResp)
-		return nil, fmt.Errorf(scheduleDetailResp.Msg)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: scheduleDetailResp.Msg}
 	}
 	return scheduleDetailResp.Data, nil
 }
@@ -1108,7 +1356,7 @@ func (s *Service) AdjustScheduler(clusterId, optType int, scheduler string) (err
 	}
 	if adjustScheduleResp.Code != 0 {
 		log.Error("adjust cluster[%d] schedule, optType:[%s],scheduleName:[%s] err:[%v]", clusterId, optType, scheduler, adjustScheduleResp)
-		return fmt.Errorf(adjustScheduleResp.Msg)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: adjustScheduleResp.Msg}
 	}
 	return nil
 }
@@ -1141,7 +1389,7 @@ func (s *Service) CheckTopology(clusterId int, dbName, tableName string) (error)
 	}
 	if checkTopologyResp.Code != 0 {
 		log.Error("check cluster[%d] topology , dbName:[%s],tableName:[%s] err:[%v]", clusterId, dbName, tableName, checkTopologyResp)
-		return fmt.Errorf(checkTopologyResp.Msg)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: checkTopologyResp.Msg}
 	}
 	return nil
 }
@@ -1175,7 +1423,7 @@ func (s *Service) GetTableTopologyMissing(clusterId int, dbName, tableName strin
 	}
 	if topologyMResp.Code != 0 {
 		log.Error("get cluster[%d] topology , dbName:[%s],tableName:[%s] missing list err:[%v]", clusterId, dbName, tableName, topologyMResp)
-		return nil, fmt.Errorf(topologyMResp.Msg)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: topologyMResp.Msg}
 	}
 	return topologyMResp.Data, nil
 }
@@ -1210,7 +1458,7 @@ func (s *Service) CreateTopologyRange(clusterId int, dbName, tableName, startKey
 	}
 	if topologyCResp.Code != 0 {
 		log.Error("create cluster[%d] topology missing range failed, param: dbName:[%s],tableName:[%s], err:[%v]", clusterId, dbName, tableName, topologyCResp)
-		return fmt.Errorf(topologyCResp.Msg)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: topologyCResp.Msg}
 	}
 	return nil
 }
@@ -1243,7 +1491,7 @@ func (s *Service) BatchCreateTopologyRange(clusterId int, dbName, tableName stri
 	}
 	if topologyCResp.Code != 0 {
 		log.Error("batch create cluster[%d] topology missing range failed, param: dbName:[%s],tableName:[%s], err:[%v]", clusterId, dbName, tableName, topologyCResp)
-		return fmt.Errorf(topologyCResp.Msg)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: topologyCResp.Msg}
 	}
 	return nil
 }
@@ -1277,7 +1525,7 @@ func (s *Service) GetRangeDuplicate(clusterId int, dbName, tableName string) (in
 	}
 	if getDuplicateResp.Code != 0 {
 		log.Error("get cluster[%d] topology , dbName:[%s],tableName:[%s] range duplicate list err:[%v]", clusterId, dbName, tableName, getDuplicateResp)
-		return nil, fmt.Errorf(getDuplicateResp.Msg)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: getDuplicateResp.Msg}
 	}
 	return getDuplicateResp.Data, nil
 }
@@ -1309,7 +1557,7 @@ func (s *Service) GetClusterTopology(clusterId int) (interface{}, error) {
 	}
 	if getTopologyResp.Code != 0 {
 		log.Error("get cluster[%d] topology list failed, err:[%v]", clusterId, getTopologyResp)
-		return nil, fmt.Errorf(getTopologyResp.Msg)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: getTopologyResp.Msg}
 	}
 	return getTopologyResp.Data, nil
 }
@@ -1341,7 +1589,7 @@ func (s *Service) GetTaskType(clusterId int) ([]string, error) {
 	}
 	if getTaskTypeResp.Code != 0 {
 		log.Error("get cluster[%d] task type failed. err:[%v]", clusterId, getTaskTypeResp)
-		return nil, fmt.Errorf(getTaskTypeResp.Msg)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: getTaskTypeResp.Msg}
 	}
 	return getTaskTypeResp.Data, nil
 }
@@ -1447,7 +1695,6 @@ func (s *Service) GetUnstableRanges(clusterId int, dbName, tableName string) (in
 	}
 	return getUnstableRangesResp.Data, nil
 }
-
 
 func (s *Service) GetPeerInfo(clusterId int, dbName, tableName string, rangeId int) (interface{}, error) {
 	info, err := s.selectClusterById(clusterId)
@@ -1714,6 +1961,73 @@ func (s *Service) BatchRecoverRange(clusterId int, dbName, tableName string) err
 	return nil
 }
 
+func (s *Service) ForceSplitRange(clusterId, rangeId int, dbName, tableName string) error {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return err
+	}
+	if info == nil {
+		return common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["dbName"] = dbName
+	reqParams["tableName"] = tableName
+	reqParams["rangeId"] = rangeId
+
+	var forceSplitRangeResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/range/forceSplitRange", reqParams, &forceSplitRangeResp); err != nil {
+		return err
+	}
+	if forceSplitRangeResp.Code != 0 {
+		log.Error("cluster[%d] db[%s] table[%s] rangeId[%s] force split failed. err:[%v]", clusterId, dbName, tableName, rangeId, forceSplitRangeResp)
+		return fmt.Errorf(forceSplitRangeResp.Msg)
+	}
+	return nil
+}
+
+func (s *Service) ForceCompactRange(clusterId, rangeId int, dbName, tableName string) (interface{}, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["dbName"] = dbName
+	reqParams["tableName"] = tableName
+	reqParams["rangeId"] = rangeId
+
+	var forceCompactRangeResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
+		//Data []byte `json:"data"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/range/forceCompactRange", reqParams, &forceCompactRangeResp); err != nil {
+		return nil, err
+	}
+	if forceCompactRangeResp.Code != 0 {
+		log.Error("cluster[%d] db[%s] table[%s] rangeId[%s] force compact failed. err:[%v]", clusterId, dbName, tableName, rangeId, forceCompactRangeResp)
+		return nil, fmt.Errorf(forceCompactRangeResp.Msg)
+	}
+	return forceCompactRangeResp, nil
+}
+
 //迁移
 func (s *Service) TransferRange(clusterId int, rangeId int, peerId int) error {
 	info, err := s.selectClusterById(clusterId)
@@ -1949,57 +2263,252 @@ func (s *Service) SetMasterLogLevel(clusterId int, logLevel string) (error) {
 }
 
 func (s *Service) IsAdmin(userName string) (bool, error) {
-	flag, find := s.adminCache.Get(userName)
-	if find {
-		log.Info("enter cache")
-		return flag.(bool), nil
+	userInfo, err := right.GetUserCluster(s.GetDb(), userName)
+	if err != nil {
+		log.Error("user %v isAdmin error, %v", userName, err)
+		return false, err
 	}
-	log.Info("enter db query")
-	var exist bool
-	var user string
-	if err := s.db.QueryRow(fmt.Sprintf(`SELECT user_name  FROM %s WHERE user_name="%s" and privilege = 1`, TABLE_NAME_PRIVILEGE, userName)).
-		Scan(&(user)); err != nil {
-		if err != sql.ErrNoRows {
-			log.Error("db queryrow is failed. err:[%v]", err)
-			return false, common.DB_ERROR
+	if userInfo != nil {
+		for _, right := range userInfo.Right {
+			if right == 1 {
+				return true, nil
+			}
 		}
 	}
-	if len(user) > 0 {
-		exist = true
-	}
-	s.adminCache.Put(userName, exist)
-	return exist, nil
+	return false, nil
 }
 
-//=============lock start==============
-func (s *Service) GetAllNamespace(userName string, isAdmin bool) ([]*models.NamespaceApply, error) {
-	var sql string
-	if isAdmin {
-		sql = fmt.Sprintf(`select * from %s`, TABLE_NAME_LOCK_NSP)
-	} else {
-		sql = fmt.Sprintf(`select * from %s where applyer = "%s" `, TABLE_NAME_LOCK_NSP, userName)
+//=============sql apply start==============
+func (s *Service) GetAllSqlApply(userName string, isAdmin bool, pageInfo *models.PagerInfo) (int, []*models.SqlApply, error) {
+	selectSql := fmt.Sprintf(`select id, db_name, table_name, status, applyer, create_time, remark from %s`, TABLE_NAME_SQL_APPLY)
+	countSql := fmt.Sprintf(`select count(*) from %s`, TABLE_NAME_SQL_APPLY)
+	if !isAdmin {
+		selectSql = fmt.Sprintf(`%s where applyer = "%s"`, selectSql, userName)
+		countSql = fmt.Sprintf(`%s where applyer = "%s"`, countSql, userName)
 	}
-	log.Debug("get all apply lock namespace: %s", sql)
+	if pageInfo != nil {
+		if pageInfo.SortName != "" && pageInfo.SortOrder != "" {
+			selectSql = fmt.Sprintf(`%s order by "%s" "%s"`, selectSql, pageInfo.SortName, pageInfo.SortOrder)
+		} else {
+			selectSql = fmt.Sprintf(`%s order by create_time desc`, selectSql)
+		}
+		if pageInfo.PageIndex > 0 && pageInfo.PageSize > 0 {
+			selectSql = fmt.Sprintf(`%s limit %d, %d`, selectSql, pageInfo.GetPageOffset(), pageInfo.GetPageSize())
+			countSql = fmt.Sprintf(`%s limit %d, %d`, countSql, pageInfo.GetPageOffset(), pageInfo.GetPageSize())
+		}
+	}
 
-	rows, err := s.db.Query(sql)
-	if err != nil {
+	log.Debug("get all sql apply records:  %s", selectSql)
+	var totalRecord int
+	if err := s.db.QueryRow(countSql).
+		Scan(&(totalRecord)); err != nil {
 		log.Error("db select is failed. err:[%v]", err)
-		return nil, common.DB_ERROR
+		return 0, nil, common.DB_ERROR
 	}
-	result := make([]*models.NamespaceApply, 0)
-	for rows.Next() {
-		info := new(models.NamespaceApply)
-		if err := rows.Scan(&(info.NameSpace), &(info.ClusterId), &(info.Applyer), &(info.CreateTime)); err != nil {
-			log.Error("db scan is failed. err:[%v]", err)
+	if totalRecord > 0 {
+		rows, err := s.db.Query(selectSql)
+		if err != nil {
+			log.Error("db select is failed. err:[%v]", err)
+			return 0, nil, common.DB_ERROR
+		}
+		result := make([]*models.SqlApply, 0)
+		for rows.Next() {
+			info := new(models.SqlApply)
+			if err := rows.Scan(&(info.Id), &(info.DbName), &(info.TableName), &(info.Status), &(info.Applyer), &(info.CreateTime), &(info.Remark)); err != nil {
+				log.Error("db scan is failed. err:[%v]", err)
+				return 0, nil, common.DB_ERROR
+			}
+			result = append(result, info)
+		}
+		return totalRecord, result, nil
+	} else {
+		return totalRecord, nil, nil
+	}
+}
+
+func (s *Service) ApplySql(dbName, tableName, sentence, applyer, remark string, cTime int64) error {
+	id, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
+	idS := fmt.Sprintf("%s", id)
+
+	sql := fmt.Sprintf(`INSERT INTO %s (id, db_name, table_name, sentence, status, applyer, auditor, create_time, remark) 
+		values ("%s", "%s", "%s", "%s", %d, "%s", "%s", %d, "%s")`,
+		TABLE_NAME_SQL_APPLY, idS, dbName, tableName, sentence, STATUS_APPLY, applyer, "", cTime, remark)
+	_, err = s.execSql(sql)
+	if err != nil {
+		return err
+	}
+
+	log.Debug("%s apply sql success", applyer)
+	return nil
+}
+
+func (s *Service) GetSqlApplyInfo(id string) (*models.SqlApply, error) {
+	info := new(models.SqlApply)
+	if err := s.db.QueryRow(fmt.Sprintf(`SELECT id, db_name, table_name, sentence, status, applyer, create_time, remark FROM %s WHERE id="%s"`, TABLE_NAME_SQL_APPLY, id)).
+		Scan(&(info.Id), &(info.DbName), &(info.TableName), &(info.Sentence), &(info.Status), &(info.Applyer), &(info.CreateTime), &(info.Remark)); err != nil {
+		if err == sql.ErrNoRows {
+			log.Error("db row not exists. applyId:[%d]", id)
+			return nil, nil
+		} else {
+			log.Error("db query row is failed. err:[%v]", err)
 			return nil, common.DB_ERROR
 		}
-		result = append(result, info)
 	}
-	return result, nil
-
+	return info, nil
 }
 
-func (s *Service) ApplyLockNamespace(cId int, namespace, applyer string, cTime int64) error {
+func (s *Service) AuditSql(ids []string, status int, auditor string) error {
+	for _, id := range ids {
+		info, err := s.GetSqlApplyInfo(id)
+		if err != nil {
+			continue
+		}
+		sql := fmt.Sprintf(`INSERT INTO %s (id, db_name, table_name, sentence, status, applyer, auditor, create_time, remark) 
+		values ("%s", "%s", "%s", "%s", %d, "%s", "%s", %d, "%s")`,
+			TABLE_NAME_SQL_APPLY, id, info.DbName, info.TableName, info.Sentence, status, info.Applyer, auditor, info.CreateTime, info.Remark)
+		_, err = s.execSql(sql)
+		if err != nil {
+			return err
+		}
+	}
+
+	log.Debug("%v audit sql success", auditor)
+	return nil
+}
+
+//=============sql apply end==============
+
+//=============lock start==============
+func (s *Service) GetAllLockNsp(userName string, isAdmin bool, pageInfo *models.PagerInfo) (int, []*models.NamespaceApply, error) {
+	return s.GetAllNamespace(userName, isAdmin, pageInfo, TABLE_NAME_LOCK_NSP)
+}
+
+func (s *Service) GetAllNamespace(userName string, isAdmin bool, pageInfo *models.PagerInfo, tableName string) (int, []*models.NamespaceApply, error) {
+	selectSql := fmt.Sprintf(`select id, db_name, table_name, cluster_id, db_id, table_id, status, applyer, auditor, create_time from %s`, tableName)
+	countSql := fmt.Sprintf(`select count(*) from %s`, tableName)
+
+	if !isAdmin {
+		selectSql = fmt.Sprintf(`%s where applyer = "%s"`, selectSql, userName)
+		countSql = fmt.Sprintf(`%s where applyer = "%s"`, countSql, userName)
+	}
+
+	if pageInfo != nil {
+		if pageInfo.SortName != "" && pageInfo.SortOrder != "" {
+			selectSql = fmt.Sprintf(`%s order by "%s" "%s"`, selectSql, pageInfo.SortName, pageInfo.SortOrder)
+		} else {
+			selectSql = fmt.Sprintf(`%s order by create_time desc`, selectSql)
+		}
+		if pageInfo.PageIndex > 0 && pageInfo.PageSize > 0 {
+			selectSql = fmt.Sprintf(`%s limit %d, %d`, selectSql, pageInfo.GetPageOffset(), pageInfo.GetPageSize())
+			countSql = fmt.Sprintf(`%s limit %d, %d`, countSql, pageInfo.GetPageOffset(), pageInfo.GetPageSize())
+		}
+	}
+	log.Debug("get all apply namespace: %s", selectSql)
+
+	var totalRecord int
+	if err := s.db.QueryRow(countSql).
+		Scan(&(totalRecord)); err != nil {
+		log.Error("db queryrow is failed. err:[%v]", err)
+		return 0, nil, common.DB_ERROR
+	}
+	if totalRecord > 0 {
+		rows, err := s.db.Query(selectSql)
+		if err != nil {
+			log.Error("db select is failed. err:[%v]", err)
+			return 0, nil, common.DB_ERROR
+		}
+		result := make([]*models.NamespaceApply, 0)
+		for rows.Next() {
+			info := new(models.NamespaceApply)
+			if err := rows.Scan(&(info.Id), &(info.DbName), &(info.TableName), &(info.ClusterId), &(info.DbId),
+				&(info.TableId), &(info.Status), &(info.Applyer), &(info.Auditor), &(info.CreateTime)); err != nil {
+				log.Error("db scan is failed. err:[%v]", err)
+				return 0, nil, common.DB_ERROR
+			}
+			result = append(result, info)
+		}
+		return totalRecord, result, nil
+	} else {
+		return totalRecord, nil, nil
+	}
+}
+
+func (s *Service) GetNamespaceById(applyId, storeTable string) (*models.NamespaceApply, error) {
+	querySql := fmt.Sprintf(`select id, db_name, table_name, cluster_id, db_id, table_id, status, applyer, auditor, create_time from %s where id = "%s" `,
+		storeTable, applyId)
+
+	log.Debug("get single apply namespace info: %s", querySql)
+
+	info := new(models.NamespaceApply)
+	if err := s.db.QueryRow(querySql).
+		Scan(&(info.Id), &(info.DbName), &(info.TableName), &(info.ClusterId), &(info.DbId),  &(info.TableId), &(info.Status), &(info.Applyer), &(info.Auditor), &(info.CreateTime)); err != nil {
+		if err == sql.ErrNoRows {
+			log.Error("db row not exists. ")
+			return nil, nil
+		} else {
+			log.Error("db queryrow is failed. err:[%v]", err)
+			return nil, common.DB_ERROR
+		}
+	}
+	return info, nil
+}
+
+func (s *Service) existNspApply(dbName, tableName string, clusterId int, storeTable string) (bool, error) {
+	querySql := fmt.Sprintf(`select count(*) from %s where db_name = "%s" and table_name = "%s" and cluster_id = %d`,
+		storeTable, dbName, tableName, clusterId)
+	log.Debug("check exist namespace info: %s", querySql)
+	var count int
+	if err := s.db.QueryRow(querySql).
+		Scan(&(count)); err != nil {
+		log.Error("db queryrow is failed. err:[%v]", err)
+		return true, common.DB_ERROR
+	}
+	if count > 0 {
+		return true, nil
+	} else {
+		return false, nil
+	}
+}
+
+func (s *Service) existTable(dbName, tableName string, clusterId int) (bool, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return true, err
+	}
+	if info == nil {
+		return true, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	ts := time.Now().Unix()
+	sign := common.CalcMsReqSign(clusterId, info.ClusterToken, ts)
+
+	reqParams := make(map[string]interface{})
+	reqParams["d"] = ts
+	reqParams["s"] = sign
+	reqParams["dbName"] = dbName
+	reqParams["tableName"] = tableName
+
+	var getTableResp = struct {
+		Code int    `json:"code"`
+		Msg  string `json:"message"`
+	}{}
+	if err := sendGetReq(info.MasterUrl, "/manage/get/table", reqParams, &getTableResp); err != nil {
+		return true, err
+	}
+	if getTableResp.Code == 0 {
+		return true, nil
+	}
+	return false, nil
+}
+
+func (s *Service) ApplyLockNsp(cId int, dbName, tableName, applyer string, cTime int64) error {
+	return s.ApplyNamespace(cId, dbName, tableName, applyer, cTime, TABLE_NAME_LOCK_NSP)
+}
+
+func (s *Service) ApplyNamespace(cId int, dbName, tableName, applyer string, cTime int64, storeTable string) error {
 	info, err := s.selectClusterById(cId)
 	if err != nil {
 		return err
@@ -2007,41 +2516,119 @@ func (s *Service) ApplyLockNamespace(cId int, namespace, applyer string, cTime i
 	if info == nil {
 		return common.CLUSTER_NOTEXISTS_ERROR
 	}
-
-	var columns []*models.Column
-	lockColumn := &models.Column{Name: LOCK_COLUMN, DataType: 1, PrimaryKey: 1, Index: true}
-	columns = append(columns, lockColumn)
-	err = s.CreateTable(cId, LOCK_DBNAME, namespace, "", "", "", columns, nil)
+	//唯一性检测
+	existFlag, err := s.existNspApply(dbName, tableName, cId, storeTable)
 	if err != nil {
-		log.Warn("apply lock namespace %v cluster %v failed, err: %v", namespace, cId, err)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: err.Error()}
+	}
+	if existFlag {
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: "had exist apply record"}
+	}
+
+	if flag, _ := s.existTable(dbName, tableName, cId); flag {
+		log.Warn("exist table [%d:%s:%s] or request error, please retry other namespace", cId, dbName, tableName)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: fmt.Sprintf("exist table [%s:%s] or request error, please retry other namespace", dbName, tableName)}
+	}
+
+	id, err := uuid.NewV4()
+	if err != nil {
 		return err
 	}
 
-	sql := fmt.Sprintf(`INSERT INTO %s (namespace, cluster_id, applyer, create_time) values ("%s", %d, "%s", %d)`,
-		TABLE_NAME_LOCK_NSP, namespace, cId, applyer, cTime)
-	_, err = s.execSql(sql)
+	nsp := fmt.Sprintf(`INSERT INTO %s (id, db_name, table_name, cluster_id, db_id, table_id, status, applyer, auditor, create_time) 
+		values ("%s", "%s", "%s", %d, 0, 0, %d, "%s", "%s", %d)`,
+		storeTable, fmt.Sprintf("%s", id), dbName, tableName, cId, STATUS_APPLY, applyer, "", cTime)
+	_, err = s.execSql(nsp)
 	if err != nil {
 		return err
 	}
 
-	log.Debug("%s apply lock namsspace %s success", applyer, namespace, applyer)
+	log.Debug("%s apply namespace [%s:%s] success", applyer, dbName, tableName)
 	return nil
 }
 
-func (s *Service) UpdateLockNsp(cId int, namespace, applyer string, cTime int64) error {
-	sql := fmt.Sprintf(`Insert into %s (namespace, cluster_id, applyer, create_time) values ("%s", %d, "%s", %d)`, TABLE_NAME_LOCK_NSP, namespace, cId, applyer, cTime)
-	rowsAffected, err := s.execSql(sql)
+func (s *Service) AuditLockNsp(ids []string, status int, auditor string) error {
+	for _, applyId := range ids {
+		info, err := s.GetNamespaceById(applyId, TABLE_NAME_LOCK_NSP)
+		if err != nil {
+			continue
+		}
+		var dbId, tableId int
+		if status == STATUS_AUDIT { // 审批通过
+			dbInfo, err := s.CreateDb(info.ClusterId, info.DbName)
+			if err != nil {
+				log.Warn("create lock db %v on cluster %v failed, err: %v", info.DbName, info.ClusterId, err)
+				return err
+			}
+			dbId = dbInfo.Id
+
+			if flag, _ := s.existTable(info.DbName, info.TableName, info.ClusterId); flag {
+				log.Warn("lock: exist db %v table %v in cluster %v, cannot audit", info.DbName, info.TableName, info.ClusterId)
+				return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: fmt.Sprintf("exist table %v in cluster %v", info.TableName, info.ClusterId)}
+			}
+
+			tableInfo, err := s.CreateTable(info.ClusterId, info.DbName, info.TableName, "", "", Columns, nil)
+			if err != nil {
+				log.Warn("create lock  table %v on cluster %v failed, err: %v", info.TableName, info.ClusterId, err)
+				return err
+			}
+			tableId = tableInfo.Id
+		}
+		nspSql := fmt.Sprintf(`INSERT INTO %s (id, db_name, table_name, cluster_id, db_id, table_id, status, applyer, auditor, create_time) values ("%s", "%s", "%s", %d,  %d,  %d, %d, "%s", "%s", %d )`,
+			TABLE_NAME_LOCK_NSP, applyId, info.DbName, info.TableName, info.ClusterId, dbId, tableId, status, info.Applyer, auditor, info.CreateTime)
+		rowsAffected, err := s.execSql(nspSql)
+		if err != nil {
+			return err
+		}
+		if rowsAffected != 1 {
+			return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: "update apply status and return result error"}
+		}
+	}
+	log.Debug("%v audit lock namespace success, status: %v", auditor, status)
+	return nil
+}
+
+func (s *Service) UpdateLockNsp(applyId, applyer string) error {
+	return s.UpdateNsp(applyId, applyer, TABLE_NAME_LOCK_NSP)
+}
+
+func (s *Service) UpdateNsp(applyId, applyer, storeTable string) error {
+	applyInfo, err := s.GetNamespaceById(applyId, storeTable)
+	if err != nil {
+		return err
+	}
+	nspSql := fmt.Sprintf(`Insert into %s (id, db_name, table_name, cluster_id, db_id, table_id, status, applyer, auditor, create_time) values ("%s", "%s", "%s", %d, %d, %d, %d, "%s", "%s", %d)`,
+		storeTable, applyId, applyInfo.DbName, applyInfo.TableName, applyInfo.ClusterId, applyInfo.DbId, applyInfo.TableId,
+		applyInfo.Status, applyer, applyInfo.Auditor, applyInfo.CreateTime)
+	rowsAffected, err := s.execSql(nspSql)
 	if err != nil {
 		return err
 	}
 	if rowsAffected != 1 {
 		return common.CLUSTER_DUPCREATE_ERROR
 	}
-	log.Debug("update applyer %s success of namespace %d and clusterId %d", namespace, cId, applyer)
+	log.Debug("update applyer %s success of namespace [%s:%s] and clusterId %d", applyer, applyInfo.DbName, applyInfo.TableName, applyInfo.ClusterId)
 	return nil
 }
 
-func (s *Service) GetLockCluster() (*models.ClusterInfo, error) {
+func (s *Service) DeleteLockNsp(ids []string) error {
+	return s.DeleteNsp(ids, TABLE_NAME_LOCK_NSP)
+}
+
+func (s *Service) DeleteNsp(ids []string, storeTable string) error {
+	for _, applyId := range ids {
+		nspSql := fmt.Sprintf(`delete from %s where id = "%s"`,
+			storeTable, applyId)
+		_, err := s.execSql(nspSql)
+		if err != nil {
+			return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: err.Error()}
+		}
+	}
+	log.Debug("%v delete lock namespace success")
+	return nil
+}
+
+func (s *Service) GetLockClusterList() ([]*models.ClusterInfo, error) {
 	clusterId := s.config.LockClusterId
 	info, err := s.selectClusterById(clusterId)
 	if err != nil {
@@ -2050,10 +2637,349 @@ func (s *Service) GetLockCluster() (*models.ClusterInfo, error) {
 	if info == nil {
 		return nil, common.CLUSTER_NOTEXISTS_ERROR
 	}
-	return info, nil
+	var clusters []*models.ClusterInfo
+	clusters = append(clusters, info)
+	return clusters, nil
 }
+
+//go by http command
+func (s *Service) GetAllLock(clusterId int, dbName, tableName string, pageInfo *models.PagerInfo) ([]*models.LockShow, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	log.Debug("get all lock list under clusterId:%v dbName:%v tableName:%v", clusterId, dbName, tableName)
+
+	filter := new(models.Filter_)
+	if pageInfo != nil {
+		if pageInfo.SortName != "" && pageInfo.SortOrder != "" {
+			var descFlag bool
+			switch pageInfo.SortOrder {
+			case "asc":
+				descFlag = true
+			default:
+				descFlag = false
+			}
+			order := &models.Order{By: pageInfo.SortName, Desc: descFlag}
+			filter.Order = []*models.Order{order}
+		} else {
+			order := &models.Order{By: "create_time", Desc: true}
+			filter.Order = []*models.Order{order}
+		}
+		if pageInfo.PageIndex > 0 && pageInfo.PageSize > 0 {
+			filter.Limit = &models.Limit_{Offset: uint64(pageInfo.GetPageOffset()), RowCount: uint64(pageInfo.GetPageSize())}
+		}
+	}
+
+	setQueryRep := &models.Query{
+		DatabaseName: dbName,
+		TableName:    tableName,
+		Command: &models.Command{
+			Type:   "get",
+			Field:  []string{"k", "v", "version", "extend"},
+			Filter: filter,
+		},
+	}
+	var reply models.Reply
+	if err := sendPostReqJsonBody(info.GatewayHttpUrl, "/kvcommand", setQueryRep, &reply); err != nil {
+		return nil, err
+	}
+	if reply.Code == 5 {
+		return nil, nil
+	} else if reply.Code != 0 {
+		log.Error("get cluster[%d] lock list failed. err:[%v]", clusterId, reply)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: reply.Message}
+	}
+
+	log.Info("result: %v", reply)
+
+	var lockInfos []*models.LockShow
+	for _, lockInfo := range reply.Values {
+		tInfo := new(models.LockShow)
+		tInfo.K = fmt.Sprintf("%v", lockInfo[0])
+		value := fmt.Sprintf("%s", lockInfo[1])//todo parse
+		if len(value) > 0 {
+			newValue := new(kvrpcpb.LockValue)
+			if err = newValue.Unmarshal([]byte(value)); err != nil {
+				log.Warn("unmarshal value %v error %v", value, err)
+				tInfo.V = value
+			} else {
+				tInfo.V = string(newValue.GetValue())
+				tInfo.LockId = newValue.GetId()
+				tInfo.UpdTime = newValue.GetUpdateTime()
+				tInfo.ExpiredTime = newValue.GetDeleteTime()
+				//tInfo.Creator = newValue.get
+			}
+		}
+		tInfo.Version,_ = strconv.ParseInt(fmt.Sprintf("%v", lockInfo[2]), 10, 46)
+		tInfo.Extend = fmt.Sprintf("%v", lockInfo[3])
+		lockInfos = append(lockInfos, tInfo)
+	}
+	return lockInfos, nil
+}
+
+func (s *Service) ForceUnLock(clusterId int, dbName, tableName, key string) error {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return err
+	}
+	if info == nil {
+		return common.CLUSTER_NOTEXISTS_ERROR
+	}
+	log.Debug("force unlock key %v under clusterId:%v dbName:%v tableName:%v", key, clusterId, dbName, tableName)
+	var reply models.Reply
+
+	filed_ := &models.Field_{Column: "k", Value: key}
+	var ands []*models.And
+	ands = append(ands, &models.And{Field: filed_, Relate: "="})
+
+	setQueryRep := &models.Query{
+		DatabaseName: dbName,
+		TableName:    tableName,
+		Command: &models.Command{
+			Type:   "del",
+			Filter: &models.Filter_{And: ands},
+		},
+	}
+
+	if err := sendPostReqJsonBody(info.GatewayHttpUrl, "/kvcommand", setQueryRep, &reply); err != nil {
+		return err
+	}
+	if reply.Code != 0 || reply.RowsAffected != 1 {
+		log.Error("force unlock cluster[%d] lock failed. err:[%v]", clusterId, reply)
+		return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: reply.Message}
+	}
+	return nil
+}
+
+func (s *Service) ComputeClientToken(dbId, tableId int) string {
+	namespace := fmt.Sprintf("%s%d-%d", LOCK_CLIENT_NAMESPACE_PREFIX, dbId, tableId)
+	log.Info("compute client token %v", namespace)
+	return createToken(namespace)
+}
+
+func createToken(namespace string) string {
+	source := namespace
+	if len(source) < 32 {
+		var buf bytes.Buffer
+		buf.WriteString(source)
+		for i := 0; i < 32-len(source); i++ {
+			buf.WriteString("0")
+		}
+		source = buf.String()
+	}
+	encryptStr := encrypt(source)
+	var buf bytes.Buffer
+	for i := 0; i < len(encryptStr)/4; i++ {
+		buf.WriteString(string(encryptStr[i*4]))
+	}
+	return buf.String()
+}
+
+func encrypt(source string) string {
+	if source == "" {
+		return source
+	}
+	sources := []byte(source)
+	return encrpytMd5(sources)
+}
+
+func encrpytMd5(source []byte) string {
+	h := md5.New()
+	h.Write(source)
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func (s *Service) GetClusterInfo(clusterId int) (*models.ClusterInfo, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+	clusterInfo := &models.ClusterInfo{Id: info.Id, Name: info.Name}
+	//var msNode *models.MsNode
+	//msNode, err = s.GetMasterLeader(clusterId, info.ClusterToken)
+	//if err != nil {
+	//	log.Warn("get cluster rpc port error, %v", err)
+	//	return clusterInfo, nil
+	//}
+	//if info.MasterUrl == "" {
+	//	info.MasterUrl = msNode.RpcServerAddr
+	//} else {
+	//	var urlArray, urlArray2 []string
+	//	if strings.HasPrefix(info.MasterUrl, "http://") {
+	//		urlArray = strings.Split(info.MasterUrl[7:], ":")
+	//	} else {
+	//		urlArray = strings.Split(info.MasterUrl, ":")
+	//	}
+	//	urlArray2 = strings.Split(msNode.RpcServerAddr, ":")
+	//	if len(urlArray) == 2 && len(urlArray2) == 2 {
+	//		clusterInfo.MasterUrl = fmt.Sprintf("%s:%s", urlArray[0], urlArray2[1])
+	//	}
+	//}
+	if info.MasterUrl != "" {
+		var urlArray []string
+		if strings.HasPrefix(info.MasterUrl, "http://") {
+			urlArray = strings.Split(info.MasterUrl[7:], ":")
+		} else {
+			urlArray = strings.Split(info.MasterUrl, ":")
+		}
+		clusterInfo.MasterUrl = fmt.Sprintf("%s:%d", urlArray[0], s.config.DomainRpcPort)
+	}
+	return clusterInfo, nil
+}
+
 //=============lock end================
 
+//=============configure center start================
+func (s *Service) GetAllConfigureNsp(userName string, isAdmin bool, pageInfo *models.PagerInfo) (int, []*models.NamespaceApply, error) {
+	return s.GetAllNamespace(userName, isAdmin, pageInfo, TABLE_NAME_CONFIGURE_NSP)
+}
+
+func (s *Service) ApplyConfigureNsp(cId int, dbName, tableName, applyer string, cTime int64) error {
+	return s.ApplyNamespace(cId, dbName, tableName, applyer, cTime, TABLE_NAME_CONFIGURE_NSP)
+}
+
+func (s *Service) UpdateConfigureNsp(applyId, applyer string) error {
+	return s.UpdateNsp(applyId, applyer, TABLE_NAME_CONFIGURE_NSP)
+}
+
+func (s *Service) DeleteConfigureNsp(ids []string) error {
+	return s.DeleteNsp(ids, TABLE_NAME_CONFIGURE_NSP)
+}
+
+func (s *Service) GetConfigureClusterList() ([]*models.ClusterInfo, error) {
+	clusterId := s.config.ConfigureClusterId
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+	var clusters []*models.ClusterInfo
+	clusters = append(clusters, info)
+	return clusters, nil
+}
+
+//go by http command
+func (s *Service) GetAllConfigure(clusterId int, dbName, tableName string, pageInfo *models.PagerInfo) ([]*models.ConfigureShow, error) {
+	info, err := s.selectClusterById(clusterId)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, common.CLUSTER_NOTEXISTS_ERROR
+	}
+
+	log.Debug("get all configure list under clusterId:%v dbName:%v tableName:%v", clusterId, dbName, tableName)
+
+	filter := new(models.Filter_)
+	if pageInfo != nil {
+		if pageInfo.SortName != "" && pageInfo.SortOrder != "" {
+			var descFlag bool
+			switch pageInfo.SortOrder {
+			case "asc":
+				descFlag = true
+			default:
+				descFlag = false
+			}
+			order := &models.Order{By: pageInfo.SortName, Desc: descFlag}
+			filter.Order = []*models.Order{order}
+		} else {
+			order := &models.Order{By: "create_time", Desc: true}
+			filter.Order = []*models.Order{order}
+		}
+		if pageInfo.PageIndex > 0 && pageInfo.PageSize > 0 {
+			filter.Limit = &models.Limit_{Offset: uint64(pageInfo.GetPageOffset()), RowCount: uint64(pageInfo.GetPageSize())}
+		}
+	}
+
+	setQueryRep := &models.Query{
+		DatabaseName: dbName,
+		TableName:    tableName,
+		Command: &models.Command{
+			Type:   "get",
+			Field:  []string{"k", "v", "version", "extend"},
+			Filter: filter,
+		},
+	}
+	var reply models.Reply
+	if err := sendPostReqJsonBody(info.GatewayHttpUrl, "/kvcommand", setQueryRep, &reply); err != nil {
+		return nil, err
+	}
+	if reply.Code == 5 {//table no exist
+		return nil, nil
+	} else if reply.Code != 0 {
+		log.Error("get cluster[%d] configure list failed. err:[%v]", clusterId, reply)
+		return nil, &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: reply.Message}
+	}
+
+	log.Info("result: %v", reply)
+
+	var configureInfos []*models.ConfigureShow
+	for _, confInfo := range reply.Values {
+		tInfo := new(models.ConfigureShow)
+		tInfo.K = fmt.Sprintf("%v", confInfo[0])
+		tInfo.V = fmt.Sprintf("%v", confInfo[1]) //todo parse
+		tInfo.Version,_ = strconv.ParseInt(fmt.Sprintf("%v", confInfo[2]), 10, 46)
+		tInfo.Extend = fmt.Sprintf("%v", confInfo[3])
+		//tInfo.CreateTime, _ = strconv.ParseInt(fmt.Sprintf("%v", confInfo[4]), 10, 46)
+		//tInfo.UpdTime, _ = strconv.ParseInt(fmt.Sprintf("%v", confInfo[5]), 10, 46)
+		//tInfo.Creator = fmt.Sprintf("%v", confInfo[7])
+		configureInfos = append(configureInfos, tInfo)
+	}
+	return configureInfos, nil
+}
+
+func (s *Service) AuditConfigureNsp(ids []string, status int, auditor string) error {
+	for _, applyId := range ids {
+		info, err := s.GetNamespaceById(applyId, TABLE_NAME_CONFIGURE_NSP)
+		if err != nil {
+			continue
+		}
+		var dbId, tableId int
+		if status == STATUS_AUDIT { // 审批通过
+			dbInfo, err := s.CreateDb(info.ClusterId, info.DbName)
+			if err != nil {
+				log.Warn("create configure db %v on cluster %v failed, err: %v", info.DbName, info.ClusterId, err)
+				return err
+			}
+			dbId = dbInfo.Id
+
+			if flag, _ := s.existTable(info.DbName, info.TableName, info.ClusterId); flag {
+				log.Warn("configure: exist db %v table %v in cluster %v, cannot audit", info.DbName, info.TableName, info.ClusterId)
+				return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: fmt.Sprintf("exist table %v in cluster %v", info.TableName, info.ClusterId)}
+			}
+
+			tableInfo, err := s.CreateTable(info.ClusterId, info.DbName, info.TableName, "", "", Columns, nil)
+			if err != nil {
+				log.Warn("create configure  table %v on cluster %v failed, err: %v", info.TableName, info.ClusterId, err)
+				return err
+			}
+			tableId = tableInfo.Id
+		}
+		nspSql := fmt.Sprintf(`INSERT INTO %s (id, db_name, table_name, cluster_id, db_id, table_id, status, applyer, auditor, create_time) values ("%s", "%s", "%s", %d,  %d,  %d, %d, "%s", "%s", %d )`,
+			TABLE_NAME_CONFIGURE_NSP, applyId, info.DbName, info.TableName, info.ClusterId, dbId, tableId, status, info.Applyer, auditor, info.CreateTime)
+		rowsAffected, err := s.execSql(nspSql)
+		if err != nil {
+			return err
+		}
+		if rowsAffected != 1 {
+			return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: "update configure apply status and return result error"}
+		}
+	}
+	log.Debug("%v audit configure namespace success, status: %v", auditor, status)
+	return nil
+}
+
+//=============configure center end================
 
 //=============metric add ===============
 
@@ -2114,7 +3040,6 @@ func (s *Service) DeleteMetricServer(addrs []string) error {
 	return nil
 }
 
-
 func (s *Service) GetMetricConfig(cId int) (map[string]*models.MetricConfig, error) {
 	info, err := s.selectClusterById(cId)
 	if err != nil {
@@ -2141,8 +3066,8 @@ func (s *Service) GetMetricConfig(cId int) (map[string]*models.MetricConfig, err
 		reqParams["s"] = sign
 
 		var getConfigResp = struct {
-			Code int         `json:"code"`
-			Msg  string      `json:"message"`
+			Code int                 `json:"code"`
+			Msg  string              `json:"message"`
 			Data models.MetricConfig `json:"data"`
 		}{}
 		if err := sendGetReq(info.MasterUrl, "/metric/config/get", reqParams, &getConfigResp); err != nil {
@@ -2155,49 +3080,48 @@ func (s *Service) GetMetricConfig(cId int) (map[string]*models.MetricConfig, err
 				msConfig.Interval = getConfigResp.Data.Interval
 			}
 		}
+		log.Debug("get master metric config: %v", msConfig)
 	}(msConfig)
 
 	waitLock.Add(1)
-	 go func(gsConfig *models.MetricConfig) {
-		 defer waitLock.Done()
+	go func(gsConfig *models.MetricConfig) {
+		defer waitLock.Done()
 
-		 ts := time.Now().Unix()
-		 sign := common.CalcMsReqSign(info.Id, info.ClusterToken, ts)
+		ts := time.Now().Unix()
+		sign := common.CalcMsReqSign(info.Id, info.ClusterToken, ts)
 
-		 reqParams := make(map[string]interface{})
-		 reqParams["d"] = ts
-		 reqParams["s"] = sign
+		reqParams := make(map[string]interface{})
+		reqParams["d"] = ts
+		reqParams["s"] = sign
 
-		 var getConfigResp = struct {
-			 Code int         `json:"code"`
-			 Msg  string      `json:"message"`
-			 Data models.MetricConfig `json:"data"`
-		 }{}
-		 if err := sendGetReq(info.GatewayHttpUrl, "/metric/config/get", reqParams, &getConfigResp); err != nil {
-			 msConfig.Address = err.Error()
-		 } else {
-			 if getConfigResp.Code != 0 {
-				 gsConfig.Address = getConfigResp.Msg
-			 } else {
-				 gsConfig.Address = getConfigResp.Data.Address
-			 }
-		 }
+		var getConfigResp = struct {
+			Code int                 `json:"code"`
+			Msg  string              `json:"message"`
+			Data models.MetricConfig `json:"data"`
+		}{}
+		if err := sendGetReq(info.GatewayHttpUrl, "/metric/config/get", reqParams, &getConfigResp); err != nil {
+			gsConfig.Address = err.Error()
+		} else {
+			if getConfigResp.Code != 0 {
+				gsConfig.Address = getConfigResp.Msg
+			} else {
+				gsConfig.Address = getConfigResp.Data.Address
+			}
+		}
+		log.Debug("get gateway metric config: %v", gsConfig)
 	}(gsConfig)
 	waitLock.Wait()
 
 	reply := make(map[string]*models.MetricConfig)
 	reply["ms"] = msConfig
 	reply["gs"] = gsConfig
-
-	log.Debug("get metric config: {}", reply)
 	return reply, nil
 }
-
 
 func (s *Service) SetMetricConfig(cId int, addr, interval string) (map[string]string, error) {
 	info, err := s.selectClusterById(cId)
 	if err != nil {
-		return  nil, err
+		return nil, err
 	}
 	if info == nil {
 		return nil, common.CLUSTER_NOTEXISTS_ERROR
@@ -2217,12 +3141,12 @@ func (s *Service) SetMetricConfig(cId int, addr, interval string) (map[string]st
 		reqParams["interval"] = interval
 		reqParams["address"] = addr
 		var setConfigResp = struct {
-			Code int         `json:"code"`
-			Msg  string      `json:"message"`
+			Code int    `json:"code"`
+			Msg  string `json:"message"`
 		}{}
 		if err := sendGetReq(info.MasterUrl, "/metric/config/set", reqParams, &setConfigResp); err != nil {
 			respose["ms"] = err.Error()
-		} else if setConfigResp.Code > 0{
+		} else if setConfigResp.Code > 0 {
 			respose["ms"] = setConfigResp.Msg
 		} else {
 			respose["ms"] = "success"
@@ -2230,6 +3154,7 @@ func (s *Service) SetMetricConfig(cId int, addr, interval string) (map[string]st
 
 	}(respose)
 
+	//todo gw all addr
 	waitLock.Add(1)
 	go func(response map[string]string) {
 		defer waitLock.Done()
@@ -2242,12 +3167,12 @@ func (s *Service) SetMetricConfig(cId int, addr, interval string) (map[string]st
 		reqParams["s"] = sign
 		reqParams["address"] = addr
 		var setConfigResp = struct {
-			Code int         `json:"code"`
-			Msg  string      `json:"message"`
+			Code int    `json:"code"`
+			Msg  string `json:"message"`
 		}{}
 		if err := sendGetReq(info.GatewayHttpUrl, "/metric/config/set", reqParams, &setConfigResp); err != nil {
 			respose["gs"] = err.Error()
-		} else if setConfigResp.Code > 0{
+		} else if setConfigResp.Code > 0 {
 			respose["gs"] = setConfigResp.Msg
 		} else {
 			respose["gs"] = "success"
@@ -2258,8 +3183,8 @@ func (s *Service) SetMetricConfig(cId int, addr, interval string) (map[string]st
 	log.Debug("set master client config: %v", respose)
 	return respose, nil
 }
-//=============metric end ===============
 
+//=============metric end ===============
 
 // ------------http request -------------------
 func sendGetSimpleReq(host, uri string, params map[string]interface{}, result string) (error) {
@@ -2400,7 +3325,7 @@ func sendPostReqStrBody(host, uri string, params map[string]interface{}, result 
 	return nil
 }
 
-func sendPostReqJsonBody(host, uri string, params map[string]interface{}, result interface{}) (error) {
+func sendPostReqJsonBody(host, uri string, params interface{}, result interface{}) (error) {
 	var url []string
 
 	url = append(url, host)
@@ -2442,11 +3367,18 @@ func sendPostReqJsonBody(host, uri string, params map[string]interface{}, result
 		return common.HTTP_REQUEST_ERROR
 	}
 	log.Debug("http response body:[%v]", string(data))
-
-	if err := json.Unmarshal(data, result); err != nil {
+	//解决反序列化时，float64超过一定长度默认科学计数法表示
+	d := json.NewDecoder(strings.NewReader(string(data)))
+	d.UseNumber()
+	if err := d.Decode(&result); err != nil {
 		log.Error("Cannot parse http response in json. body:[%v]", string(data))
 		return common.INTERNAL_ERROR
 	}
+
+	//if err := json.Unmarshal(data, result); err != nil {
+	//	log.Error("Cannot parse http response in json. body:[%v]", string(data))
+	//	return common.INTERNAL_ERROR
+	//}
 
 	return nil
 }
@@ -2653,6 +3585,5 @@ func InitService(c *config.Config) {
 	serviceInstance = &Service{
 		config:     c,
 		db:         db,
-		adminCache: ttlcache.NewTTLCache(2 * time.Minute),
 	}
 }

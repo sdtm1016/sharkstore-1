@@ -3,8 +3,10 @@ package server
 import (
 	"fmt"
 	"master-server/http_reply"
+	"model/pkg/ds_admin"
 	"model/pkg/metapb"
 	"model/pkg/mspb"
+	"time"
 	"util/deepcopy"
 	"util/log"
 )
@@ -356,4 +358,34 @@ func (c *Cluster) ReplaceRangeRemote(addr string, oldRangeId uint64, newRange *m
 		}
 	}
 	return err
+}
+
+func (c *Cluster) ForceSplitRemote(addr string, rangeId uint64, version uint64) error {
+	var err error = nil
+	for i := 0; i < 3; i++ {
+		err = c.adminCli.ForceSplit(addr, rangeId, version)
+		if err != nil {
+			log.Warn("force split range[%d] of node[%s] failed, error[%v]", rangeId, addr, err)
+		} else {
+			log.Debug("force split range[%d] of node[%s] succeed", rangeId, addr)
+			break
+		}
+	}
+
+	return err
+}
+
+func (c *Cluster) ForceCompactRemote(addr string, rangeId uint64) (resp *ds_adminpb.CompactionResponse, err error) {
+	transactionID := time.Now().Unix()
+	for i := 0; i < 3; i++ {
+		resp, err = c.adminCli.ForceCompact(addr, rangeId, transactionID)
+		if err != nil {
+			log.Warn("force compact range[%d] of node[%s] failed, error[%v]", rangeId, addr, err)
+		} else {
+			log.Debug("force compact range[%d] of node[%s] succeed", rangeId, addr)
+			return
+		}
+	}
+
+	return
 }

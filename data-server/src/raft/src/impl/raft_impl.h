@@ -50,7 +50,7 @@ public:
     Status BackupLog();
 
     // 删除raft日志
-    Status Destroy();
+    Status Destroy(bool backup);
 
 public:
     void RecvMsg(MessagePtr msg);

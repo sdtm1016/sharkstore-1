@@ -124,11 +124,13 @@ func (b *LevelDBBatch)Commit() error {
 }
 
 var path = "/tmp/Data"
+var dsPath = "/tmp/Data"
 
 func initDataPath() {
 	os.RemoveAll(path)
 	err := os.MkdirAll(path, 0755)
 	if err != nil {
+		fmt.Sprintf("init data path %s err %v", path, err)
 		os.Exit(-1)
 		return
 	}
@@ -215,3 +217,11 @@ func (alloc *mockIDAllocator) GenID() (uint64, error) {
 	return atomic.AddUint64(&alloc.base, 1), nil
 }
 
+func (alloc *mockIDAllocator) GetBatchIds(size uint32) ([]uint64, error) {
+	ids := make([]uint64, size)
+
+	for len(ids) < int(size) {
+		ids = append(ids, atomic.AddUint64(&alloc.base, 1))
+	}
+	return ids, nil
+}

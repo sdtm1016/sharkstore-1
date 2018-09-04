@@ -1,5 +1,6 @@
 #include "manager.h"
 
+#include <sstream>
 #include "send_task.h"
 #include "apply_task.h"
 #include "worker_pool.h"
@@ -20,7 +21,7 @@ Status SnapshotManager::Dispatch(const std::shared_ptr<SendSnapTask>& send_task)
         return Status::OK();
     } else {
         return Status(Status::kBusy, "max send snapshot concurrency limit reached",
-                      std::to_string(send_work_pool_->Runnings()));
+                      std::to_string(send_work_pool_->RunningsCount()));
     }
 }
 
@@ -29,17 +30,44 @@ Status SnapshotManager::Dispatch(const std::shared_ptr<ApplySnapTask>& apply_tas
         return Status::OK();
     } else {
         return Status(Status::kBusy, "max apply snapshot concurrency limit reached",
-                      std::to_string(apply_work_pool_->Runnings()));
+                      std::to_string(apply_work_pool_->RunningsCount()));
     }
 }
 
 uint64_t SnapshotManager::SendingCount() const {
-    return send_work_pool_->Runnings();
+    return send_work_pool_->RunningsCount();
 
 }
 
 uint64_t SnapshotManager::ApplyingCount() const {
-    return apply_work_pool_->Runnings();
+    return apply_work_pool_->RunningsCount();
+}
+
+static std::string getTasksDesc(const std::string& type,
+                                const std::vector<SnapTaskPtr>& tasks) {
+    std::ostringstream ss;
+    ss << "{";
+    ss << "\" << type << \" : [";
+    for (size_t i = 0; i < tasks.size(); ++i) {
+        ss << tasks[i]->Description();
+        if (i != tasks.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "]}";
+    return ss.str();
+};
+
+std::string SnapshotManager::GetSendingDesc() const {
+    std::vector<SnapTaskPtr> tasks;
+    send_work_pool_->GetRunningTasks(&tasks);
+    return getTasksDesc("send", tasks);
+}
+
+std::string SnapshotManager::GetApplyingDesc() const {
+    std::vector<SnapTaskPtr> tasks;
+    apply_work_pool_->GetRunningTasks(&tasks);
+    return getTasksDesc("apply", tasks);
 }
 
 } /* namespace impl */

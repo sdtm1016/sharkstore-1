@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sql申请</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link href="/static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="/static/css/plugins/bootstrap-table/bootstrap-table.min.css" rel="stylesheet">
+    <link href="/static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="/static/css/animate.css" rel="stylesheet">
+    <link href="/static/css/custom.min.css" rel="stylesheet">
+    <link href="/static/css/style.css?v=4.1.0" rel="stylesheet">
+    <link href="/static/css/plugins/sweetalert/sweetalert.css" rel="stylesheet">
+    <script src="/static/js/plugins/sweetalert/sweetalert.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/easyui.css">
+</head>
+<body class="gray-bg">
+<div class="monitor-title">
+    <span>sql申请记录</span>
+</div>
+<div class="example-wrap" style="margin-top: 10px; overflow:scroll">
+    <div class="hidden-xs table-btns" id="sqlApplyListsToolbar" role="group">
+        <button type="button" class="btn btn-primary  btn-rounded" onclick="applySql()">申请</button>
+        &nbsp; &nbsp;
+        <button type="button" class="btn btn-primary  btn-rounded" onclick="auditSql()" style="display:{[{.admin}]}">审批</button>
+        &nbsp; &nbsp;
+        <button type="button" class="btn btn-primary  btn-rounded" onclick="rejectSql()" style="display:{[{.admin}]}">驳回</button>
+    </div>
+    <table id="sqlApplyLists" data-height="400" data-mobile-responsive="true">
+    </table>
+</div>
+
+<!-- 弹出页面显示分片详细信息 start -->
+<div class="modal fade modaltab" id="sqlApplyModal" tabindex="-1" role="dialog" aria-hidden="true"
+     data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="false">&times;</span><span class="sr-only">Close</span>
+                </button>
+            </div>
+            <form class="form-horizontal m-t">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">库名 ：</label>
+                    <div class="col-sm-8">
+                        <input id="dbName" name="dbName" class="form-control" type="text" placeholder="database name"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">表名：</label>
+                    <div class="col-sm-8">
+                        <input id="tableName" name="tableName" class="form-control" type="text"
+                               placeholder="table name"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">sql语句：</label>
+                    <div class="col-sm-8">
+                        <textarea id="sentence" name="sentence" class="form-control" style="height: 100px;"
+                                  placeholder="sql语句"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">备注：</label>
+                    <div class="col-sm-8">
+                        <input type="text" id="remark" name="remark" class="form-control" placeholder="备注"/>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                <button id="saveButton" type="button" class="btn btn-primary" onclick="saveSqlApply()">保存</button>
+            </div>
+        </div><!--modal content-->
+    </div>
+</div>
+<!-- end 模态窗口  -->
+</body>
+
+<script src="/static/js/jquery.min.js?v=2.1.4"></script>
+<script src="/static/js/bootstrap.min.js?v=3.3.6"></script>
+<script src="/static/js/plugins/bootstrap-table/bootstrap-table.min.js"></script>
+<script src="/static/js/plugins/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+<script src="/static/js/angular/angular.min.js"></script>
+<script src="/static/js/jquery.easyui.min.js"></script>
+<script src="/static/js/commons/utils.js"></script>
+<script src="/static/js/apply/sqllist.js?v=1.0.3"></script>
+</html>

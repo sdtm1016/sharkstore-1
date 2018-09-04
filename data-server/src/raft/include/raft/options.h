@@ -88,14 +88,14 @@ struct RaftServerOptions {
     // raft一致性线程数量
     uint8_t consensus_threads_num = 4;
     // raft一致性队列长度
-    int consensus_queue_capacity = 100000;
+    size_t consensus_queue_capacity = 100000;
 
     // 在raft线程里就地apply，不放到apply线程里异步应用
     bool apply_in_place = true;
     // apply线程数量
     uint8_t apply_threads_num = 4;
     // apply队列长度
-    int apply_queue_capacity = 100000;
+    size_t apply_queue_capacity = 100000;
 
     TransportOptions transport_options;
     SnapshotOptions snapshot_options;
@@ -124,6 +124,8 @@ struct RaftOptions {
     size_t max_log_files = 5;
     // 启动时检测到日志损坏是否运行继续启动
     bool allow_log_corrupt = false;
+    // 日志创建时的起始index
+    uint64_t initial_first_index = 0;
 
     // 已应用的位置，用于raft启动时recover
     uint64_t applied = 0;

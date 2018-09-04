@@ -15,35 +15,19 @@
 #include "server.h"
 #include "worker.h"
 
-run_status_t g_status;
-
 namespace sharkstore {
 namespace dataserver {
 namespace server {
 
-std::atomic<uint64_t> RunStatus::fs_usage_percent_(0);
-
 int RunStatus::Init(ContextServer *context) {
     context_ = context;
-    socket_client_ = new common::SocketClient(context->socket_session);
-
-    strcpy(ds_config.client_config.thread_name_prefix, "metric");
-    if (socket_client_->Init(&ds_config.client_config, &metric_status_) != 0) {
-        FLOG_ERROR("RunStatus (socket client) Init error ...");
-        return -1;
-    }
     return 0;
 }
 
 int RunStatus::Start() {
     FLOG_INFO("RunStatus Start begin ...");
-    if (socket_client_->Start() != 0) {
-        FLOG_ERROR("RunStatus Start error ...");
-        return -1;
-    }
 
-    metric_thread_ = std::thread(&RunStatus::Send, this);
-
+    metric_thread_ = std::thread(&RunStatus::run, this);
     auto handle = metric_thread_.native_handle();
     AnnotateThread(handle, "metric_hb");
 
@@ -58,83 +42,17 @@ void RunStatus::Stop() {
 
     cond_.notify_all();
 
-    if (socket_client_ != nullptr) {
-        socket_client_->Stop();
-        delete socket_client_;
-        socket_client_ = nullptr;
-    }
-
     if (metric_thread_.joinable()) {
         metric_thread_.join();
     }
 }
 
-std::string RunStatus::GetSubSystem() {
-    if (sub_system_.empty()) {
-        auto node_id = context_->node_id;
-        context_->master_worker->GetServerAddress(node_id, &sub_system_);
-    }
-
-    return sub_system_;
-}
-
-std::string RunStatus::GetMetric() {
-    if (metric_info_.empty()) {
-        std::string metric = "GET ";
-
-        metric += ds_config.metric_config.uri;
-
-        metric += "?clusterId=";
-        metric += std::to_string(ds_config.metric_config.cluster_id);
-
-        metric += "&namespace=";
-        metric += ds_config.metric_config.name_space;
-
-        metric += "&subsystem=";
-        std::string uri = GetSubSystem();
-
-        char buff[512];
-        int len = 0;
-
-        metric += urlencode(uri.c_str(), uri.length(), buff, &len);
-        metric += " HTTP/1.1\r\n";
-        metric += "Host: ";
-        metric += ds_config.metric_config.ip_addr;
-        metric += ":" + std::to_string(ds_config.metric_config.port);
-        metric += "\r\nUser-Agent: sharkstore-ds-client/1.1\r\n\r\n";
-
-        metric_info_ = std::move(metric);
-    }
-
-    return metric_info_;
-}
-
-void RunStatus::Send() {
+void RunStatus::run() {
     while (g_continue_flag) {
-        bool is_first;
-        int64_t session_id;
-
-        std::tie(session_id, is_first) = socket_client_->get_session_id(
-            ds_config.metric_config.ip_addr, ds_config.metric_config.port);
-
-        if (is_first) {
-            FLOG_DEBUG("session: %" PRId64 " first report env metric",
-                       session_id);
-            auto metric = GetMetric();
-            SendBuff(session_id, metric);
-        }
-        if (session_id > 0) {
-            FLOG_DEBUG("session: %" PRId64 " report process statics metric",
-                       session_id);
-            std::string metric;
-            system_status_.GetProcessStats(metric);
-            SendBuff(session_id, metric, sizeof(int));
-        } else {
-            FLOG_ERROR("run status connect error");
-        }
-
+        collectDiskUsage();
         printDBMetric();
         context_->worker->PrintQueueSize();
+        printStatistics();
 
         std::unique_lock<std::mutex> lock(mutex_);
         cond_.wait_for(lock,
@@ -142,43 +60,51 @@ void RunStatus::Send() {
     }
 }
 
-void RunStatus::SendBuff(int64_t session_id, std::string &metric,
-                         int header_len) {
-    int buff_len = header_len + metric.length();
-    response_buff_t *resp = new_response_buff(buff_len);
-    resp->session_id = session_id;
-
-    if (header_len > 0) {
-        int2buff(metric.length(), resp->buff);
-    }
-
-    memcpy(resp->buff + header_len, metric.c_str(), metric.length());
-    resp->buff_len = buff_len;
-
-    socket_client_->Send(resp);
-}
-
-void RunStatus::SetHardDiskInfo() {
-    monitor::HardDiskInfo hdi;
-    system_status_.GetHardDiskInfo(hdi);
-
+bool RunStatus::GetFilesystemUsage(FileSystemUsage* usage) {
     uint64_t total = 0, available = 0;
     if (system_status_.GetFileSystemUsage(ds_config.rocksdb_config.path, &total,
                                           &available)) {
         if (total > 0 && available <= total) {
-            g_status.hard_info.total_size = total;
-            g_status.hard_info.free_size = available;
-            g_status.hard_info.used_size = total - available;
-
-            fs_usage_percent_ = (total - available) * 100 / total;
-
+            usage->total_size = total;
+            usage->free_size = available;
+            usage->used_size = total - available;
+            return true;
         } else {
-            FLOG_ERROR("collect harddisk usage error(invalid size: %lu:%lu) ",
-                       total, available);
+            FLOG_ERROR("collect filesystem usage error(invalid size: %" PRIu64 ":%" PRIu64 ") ",
+                    total, available);
+            return false;
         }
     } else {
-        FLOG_ERROR("collect harddisk usage error: %s", strErrno(errno).c_str());
+        FLOG_ERROR("collect filesystem usage error: %s", strErrno(errno).c_str());
+        return false;
     }
+}
+
+void RunStatus::ReportLeader(uint64_t range_id, bool is_leader) {
+    std::lock_guard<std::mutex> lock(leaders_mu_);
+    if (is_leader) {
+        leaders_.insert(range_id);
+    } else {
+        leaders_.erase(range_id);
+    }
+}
+
+uint64_t RunStatus::GetLeaderCount() const {
+    std::lock_guard<std::mutex> lock(leaders_mu_);
+    return leaders_.size();
+}
+
+// 定时采集磁盘使用率
+void RunStatus::collectDiskUsage() {
+    FileSystemUsage usage;
+    if (GetFilesystemUsage(&usage)) {
+        fs_usage_percent_ = usage.used_size * 100/ usage.total_size;
+    }
+}
+
+void RunStatus::printStatistics() {
+    FLOG_INFO("\n%s", statistics_.ToString().c_str());
+    statistics_.Reset();
 }
 
 void RunStatus::printDBMetric() {
@@ -190,17 +116,28 @@ void RunStatus::printDBMetric() {
     std::string mem_table_usage;
     db->GetProperty("rocksdb.cur-size-all-mem-tables", &mem_table_usage);
     FLOG_INFO("rocksdb memory usages: table-readers=%s, memtables=%s, "
-              "block-cache=%lu, pinned=%lu",
+              "block-cache=%lu, pinned=%lu, row-cache=%lu",
               tr_mem_usage.c_str(), mem_table_usage.c_str(),
               context_->block_cache->GetUsage(),
-              context_->block_cache->GetPinnedUsage());
-    //    auto status =
-    //    context_->rocks_db->CompactRange(rocksdb::CompactRangeOptions(),
-    //    nullptr, nullptr);
-    //    if (!status.ok()) {
-    //        FLOG_ERROR("compact db failed: %s", status.ToString().c_str());
-    //    }
+              context_->block_cache->GetPinnedUsage(),
+              (context_->row_cache ? context_->row_cache->GetUsage() : 0));
+
+    auto stat = context_->db_stats;
+    if (stat) {
+        FLOG_INFO("rocksdb row-cache stats: hit=%" PRIu64 ", miss=%" PRIu64,
+                  stat->getAndResetTickerCount(rocksdb::ROW_CACHE_HIT),
+                  stat->getAndResetTickerCount(rocksdb::ROW_CACHE_MISS));
+
+        FLOG_INFO("rocksdb block-cache stats: hit=%" PRIu64 ", miss=%" PRIu64,
+                  stat->getAndResetTickerCount(rocksdb::BLOCK_CACHE_HIT),
+                  stat->getAndResetTickerCount(rocksdb::BLOCK_CACHE_MISS));
+
+        FLOG_INFO("rockdb get histograms: %s", stat->getHistogramString(rocksdb::DB_GET).c_str());
+        FLOG_INFO("rockdb write histograms: %s", stat->getHistogramString(rocksdb::DB_WRITE).c_str());
+        stat->Reset();
+    }
 }
+
 
 }  // namespace server
 }  // namespace dataserver

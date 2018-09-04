@@ -38,7 +38,7 @@ public:
     Status NodeLogin(uint64_t node_id);
 
     Status GetNodeAddress(uint64_t node_id, std::string* server_addr,
-                          std::string* raft_addr, std::string* http_addr);
+                          std::string* raft_addr, std::string* admin_addr);
 
     // 异步调用方法
     Status AsyncNodeHeartbeat(const mspb::NodeHeartbeatRequest& req);

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>获取DS配置信息</title>
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link href="/static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="/static/css/plugins/bootstrap-table/bootstrap-table.min.css" rel="stylesheet">
+    <link href="/static/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="/static/css/animate.css" rel="stylesheet">
+    <link href="/static/css/style.css?v=4.1.0" rel="stylesheet">
+    <link href="/static/css/custom.min.css" rel="stylesheet">
+    <link href="/static/css/xenon-core.min.css" rel="stylesheet">
+    <link href="/static/css/plugins/sweetalert/sweetalert.css" rel="stylesheet">
+    <link href="/static/css/plugins/datapicker/bootstrap-datetimepicker.css" rel="stylesheet">
+
+    <script src="/static/js/commons/utils.js"></script>
+    <script src="/static/js/plugins/sweetalert/sweetalert.min.js"></script>
+    <script src="/static/js/bootstrap.min.js?v=3.3.6"></script>
+    <script src="/static/js/plugins/bootstrap-table/bootstrap-table.min.js"></script>
+    <script src="/static/js/plugins/bootstrap-table/bootstrap-table-editable.js"></script>
+    <script src="/static/js/plugins/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+    <script src="/static/js/jquery.min.js?v=2.1.4"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var isGet = $("#isGet").val();
+            if (isGet == "true") {
+                $("#value").hide();
+                $("#submit-update").hide();
+
+                // var table = document.getElementById("config-table");
+                // var row = table.getElementsByTagName("tr");
+                // for (var i = 0; i < row.length; i++) {
+                //     row[i].getElementsByTagName("td")[3].style.display='none';
+                // }
+                //$('#config-table').bootstrapTable('hideColumn', 'value');
+                $("#config-table").find('td:eq(4)').hide();
+            } else {
+                $("#submit-query").hide();
+            }
+
+            $("#submit-query").click(function () {
+                var tableJsonData = table2Json("config-table");
+                //swal("", tableJsonData, "success");
+
+                if (tableJsonData.length < 10) {
+                    swal("请输入要获取的 section/name", "", "error");
+                    return
+                }
+                var clusterId = $('#clusterId').val();
+                var nodeId = $("#nodeId").val();
+                $.ajax({
+                    url: "/node/getConfigOfNode",
+                    type: "post",
+                    contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                    dataType: "json",
+                    data: {
+                        "nodeId": nodeId,
+                        "clusterId": clusterId,
+                        "getConfigKey": tableJsonData
+                    },
+                    success: function (data) {
+                        if (data.code === 0) {
+                            var swal_html = "<table style='table-layout: fixed' class=\"table table-striped table-bordered space-list-table\">\n" +
+                                    "    <thead style='display: block'>\n" +
+                                    "        <tr class=\"space-list-name\">\n" +
+                                    "            <th class=\"spaceName\" style=\"text-align: center; vertical-align: middle;width: 5%\">section</th>\n" +
+                                    "            <th class=\"spaceName\" style=\"text-align: center; vertical-align: middle;width: 5%\">name</th>\n" +
+                                    "            <th class=\"spaceName\" style=\"text-align: center; vertical-align: middle;width: 10%\">value</th>\n" +
+                                    "        </tr>\n" +
+                                    "    </thead>\n" +
+                                    "    <tbody style=\"height: 500px;overflow-y: auto;display: block\">";
+
+                            var result = data.data;
+                            for (var i = 0; i < result.length; i++) {
+                                var section = result[i].key.section;
+                                var name = result[i].key.name;
+                                var value = result[i].value;
+                                var line = "<tr>" +
+                                        "<td style='vertical-align:middle; text-align:center;'>" + section + "</td>" +
+                                        "<td style='vertical-align:middle; text-align:center;'>" + name + "</td>" +
+                                        "<td style='vertical-align:middle; text-align:center;'>" + value + "</td>" +
+                                        "</tr>";
+                                swal_html += line;
+                            }
+                            swal_html += "</tbody>\n" +
+                                    "</table>";
+                            swal({title: "config",
+                                text: swal_html,
+                                html: true
+                            });
+
+                            //swal("获取DS配置成功！", data.data, "success");
+                        } else {
+                            swal("获取DS配置失败！", data.msg, "error");
+                        }
+                    },
+                    error: function (res) {
+                        swal("获取DS配置失败！", res, "error");
+                    }
+                });
+            });
+
+            $("#submit-update").click(function () {
+                var tableJsonData = table2Json("config-table");
+                //swal("", tableJsonData, "success");
+
+                if (tableJsonData.length < 15) {
+                    swal("请输入要设置的值", "", "error");
+                    return
+                }
+                var clusterId = $('#clusterId').val();
+                var nodeId = $("#nodeId").val();
+                $.ajax({
+                    url: "/node/setConfigOfNode",
+                    type: "post",
+                    contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                    dataType: "json",
+                    data: {
+                        "nodeId": nodeId,
+                        "clusterId": clusterId,
+                        "setConfig": tableJsonData
+                    },
+                    success: function (data) {
+                        if (data.code === 0) {
+                            swal("设置DS配置成功！", "设置DS配置成功!", "success");
+                        } else {
+                            swal("设置DS配置失败！", data.msg, "error");
+                        }
+                    },
+                    error: function (res) {
+                        swal("设置DS配置失败！", res, "error");
+                    }
+                });
+
+            });
+
+            $("#add-row").click(function () {
+                var section = $("#section").val();
+                var name = $("#name").val();
+                var value = $("#value").val();
+                var markup = "<tr>" +
+                        "<td style='vertical-align:middle; text-align:center;'><input type='checkbox' name='record'></td>" +
+                        "<td style='vertical-align:middle; text-align:center;'>" + section + "</td>" +
+                        "<td style='vertical-align:middle; text-align:center;'>" + name + "</td>" +
+                        "<td style='vertical-align:middle; text-align:center;'>" + value + "</td>" +
+                        "</tr>";
+
+                var isGet = $("#isGet").val();
+                if (isGet == "true") {
+                    if (!hasText(section) || !hasText(name)) {
+                        swal("不能添加空行", "", "error");
+                    } else {
+                        $("table tbody").append(markup);
+                        $("#section").val("");
+                        $("#name").val("");
+                        $("#value").val("");
+                    }
+                } else {
+                    if (!hasText(section) || !hasText(name) || !hasText(value)) {
+                        swal("不能添加空行", "", "error");
+                    } else {
+                        $("table tbody").append(markup);
+                        $("#section").val("");
+                        $("#name").val("");
+                        $("#value").val("");
+                    }
+                }
+
+            });
+
+            // Find and remove selected table rows
+            $("#delete-row").click(function () {
+                $("table tbody").find('input[name="record"]').each(function () {
+                    if ($(this).is(":checked")) {
+                        $(this).parents("tr").remove();
+                    }
+                });
+            });
+        });
+
+        function table2Json(tableId) {
+            var txt = "[";
+            var table = document.getElementById(tableId);
+            var row = table.getElementsByTagName("tr");
+            var col = row[0].getElementsByTagName("th");
+            for (var j = 1; j < row.length; j++) {
+                var r = "{";
+                var colLen = col.length - 1;
+                if (($("#isGet").val() == "false")) {
+                    r += "\"key\"\:{"
+                }
+                for (var i = 1; i < colLen; i++) {
+                    var tds = row[j].getElementsByTagName("td");
+                    r += '\"' + col[i].innerHTML + '\"\:\"' + tds[i].innerHTML + '\",';
+                }
+                if (($("#isGet").val() == "false")) {
+                    r = r.substring(0, r.length - 1);
+                    r = r + "},\"" + col[colLen].innerHTML + '\"\:\"' + tds[colLen].innerHTML + '\",';
+                }
+                r = r.substring(0, r.length - 1);
+                r += "},";
+                txt += r;
+            }
+            txt = txt.substring(0, txt.length - 1);
+            txt += "]";
+            return txt;
+        }
+    </script>
+</head>
+<body>
+<input type="hidden" value="{[{.clusterId}]}" id="clusterId" name="clusterId"/>
+<input type="hidden" value="{[{.nodeId}]}" id="nodeId" name="nodeId"/>
+<input type="hidden" value="{[{.isGet}]}" id="isGet" name="isGet"/>
+<form class="form-inline">
+    <input type="text" id="section" class="form-control input-outline" placeholder="section" style="margin-left: 10px">
+    <input type="text" id="name" class="form-control input-outline" placeholder="name">
+    <input type="text" id="value" class="form-control input-outline" placeholder="value">
+    <input type="button" id="add-row" class="btn btn-primary btn-rounded" value="新增一行数据">
+</form>
+<table class="table table-striped table-bordered space-list-table" id="config-table">
+    <thead>
+    <tr class="space-list-name">
+        <th class="spaceName" style="text-align: center; vertical-align: middle;width: 5%"></th>
+        <th class="spaceName" style="text-align: center; vertical-align: middle;width: 5%">section</th>
+        <th class="spaceName" style="text-align: center; vertical-align: middle;width: 5%">name</th>
+        <th class="spaceName" style="text-align: center; vertical-align: middle;width: 5%">value</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!--
+    <tr>
+        <td style="vertical-align:middle; text-align:center;"><input type="checkbox" name="record"></td>
+        <td style="vertical-align:middle; text-align:center;"></td>
+        <td style="vertical-align:middle; text-align:center;"></td>
+        <td style="vertical-align:middle; text-align:center;"></td>
+    </tr>
+    -->
+    </tbody>
+</table>
+<button type="button" id="delete-row" class="btn btn-primary btn-rounded" style="margin-left: 10px">删除所选行</button>
+<button type="button" id="submit-query" class="btn btn-primary btn-rounded">查询数据</button>
+<button type="button" id="submit-update" class="btn btn-primary btn-rounded">设置数据</button>
+</body>
+</html>

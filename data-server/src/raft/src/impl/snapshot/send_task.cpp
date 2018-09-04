@@ -1,5 +1,7 @@
 #include "send_task.h"
 
+#include <sstream>
+
 namespace sharkstore {
 namespace raft {
 namespace impl {
@@ -76,12 +78,13 @@ void SendSnapTask::run(SnapResult* result) {
         }
 
         // 发送
+        size_t size = msg->ByteSizeLong();
         result->status = conn->Send(msg);
         if (!result->status.ok()) {
             return;
         }
         result->blocks_count += 1;
-        result->bytes_count += msg->ByteSizeLong();
+        result->bytes_count += size;
 
         // 等待ack
         result->status = waitAck(seq, opt_.wait_ack_timeout_secs);
@@ -154,6 +157,18 @@ void SendSnapTask::Cancel() {
         canceled_ = true;
     }
     cv_.notify_one();
+}
+
+std::string SendSnapTask::Description() const {
+    std::ostringstream ss;
+    ss << "{";
+    ss << "\"id\": " << GetContext().id << ", ";
+    ss << "\"to\": " << GetContext().to<< ", ";
+    ss << "\"term\": " << GetContext().term << ", ";
+    ss << "\"uuid\": " << GetContext().uuid << ",";
+    ss << "\"ack\": " << ack_seq_;
+    ss << "}";
+    return ss.str();
 }
 
 } /* namespace impl */

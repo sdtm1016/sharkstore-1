@@ -214,6 +214,26 @@ app.controller('mytables', function($rootScope, $scope, $http, $timeout) {
     };
 });
 
+app.filter("tableStatus", function ($filter) {
+	return function (input) {
+		if(input == 3) {
+			return "正常";
+		} else if(input == 1){
+			return "初始化";
+		} else if(input == 2) {
+			return "补分片ing";
+		} else if (input == 4){
+			return "Delete";
+		} else if(input == 5){
+			return "Deleting";
+		} else if (input == 0){
+			return "invalid";
+		} else {
+			return input;
+		}
+    }
+});
+
 //时间格式化
 function formatDate(formatDate){
 	  function padding(str){

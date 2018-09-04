@@ -28,13 +28,13 @@ private:
 
 private:
     Store& store_;
-    std::string key_;
-    Iterator* iter_;
-
     RowDecoder decoder_;
-    Status status_;
-    bool matched_;
-    size_t count_;
+
+    std::string key_;
+    Iterator* iter_ = nullptr;
+    Status last_status_;
+    bool matched_ = false;
+    size_t iter_count_ = 0;
 };
 
 } /* namespace storage */

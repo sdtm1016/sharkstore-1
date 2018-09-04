@@ -104,13 +104,9 @@ func (manager *hb_range_manager) createDelPeerTask(id uint64, r *Range, peer *me
 
 func (manager *hb_range_manager) CheckRange(cluster *Cluster, r *Range) *TaskChain {
 	// 处理分片回收
-	// TODO: 直接调用DS接口删除range 然后回收
 	if r.State == metapb.RangeState_R_Remove {
-		id, err := cluster.GenId()
-		if err != nil {
-			return nil
-		}
-		return NewTaskChain(id, r.GetId(), "hb-range-remove", NewDeleteRangeTask())
+		log.Warn("range %v had been marked remove status but not gc, please attention", r.GetId())
+		return nil // XXX master active do delete range
 	}
 
 	// range failover

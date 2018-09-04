@@ -98,7 +98,7 @@ Status RaftFsm::recoverCommit() {
 
 Status RaftFsm::start() {
     // 初始化随机函数(选举超时)
-    int seed = static_cast<unsigned>(
+    unsigned seed = static_cast<unsigned>(
         std::chrono::system_clock::now().time_since_epoch().count() * node_id_);
     std::default_random_engine engine(seed);
     std::uniform_int_distribution<unsigned> distribution(sops_.election_tick,
@@ -115,6 +115,7 @@ Status RaftFsm::start() {
         ops.log_file_size = rops_.log_file_size;
         ops.max_log_files = rops_.max_log_files;
         ops.allow_corrupt_startup = rops_.allow_log_corrupt;
+        ops.initial_first_index = rops_.initial_first_index;
         storage_ = std::shared_ptr<storage::Storage>(
             new storage::DiskStorage(id_, rops_.storage_path, ops));
     }
@@ -151,8 +152,8 @@ Status RaftFsm::start() {
         }
     }
     if (!local_found) {
-        return Status(Status::kInvalidArgument, "could not find local node in peers",
-                      PeersToString(rops_.peers));
+        return Status(Status::kInvalidArgument, std::string("could not find local node(") +
+                  std::to_string(node_id_) + ") in peers", PeersToString(rops_.peers));
     }
 
     LOG_INFO("newRaft[%llu]%s commit: %llu, applied: %llu, lastindex: %llu, "
@@ -502,8 +503,7 @@ Status RaftFsm::TruncateLog(uint64_t index) {
     return storage_->Truncate(index);
 }
 
-Status RaftFsm::DestroyLog() { return storage_->Destroy(); }
-Status RaftFsm::BackupLog() { return storage_->Backup(); }
+Status RaftFsm::DestroyLog(bool backup) { return storage_->Destroy(backup); }
 
 Status RaftFsm::smApply(const EntryPtr& entry) {
     Status s;

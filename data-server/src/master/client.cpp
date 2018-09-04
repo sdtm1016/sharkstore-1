@@ -75,7 +75,7 @@ Status Client::NodeLogin(uint64_t node_id) {
 }
 
 Status Client::GetNodeAddress(uint64_t node_id, std::string* server_addr,
-                              std::string* raft_addr, std::string* http_addr) {
+                              std::string* raft_addr, std::string* admin_addr) {
     auto conn = getLeaderConn();
     if (conn == nullptr) {
         return Status(Status::kNoLeader);
@@ -97,7 +97,7 @@ Status Client::GetNodeAddress(uint64_t node_id, std::string* server_addr,
     } else {
         if (server_addr) *server_addr = resp.node().server_addr();
         if (raft_addr) *raft_addr = resp.node().raft_addr();
-        if (http_addr) *http_addr = resp.node().http_addr();
+        if (admin_addr) *admin_addr = resp.node().admin_addr();
         return Status::OK();
     }
 }

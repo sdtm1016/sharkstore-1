@@ -63,6 +63,7 @@
 			},
 			success: function(data){
 	            alert(data.msg);
+                window.location.href = "/page/metadata/metadatacreatetable?clusterId="+ clusterId;
 	        },
 	        error: function(res){
 	            alert(res.responseText);

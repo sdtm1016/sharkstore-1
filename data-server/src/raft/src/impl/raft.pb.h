@@ -167,19 +167,19 @@ enum MessageType {
   HEARTBEAT_REQUEST = 5,
   HEARTBEAT_RESPONSE = 6,
   SNAPSHOT_REQUEST = 7,
-  SNAPSHOT_ACK = 8,
-  LOCAL_SNAPSHOT_STATUS = 9,
+  SNAPSHOT_ACK = 9,
   LOCAL_MSG_HUP = 10,
   LOCAL_MSG_PROP = 11,
   LOCAL_MSG_TICK = 12,
   PRE_VOTE_REQUEST = 13,
   PRE_VOTE_RESPONSE = 14,
+  LOCAL_SNAPSHOT_STATUS = 15,
   MessageType_INT_MIN_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32min,
   MessageType_INT_MAX_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32max
 };
 bool MessageType_IsValid(int value);
 const MessageType MessageType_MIN = MESSAGE_TYPE_INVALID;
-const MessageType MessageType_MAX = PRE_VOTE_RESPONSE;
+const MessageType MessageType_MAX = LOCAL_SNAPSHOT_STATUS;
 const int MessageType_ARRAYSIZE = MessageType_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* MessageType_descriptor();

@@ -271,14 +271,17 @@ func (this *MetricMeter) reportAndReset() {
 		}
 	}()
 
+	newMetric := make(map[string]*ApiMetric)
+	newLat :=  make([]float64, 0, 100000)
+
 	this.mutex.Lock()
 	metrics := this.metrics
 	total := time.Now().Sub(this.timestamp)
 	avgTotal := this.avgTotal
 	lats := this.lats
-	this.metrics = make(map[string]*ApiMetric)
+	this.metrics = newMetric
 	this.timestamp = time.Now()
-	this.lats = make([]float64, 0, 100000)
+	this.lats = newLat
 	this.avgTotal = 0
 	this.mutex.Unlock()
 

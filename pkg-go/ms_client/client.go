@@ -39,6 +39,7 @@ type Client interface {
 	TruncateTable(dbId, tableId uint64) error
 	CreateDatabase(dbName string) error
 	CreateTable(dbName, tableName, properties string) error
+	GetAutoIncId(dbId, tableId uint64, size uint32) ([]uint64, error)
 
 	NodeHeartbeat(*mspb.NodeHeartbeatRequest) (*mspb.NodeHeartbeatResponse, error)
 	RangeHeartbeat(*mspb.RangeHeartbeatRequest) (*mspb.RangeHeartbeatResponse, error)
@@ -338,6 +339,25 @@ func (c *RPCClient) CreateTable(dbName, tableName, properties string) error {
 	return errInvalidResponse
 }
 
+//get auto_increment id
+func (c *RPCClient) GetAutoIncId(dbId, tableId uint64, size uint32) ([]uint64, error) {
+	req := &mspb.GetAutoIncIdRequest{
+		Header:  &mspb.RequestHeader{},
+		DbId:    dbId,
+		TableId: tableId,
+		Size_:   size}
+	resp, err := c.callRPC(req, RequestMSTimeout)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, errInvalidResponse
+	}
+	if _resp, ok := resp.(*mspb.GetAutoIncIdResponse); ok {
+		return _resp.GetIds(), nil
+	}
+	return nil, errInvalidResponse
+}
 func (c *RPCClient) NodeLogin(req *mspb.NodeLoginRequest) (*mspb.NodeLoginResponse, error) {
 	resp, err := c.callRPC(req, RequestMSTimeout)
 	if err != nil {
@@ -659,6 +679,21 @@ func (c *RPCClient) callRPC(req interface{}, timeout time.Duration) (resp interf
 			if pbErr == nil {
 				return out, nil
 			}
+		case *mspb.GetAutoIncIdRequest:
+			out, _err := conn.Cli.GetAutoIncId(ctx, in)
+			cancel()
+			if _err != nil {
+				return nil, errors.New(grpc.ErrorDesc(_err))
+			}
+			header = out.GetHeader()
+			if header == nil {
+				err = errInvalidResponseHeader
+				return
+			}
+			pbErr = header.GetError()
+			if pbErr == nil {
+				return out, nil
+			}
 		default:
 			cancel()
 			return nil, errInvalidRequest
@@ -720,8 +755,8 @@ func (c *RPCClient) getConn() (*Conn, error) {
 						cli := mspb.NewMsServerClient(conn)
 						pool[leader] = &Conn{addr: leader, conn: conn, Cli: cli}
 						c.pool = pool
-						c.leader = leader
 					}
+					c.leader = leader
 				}
 			}
 			return nil

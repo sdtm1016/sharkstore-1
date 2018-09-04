@@ -31,6 +31,7 @@ service MsServer {
     rpc AddColumn(AddColumnRequest) returns (AddColumnResponse) {}
     rpc CreateDatabase(CreateDatabaseRequest) returns (CreateDatabaseResponse) {}
     rpc CreateTable(CreateTableRequest) returns (CreateTableResponse) {}
+    rpc GetAutoIncId(GetAutoIncIdRequest) returns (GetAutoIncIdResponse) {}
 }
 
 message MSLeader {
@@ -61,17 +62,17 @@ message RangeStats {
 }
 
 message RangeHeartbeatRequest {
-    RequestHeader header                        = 1;
+    RequestHeader header                  = 1;
 
-    metapb.Range range                          = 2;
+    metapb.Range range                    = 2;
     // leader
-    metapb.Peer leader                          = 3;
-    // leader term
-    uint64 term                                 = 4;
-    // replica status
-    repeated metapb.PeerStatus peers_status     = 5;
+    metapb.Peer leader                    = 3;
     // range metric stats
-    RangeStats stats                            = 6;
+    RangeStats stats                      = 6;
+    // leader term
+    uint64 term                           = 7;
+    // replica status
+    repeated PeerStatus peers_status      = 8;
 }
 
 message RangeHeartbeatResponse {
@@ -141,6 +142,7 @@ message AskSplitRequest {
     metapb.Range range   = 2;
 
     bytes split_key      = 3;
+    bool force           = 4;
 }
 
 message AskSplitResponse {
@@ -184,7 +186,7 @@ message GetNodeIdRequest {
     RequestHeader header       = 1;
     uint32      server_port    = 2;
     uint32      raft_port      = 3;
-    uint32      http_port      = 4;
+    uint32      admin_port     = 4;
     string      version        = 5;
 }
 
@@ -324,6 +326,18 @@ message CreateTableRequest {
 
 message CreateTableResponse {
     ResponseHeader header           = 1;
+}
+
+message GetAutoIncIdRequest {
+    RequestHeader header     = 1;
+    uint64 db_id             = 2;
+    uint64 table_id          = 3;
+    uint32 size              = 4;
+}
+
+message GetAutoIncIdResponse {
+    ResponseHeader header           = 1;
+    repeated uint64  ids            = 2;
 }
 
 message RequestHeader {

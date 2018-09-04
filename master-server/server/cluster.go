@@ -35,18 +35,23 @@ var AUTO_INCREMENT_ID string = fmt.Sprintf("$auto_increment_id")
 var PREFIX_TASK string = fmt.Sprintf("schema%stask%s", SCHEMA_SPLITOR, SCHEMA_SPLITOR)
 var PREFIX_REPLICA string = fmt.Sprintf("schema%sreplica%s", SCHEMA_SPLITOR, SCHEMA_SPLITOR)
 var PREFIX_PRE_GC string = fmt.Sprintf("schema%spre_gc%s", SCHEMA_SPLITOR, SCHEMA_SPLITOR)
-var PREFIX_AUTO_TRANSFER string = fmt.Sprintf("$auto_transfer_%d")
-var PREFIX_AUTO_FAILOVER string = fmt.Sprintf("$auto_failover_%d")
-var PREFIX_AUTO_SPLIT string = fmt.Sprintf("$auto_split_%d")
+var PREFIX_AUTO_TRANSFER_UNABLE string = fmt.Sprintf("schema%sauto_transfer_unable%s", SCHEMA_SPLITOR, SCHEMA_SPLITOR)
+var PREFIX_AUTO_FAILOVER_UNABLE string = fmt.Sprintf("schema%sauto_failover_unable%s", SCHEMA_SPLITOR, SCHEMA_SPLITOR)
+var PREFIX_AUTO_SPLIT_UNABLE string = fmt.Sprintf("schema%sauto_split_unable%s", SCHEMA_SPLITOR, SCHEMA_SPLITOR)
+var PREFIX_METRIC string = fmt.Sprintf("schema%smetric_send%s", SCHEMA_SPLITOR, SCHEMA_SPLITOR)
 
-var PREFIX_METRIC string = fmt.Sprintf("$metric_send_%d")
+const (
+	dsAdminPoolSize = 2
+	dsAdminToken    = ""
+)
 
 type Cluster struct {
 	clusterId uint64
 	nodeId    uint64
 	leader    *Peer
 
-	cli client.SchClient
+	cli      client.SchClient
+	adminCli client.AdminClient
 
 	idGener IDGenerator
 	opt     *scheduleOption
@@ -98,6 +103,7 @@ func NewCluster(clusterId, nodeId uint64, store Store, opt *scheduleOption) *Clu
 		clusterId:       clusterId,
 		nodeId:          nodeId,
 		cli:             client.NewSchRPCClient(),
+		adminCli:        client.NewAdminClient(dsAdminToken, dsAdminPoolSize),
 		store:           store,
 		opt:             opt,
 		dbs:             NewDbCache(),
@@ -223,15 +229,33 @@ func (c *Cluster) FindDatabaseById(id uint64) (*Database, bool) {
 }
 
 func (c *Cluster) DeleteDatabase(name string) error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	db, ok := c.FindDatabase(name)
+	if !ok {
+		return ErrNotExistDatabase
+	}
+
+	if len(db.GetAllTable()) != 0 {
+		return ErrNotAllowDelete
+	}
+
+	err := c.deleteDatabase(db.GetId())
+	if err != nil {
+		log.Error("delete database[%s] failed from store", name)
+		return err
+	}
+	c.dbs.Delete(name)
+	log.Info("delete database[%s] success", name)
 	return nil
 }
 
 func (c *Cluster) CreateDatabase(name string, properties string) (*Database, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	if _, ok := c.FindDatabase(name); ok {
+	if oldDb, ok := c.FindDatabase(name); ok {
 		log.Error("database name:%s is existed!", name)
-		return nil, ErrDupDatabase
+		return oldDb, ErrDupDatabase
 	}
 
 	id, err := c.idGener.GenID()
@@ -374,7 +398,7 @@ func (c *Cluster) CreateTable(dbName, tableName, isolationLabel string, readPoin
 	_t, find := db.FindTable(tableName)
 	if find {
 		log.Warn("dup Table %v", _t)
-		return nil, ErrDupTable
+		return _t, ErrDupTable
 	}
 
 	// create table
@@ -470,9 +494,11 @@ func (c *Cluster) DeleteTable(dbName, tableName string, fast bool) (*Table, erro
 	key := []byte(fmt.Sprintf("%s%d", PREFIX_TABLE, table.GetId()))
 	batch.Put(key, tbData)
 	// close auto switch
-	key = []byte(fmt.Sprintf(PREFIX_AUTO_TRANSFER_TABLE, table.GetId()))
+	key = []byte(fmt.Sprintf("%s%d", PREFIX_AUTO_TRANSFER_TABLE, table.GetId()))
 	batch.Delete(key)
-	key = []byte(fmt.Sprintf(PREFIX_AUTO_FAILOVER_TABLE, table.GetId()))
+	key = []byte(fmt.Sprintf("%s%d", PREFIX_AUTO_FAILOVER_TABLE, table.GetId()))
+	batch.Delete(key)
+	key = []byte(fmt.Sprintf("%s%d", TABLE_AUTO_INCREMENT_ID, table.GetId()))
 	batch.Delete(key)
 	err := batch.Commit()
 	if err != nil {
@@ -505,8 +531,7 @@ func (c *Cluster) CancelTable(dbName, tName string) error {
 		return ErrNotCancel
 	}
 	if table.Status == metapb.TableStatus_TablePrepare {
-		key := []byte(fmt.Sprintf("%s%d", PREFIX_TABLE, table.GetId()))
-		if err := c.store.Delete(key); err != nil {
+		if err := c.deleteTable(table.GetId()); err != nil {
 			log.Error("MS scheduler delete expired table:[%s][%d] from store is failed.",
 				table.GetName(), table.GetId())
 			return err
@@ -540,21 +565,21 @@ func (c *Cluster) UpdateAutoScheduleInfo(autoFailoverUnable, autoTransferUnable,
 	}
 	batch := c.store.NewBatch()
 	var key, value []byte
-	key = []byte(fmt.Sprintf(PREFIX_AUTO_TRANSFER, c.clusterId))
+	key = []byte(fmt.Sprintf("%s%d", PREFIX_AUTO_TRANSFER_UNABLE, c.clusterId))
 	if autoTransferUnable {
 		value = uint64ToBytes(uint64(1))
 	} else {
 		value = uint64ToBytes(uint64(0))
 	}
 	batch.Put(key, value)
-	key = []byte(fmt.Sprintf(PREFIX_AUTO_FAILOVER, c.clusterId))
+	key = []byte(fmt.Sprintf("%s%d", PREFIX_AUTO_FAILOVER_UNABLE, c.clusterId))
 	if autoFailoverUnable {
 		value = uint64ToBytes(uint64(1))
 	} else {
 		value = uint64ToBytes(uint64(0))
 	}
 	batch.Put(key, value)
-	key = []byte(fmt.Sprintf(PREFIX_AUTO_SPLIT, c.clusterId))
+	key = []byte(fmt.Sprintf("%s%d", PREFIX_AUTO_SPLIT_UNABLE, c.clusterId))
 	if autoSplitUnable {
 		value = uint64ToBytes(uint64(1))
 	} else {
@@ -634,7 +659,7 @@ func (c *Cluster) GetAllTasks() []*TaskChain {
 
 func (c *Cluster) loadAutoTransfer() error {
 	s := uint64(0)
-	key := fmt.Sprintf(PREFIX_AUTO_TRANSFER, c.clusterId)
+	key := fmt.Sprintf("%s%d", PREFIX_AUTO_TRANSFER_UNABLE, c.clusterId)
 	value, err := c.store.Get([]byte(key))
 	if err != nil {
 		if err == sErr.ErrNotFound {
@@ -659,7 +684,7 @@ func (c *Cluster) loadAutoTransfer() error {
 
 func (c *Cluster) loadAutoFailover() error {
 	s := uint64(0)
-	key := fmt.Sprintf(PREFIX_AUTO_FAILOVER, c.clusterId)
+	key := fmt.Sprintf("%s%d", PREFIX_AUTO_FAILOVER_UNABLE, c.clusterId)
 	value, err := c.store.Get([]byte(key))
 	if err != nil {
 		if err == sErr.ErrNotFound {
@@ -684,7 +709,7 @@ func (c *Cluster) loadAutoFailover() error {
 
 func (c *Cluster) loadAutoSplit() error {
 	s := uint64(0)
-	key := fmt.Sprintf(PREFIX_AUTO_SPLIT, c.clusterId)
+	key := fmt.Sprintf("%s%d", PREFIX_AUTO_SPLIT_UNABLE, c.clusterId)
 	value, err := c.store.Get([]byte(key))
 	if err != nil {
 		if err == sErr.ErrNotFound {
@@ -718,11 +743,13 @@ func (c *Cluster) loadScheduleSwitch() error {
 		log.Error("load auto transfer failed, err[%v]", err)
 		return err
 	}
-	log.Info("auto transfer: %v", c.autoFailoverUnable)
+	log.Info("cluster autoTransferUnable: %v", c.autoTransferUnable)
+
 	if err := c.loadAutoSplit(); err != nil {
 		log.Error("load auto split failed, err[%v]", err)
 		return err
 	}
+	log.Info("cluster autoSplitUnable: %v", c.autoSplitUnable)
 	return nil
 }
 
@@ -735,6 +762,12 @@ func (c *Cluster) storeDatabase(db *metapb.DataBase) error {
 	}
 	key := []byte(fmt.Sprintf("%s%d", PREFIX_DB, db.GetId()))
 	return c.store.Put(key, data)
+}
+
+//only when no table in database
+func (c *Cluster) deleteDatabase(dbId uint64) error {
+	key := []byte(fmt.Sprintf("%s%d", PREFIX_DB, dbId))
+	return c.store.Delete(key)
 }
 
 func (c *Cluster) storeTable(t *metapb.Table) error {
@@ -1484,7 +1517,7 @@ func (c *Cluster) dispatchOne(r *Range) (task *taskpb.Task, over bool) {
 	log.Debug("range[%d] step Task: %v", r.GetId(), tc.String())
 	over, task = tc.Next(c, r)
 	if over {
-		c.taskManager.Remove(tc)
+		c.taskManager.Remove(tc, c)
 	}
 	return task, over
 }

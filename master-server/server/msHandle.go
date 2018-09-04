@@ -25,11 +25,9 @@ func (service *Server) handleGetRoute(ctx context.Context, req *mspb.GetRouteReq
 
 	if table, find := cluster.FindTableById(req.GetTableId()); find {
 		if table.Status != metapb.TableStatus_TableRunning {
-			if !find {
-				log.Warn("table[%d] not ready for work", req.GetTableId())
-				err = ErrNotExistTable
-				return
-			}
+			log.Warn("table[%d] not ready for work", req.GetTableId())
+			err = ErrNotExistTable
+			return
 		}
 		ranges := cluster.MultipleSearchRanges(key, max)
 		if ranges == nil {
@@ -66,7 +64,9 @@ func (service *Server) handleGetRoute(ctx context.Context, req *mspb.GetRouteReq
 			}
 		}
 	} else {
-		log.Warn("get route table not found %d", req.GetTableId())
+		log.Warn("get route: table %d not found", req.GetTableId())
+		err = ErrNotExistTable
+		return
 	}
 	resp = new(mspb.GetRouteResponse)
 	resp.Header = &mspb.ResponseHeader{}
@@ -128,7 +128,7 @@ func (service *Server) handleNodeHeartbeat(ctx context.Context, req *mspb.NodeHe
 	return
 }
 
-func checkQurumDown(req *mspb.RangeHeartbeatRequest) bool {
+func checkQuorumDown(req *mspb.RangeHeartbeatRequest) bool {
 	totalVoters := 0
 	downVoters := 0
 	for _, peer := range req.GetRange().GetPeers() {
@@ -185,12 +185,12 @@ func (service *Server) handleRangeHeartbeat(ctx context.Context, req *mspb.Range
 		rng.State = metapb.RangeState_R_Normal
 	}
 
-	if rng.Trace || log.IsEnableInfo() {
-		log.Info("[HB] range[%s] heartbeat, from ip[%s]", rng.SString(), util.GetIpFromContext(ctx))
-	}
+	//if rng.Trace || log.IsEnableInfo() {
+	//	log.Info("[HB] range[%s] heartbeat, from ip[%s]", rng.SString(), util.GetIpFromContext(ctx))
+	//}
 
 	//range心跳恢复
-	if rng.State == metapb.RangeState_R_Abnormal && !checkQurumDown(req) {
+	if rng.State == metapb.RangeState_R_Abnormal && !checkQuorumDown(req) {
 		rng.State = metapb.RangeState_R_Normal
 		//执行store GC .
 		oldRng, found := cluster.FindPreGCRangeById(rng.GetId())
@@ -213,12 +213,18 @@ func (service *Server) handleRangeHeartbeat(ctx context.Context, req *mspb.Range
 	}
 
 	// Stale term
-	if req.GetTerm() < rng.Term {
-		log.Warn("range[%v] stale %v", rng.Range, r)
-		return
-	} else if req.GetTerm() > rng.Term {
-		saveCache = true
-		log.Info("range[%d] term change from %d to %d", rng.GetId(), rng.Term, req.GetTerm())
+	// req.GetTerm() != 0: for backward compatible
+	// TODO: remove req.GetTerm() != 0 in the future
+	if req.GetTerm() != 0 {
+		if req.GetTerm() < rng.Term {
+			log.Warn("range[%v] stale term(%d < %d), stale leader: [%v], current leader: [%v]",
+				rng.GetId(), req.GetTerm(), rng.Term, req.GetLeader(), rng.GetLeader())
+			return
+		} else if req.GetTerm() > rng.Term {
+			saveCache = true
+			log.Info("range[%d] term change from %d to %d, new leader: [%v], prev leader: [%v]",
+				rng.GetId(), rng.Term, req.GetTerm(), req.GetLeader(), rng.GetLeader())
+		}
 	}
 
 	if r.GetRangeEpoch().GetVersion() > rng.GetRangeEpoch().GetVersion() {
@@ -306,7 +312,7 @@ func (service *Server) handleRangeHeartbeat(ctx context.Context, req *mspb.Range
 func (service *Server) handleAskSplit(ctx context.Context, req *mspb.AskSplitRequest) (resp *mspb.AskSplitResponse, err error) {
 	cluster := service.cluster
 	//集群不允许分裂
-	if cluster.autoSplitUnable {
+	if !req.GetForce() && cluster.autoSplitUnable {
 		log.Debug("cluster is not allowed split")
 		err = ErrNotAllowSplit
 		return
@@ -528,7 +534,7 @@ func (service *Server) handleAddColumns(ctx context.Context, req *mspb.AddColumn
 		return nil, errors.New("table is not existed")
 	}
 
-	cols, err := t.UpdateSchema(columns, service.cluster.store)
+	cols, err := t.UpdateSchema(columns, service.cluster)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("column add err %s", err.Error()))
 	}
@@ -549,7 +555,7 @@ func (service *Server) handleGetColumnByName(ctx context.Context, req *mspb.GetC
 	}
 	t, ok := service.cluster.FindTableById(tId)
 	if !ok {
-		return nil, errors.New("table is not existed")
+		return nil, ErrNotExistTable
 	}
 	c, ok := t.GetColumnByName(name)
 	if !ok {
@@ -603,8 +609,8 @@ func (service *Server) handleGetNodeId(ctx context.Context, req *mspb.GetNodeIdR
 		}
 		serverAddr := fmt.Sprintf("%s:%d", ip, req.GetServerPort())
 		raftAddr := fmt.Sprintf("%s:%d", ip, req.GetRaftPort())
-		httpAddr := fmt.Sprintf("%s:%d", ip, req.GetHttpPort())
-		node, cleanUp, err := service.cluster.GetNodeId(serverAddr, raftAddr, httpAddr, req.GetVersion())
+		adminAddr := fmt.Sprintf("%s:%d", ip, req.GetAdminPort())
+		node, cleanUp, err := service.cluster.GetNodeId(serverAddr, raftAddr, adminAddr, req.GetVersion())
 		if err != nil {
 			return nil, err
 		}
@@ -648,5 +654,33 @@ func (service *Server) handleCreateTable(ctx context.Context, req *mspb.CreateTa
 		return
 	}
 	log.Info("create table[%s:%s] success", req.GetDbName(), req.GetTableName())
+	return
+}
+
+func (service *Server) handleAutoIncId(ctx context.Context, req *mspb.GetAutoIncIdRequest) (resp *mspb.GetAutoIncIdResponse, err error) {
+	cluster := service.cluster
+	ids := make([]uint64, 0)
+	if table, find := cluster.FindTableById(req.GetTableId()); find {
+		if table.Status != metapb.TableStatus_TableRunning {
+			log.Warn("table[%d] not ready for work", req.GetTableId())
+			err = ErrNotExistTable
+			return
+		}
+		size := req.GetSize_()
+		if size == 0 {
+			size = 1
+		}
+		ids, err = table.GetAutoIncId(service.store, size)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		log.Warn("get auto_increment id: table %d not found", req.GetTableId())
+		err = ErrNotExistTable
+		return
+	}
+	resp = new(mspb.GetAutoIncIdResponse)
+	resp.Header = &mspb.ResponseHeader{}
+	resp.Ids = ids
 	return
 }

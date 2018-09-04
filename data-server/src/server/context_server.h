@@ -21,7 +21,6 @@ namespace server {
 
 class Worker;
 class Manager;
-class GrpcWorker;
 class RunStatus;
 class RangeServer;
 class RunStatus;
@@ -30,7 +29,6 @@ struct ContextServer {
     uint64_t node_id = 0;
 
     Worker *worker = nullptr;
-    Manager *manager = nullptr;
 
     RunStatus *run_status = nullptr;
     RangeServer *range_server = nullptr;
@@ -40,6 +38,7 @@ struct ContextServer {
     rocksdb::DB *rocks_db = nullptr;
     std::shared_ptr<rocksdb::Cache> block_cache;  // rocksdb block cache
     std::shared_ptr<rocksdb::Cache> row_cache; // rocksdb row cache
+    std::shared_ptr<rocksdb::Statistics> db_stats; // rocksdb stats
     storage::MetaStore *meta_store = nullptr;
 
     raft::RaftServer *raft_server = nullptr;

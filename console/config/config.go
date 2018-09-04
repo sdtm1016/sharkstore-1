@@ -10,42 +10,45 @@ import (
 )
 
 type LoginConfig struct {
-	SsoLoginUrl 	string
-	SsoLogoutUrl 	string
-	SsoCookieName	string
-	SsoDomainName 	string
-	SsoExcludePath  []string
-	SsoVerifyUrl 	string
+	SsoLoginUrl    string
+	SsoLogoutUrl   string
+	SsoCookieName  string
+	SsoDomainName  string
+	SsoExcludePath []string
+	SsoVerifyUrl   string
 
-	AppDomainName   string
-	AppUrl   string
-	AppName   string
-	AppToken   string
+	AppDomainName string
+	AppUrl        string
+	AppName       string
+	AppToken      string
 }
 
 type Config struct {
-	ProjectHomeDir     string
-	ReqListenPort 	   int
+	ProjectHomeDir string
+	ReqListenPort  int
 
 	// gin
-	GinLogFile         string
-	GinMode 		   string
+	GinLogFile string
+	GinMode    string
 
 	// mysql api
-	MysqlHost          string
-	MysqlPort          int
-	MysqlUser          string
-	MysqlPasswd        string
+	MysqlHost   string
+	MysqlPort   int
+	MysqlUser   string
+	MysqlPasswd string
 
 	//lock cluster
-	LockClusterId	   int
+	LockClusterId int
+	//configure cluster
+	ConfigureClusterId int
+	DomainRpcPort      int
 
 	// log
-	ProjectLogDir      string
-	ProjectLogModule   string
-	ProjectLogLevel    string
+	ProjectLogDir    string
+	ProjectLogModule string
+	ProjectLogLevel  string
 
-	MonitorDomain 	   string
+	MonitorDomain string
 
 	*LoginConfig
 }
@@ -98,6 +101,14 @@ Usage:
 	if c.LockClusterId, found = config.Config.Int("lock.cluster.id"); !found {
 		log.Warn("Config lock.cluster.id not specified")
 		c.LockClusterId = 0
+	}
+	if c.ConfigureClusterId, found = config.Config.Int("configure.cluster.id"); !found {
+		log.Warn("Config configure.cluster.id not specified")
+		c.ConfigureClusterId = 0
+	}
+	if c.DomainRpcPort, found = config.Config.Int("domain.rpc.port"); !found {
+		log.Warn("Config domain.rpc.port not specified")
+		c.DomainRpcPort = 18887
 	}
 	if c.ProjectLogDir, found = config.Config.String("log.dir"); !found {
 		log.Panic("Config log.dir not specified")

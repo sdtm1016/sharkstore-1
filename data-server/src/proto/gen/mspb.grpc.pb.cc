@@ -35,6 +35,7 @@ static const char* MsServer_method_names[] = {
   "/mspb.MsServer/AddColumn",
   "/mspb.MsServer/CreateDatabase",
   "/mspb.MsServer/CreateTable",
+  "/mspb.MsServer/GetAutoIncId",
 };
 
 std::unique_ptr< MsServer::Stub> MsServer::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -62,6 +63,7 @@ MsServer::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
   , rpcmethod_AddColumn_(MsServer_method_names[16], ::grpc::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_CreateDatabase_(MsServer_method_names[17], ::grpc::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_CreateTable_(MsServer_method_names[18], ::grpc::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetAutoIncId_(MsServer_method_names[19], ::grpc::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status MsServer::Stub::NodeHeartbeat(::grpc::ClientContext* context, const ::mspb::NodeHeartbeatRequest& request, ::mspb::NodeHeartbeatResponse* response) {
@@ -216,6 +218,14 @@ MsServer::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
   return ::grpc::ClientAsyncResponseReader< ::mspb::CreateTableResponse>::Create(channel_.get(), cq, rpcmethod_CreateTable_, context, request);
 }
 
+::grpc::Status MsServer::Stub::GetAutoIncId(::grpc::ClientContext* context, const ::mspb::GetAutoIncIdRequest& request, ::mspb::GetAutoIncIdResponse* response) {
+  return ::grpc::BlockingUnaryCall(channel_.get(), rpcmethod_GetAutoIncId_, context, request, response);
+}
+
+::grpc::ClientAsyncResponseReader< ::mspb::GetAutoIncIdResponse>* MsServer::Stub::AsyncGetAutoIncIdRaw(::grpc::ClientContext* context, const ::mspb::GetAutoIncIdRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::ClientAsyncResponseReader< ::mspb::GetAutoIncIdResponse>::Create(channel_.get(), cq, rpcmethod_GetAutoIncId_, context, request);
+}
+
 MsServer::Service::Service() {
   AddMethod(new ::grpc::RpcServiceMethod(
       MsServer_method_names[0],
@@ -312,6 +322,11 @@ MsServer::Service::Service() {
       ::grpc::RpcMethod::NORMAL_RPC,
       new ::grpc::RpcMethodHandler< MsServer::Service, ::mspb::CreateTableRequest, ::mspb::CreateTableResponse>(
           std::mem_fn(&MsServer::Service::CreateTable), this)));
+  AddMethod(new ::grpc::RpcServiceMethod(
+      MsServer_method_names[19],
+      ::grpc::RpcMethod::NORMAL_RPC,
+      new ::grpc::RpcMethodHandler< MsServer::Service, ::mspb::GetAutoIncIdRequest, ::mspb::GetAutoIncIdResponse>(
+          std::mem_fn(&MsServer::Service::GetAutoIncId), this)));
 }
 
 MsServer::Service::~Service() {
@@ -444,6 +459,13 @@ MsServer::Service::~Service() {
 }
 
 ::grpc::Status MsServer::Service::CreateTable(::grpc::ServerContext* context, const ::mspb::CreateTableRequest* request, ::mspb::CreateTableResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status MsServer::Service::GetAutoIncId(::grpc::ServerContext* context, const ::mspb::GetAutoIncIdRequest* request, ::mspb::GetAutoIncIdResponse* response) {
   (void) context;
   (void) request;
   (void) response;

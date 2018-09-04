@@ -103,7 +103,7 @@ function updateLogLevel(){
                     if(data.code === 0){
                         swal("master日志级别修改成功！", "master日志级别修改成功!", "success");
                     }else{
-                        swal("master日志级别修改失败！", data.message, "error");
+                        swal("master日志级别修改失败！", data.msg, "error");
                     }
                 },
                 error: function(res){

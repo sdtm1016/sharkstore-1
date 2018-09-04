@@ -31,7 +31,7 @@
 #include "frame/sf_util.h"
 #include "frame/sf_logger.h"
 
-#include "./gen/test.pb.h"
+#include "helper/gen/test.pb.h"
 
 sf_socket_thread_config_t config;
 sf_socket_status_t status = {0};
@@ -50,7 +50,7 @@ static int load_conf_file(IniContext *ini_context, const char *filename) {
 
 void send(ProtoMessage *msg) {
     tpb::TestMsg req;
-    if (!socket_session->GetMessage(msg->body.data(), msg->body.size(), &req)) {
+    if (!GetMessage(msg->body.data(), msg->body.size(), &req)) {
         FLOG_ERROR("deserialize create range request failed");
         return socket_session->Send(msg, nullptr);
     }
@@ -63,7 +63,7 @@ void send(ProtoMessage *msg) {
 }
 
 void deal(request_buff_t *request, void *args) {
-    ProtoMessage *req = socket_session->GetProtoMessage(request->buff);
+    ProtoMessage *req = GetProtoMessage(request->buff);
     if (req != nullptr) {
         req->socket = &socket_server;
         req->session_id = request->session_id;

@@ -1,7 +1,7 @@
 set(net_SOURCES
     io_context_pool.cpp
-    rpc_client.cpp
-    rpc_protocol.cpp
+    client.cpp
+    protocol.cpp
     server.cpp
     session.cpp
     )

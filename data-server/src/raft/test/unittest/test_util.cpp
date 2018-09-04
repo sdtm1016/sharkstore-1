@@ -105,6 +105,40 @@ Status Equal(const std::vector<EntryPtr>& lh, const std::vector<EntryPtr>& rh) {
     return Status::OK();
 }
 
+SnapContext randSnapContext() {
+    SnapContext ctx;
+    ctx.id = static_cast<uint64_t>(randomInt());
+    ctx.term = static_cast<uint64_t>(randomInt());
+    ctx.uuid = static_cast<uint64_t>(randomInt());
+    ctx.from = static_cast<uint64_t>(randomInt());
+    ctx.to = static_cast<uint64_t>(randomInt());
+    return ctx;
+};
+
+Status Equal(const SnapContext& lh, const SnapContext& rh) {
+    if (lh.from != rh.from) {
+        return Status(Status::kCorruption, "from",
+                      std::to_string(lh.from) + " != " + std::to_string(rh.from));
+    }
+    if (lh.id != rh.id) {
+        return Status(Status::kCorruption, "id",
+                      std::to_string(lh.id) + " != " + std::to_string(rh.id));
+    }
+    if (lh.term != rh.term) {
+        return Status(Status::kCorruption, "term",
+                      std::to_string(lh.term) + " != " + std::to_string(rh.term));
+    }
+    if (lh.to != rh.to) {
+        return Status(Status::kCorruption, "to",
+                      std::to_string(lh.to) + " != " + std::to_string(rh.to));
+    }
+    if (lh.uuid != rh.uuid) {
+        return Status(Status::kCorruption, "uuid",
+                      std::to_string(lh.uuid) + " != " + std::to_string(rh.uuid));
+    }
+    return Status::OK();
+}
+
 } /* namespace testutil */
 } /* namespace impl */
 } /* namespace raft */

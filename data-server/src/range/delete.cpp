@@ -2,32 +2,34 @@
 
 #include "server/range_server.h"
 
+#include "range_logger.h"
+
 namespace sharkstore {
 namespace dataserver {
 namespace range {
+
+using namespace sharkstore::monitor;
 
 bool Range::DeleteSubmit(common::ProtoMessage *msg, kvrpcpb::DsDeleteRequest &req) {
     auto &key = req.req().key();
 
     if (is_leader_ && (key.empty() || KeyInRange(key))) {
-        auto ret = SubmitCmd(msg, req, [&req](raft_cmdpb::Command &cmd) {
+        auto ret = SubmitCmd(msg, req.header(), [&req](raft_cmdpb::Command &cmd) {
             cmd.set_cmd_type(raft_cmdpb::CmdType::Delete);
             cmd.set_allocated_delete_req(req.release_req());
         });
-
-        return ret.ok() ? true : false;
+        return ret.ok();
     }
-
     return false;
 }
 
 bool Range::DeleteTry(common::ProtoMessage *msg, kvrpcpb::DsDeleteRequest &req) {
-    std::shared_ptr<Range> rng = context_->range_server->find(split_range_id_);
+    std::shared_ptr<Range> rng = context_->FindRange(split_range_id_);
     if (rng == nullptr) {
         return false;
     }
 
-    FLOG_DEBUG("range[%" PRIu64 "] Delete Try ", split_range_id_);
+    RANGE_LOG_DEBUG("Delete Try %" PRIu64, split_range_id_);
 
     return rng->DeleteSubmit(msg, req);
 }
@@ -36,9 +38,9 @@ void Range::Delete(common::ProtoMessage *msg, kvrpcpb::DsDeleteRequest &req) {
     errorpb::Error *err = nullptr;
 
     auto btime = get_micro_second();
-    context_->run_status->PushTime(monitor::PrintTag::Qwait, btime - msg->begin_time);
+    context_->Statistics()->PushTime(HistogramType::kQWait, btime - msg->begin_time);
 
-    FLOG_DEBUG("range[%" PRIu64 "] Delete begin", meta_.id());
+    RANGE_LOG_DEBUG("Delete begin");
 
     if (!CheckWriteable()) {
         auto resp = new kvrpcpb::DsKvDeleteResponse;
@@ -84,8 +86,7 @@ void Range::Delete(common::ProtoMessage *msg, kvrpcpb::DsDeleteRequest &req) {
     } while (false);
 
     if (err != nullptr) {
-        FLOG_WARN("range[%" PRIu64 "] Delete error: %s", meta_.id(),
-                  err->message().c_str());
+        RANGE_LOG_WARN("Delete error: %s", err->message().c_str());
 
         auto resp = new kvrpcpb::DsKvDeleteResponse;
         return SendError(msg, req.header(), resp, err);
@@ -97,35 +98,32 @@ Status Range::ApplyDelete(const raft_cmdpb::Command &cmd) {
     uint64_t affected_keys = 0;
     errorpb::Error *err = nullptr;
 
-    FLOG_DEBUG("ApplyDelete begin");
+    RANGE_LOG_DEBUG("ApplyDelete begin");
 
     auto &req = cmd.delete_req();
+    auto btime = get_micro_second();
 
     do {
         auto &key = req.key();
         if (key.empty()) {
-            auto epoch = cmd.verify_epoch();
+            auto &epoch = cmd.verify_epoch();
 
             if (!EpochIsEqual(epoch, err)) {
-                FLOG_WARN("Range %" PRIu64 "  ApplyDelete error: %s", meta_.id(),
-                          err->message().c_str());
+                RANGE_LOG_WARN("ApplyDelete error: %s", err->message().c_str());
                 break;
             }
         } else {
             if (!KeyInRange(key, err)) {
-                FLOG_WARN("range[%" PRIu64 "] ApplyDelete error: %s", meta_.id(),
-                          err->message().c_str());
+                RANGE_LOG_WARN("ApplyDelete error: %s", err->message().c_str());
                 break;
             }
         }
 
-        auto btime = get_micro_second();
         ret = store_->DeleteRows(req, &affected_keys);
-        context_->run_status->PushTime(monitor::PrintTag::Store,
-                                       get_micro_second() - btime);
+        context_->Statistics()->PushTime(HistogramType::kStore, get_micro_second() - btime);
 
         if (!ret.ok()) {
-            FLOG_ERROR("ApplyDelete failed, code:%d, msg:%s", ret.code(),
+            RANGE_LOG_ERROR("ApplyDelete failed, code:%d, msg:%s", ret.code(),
                        ret.ToString().c_str());
             break;
         }
@@ -133,7 +131,9 @@ Status Range::ApplyDelete(const raft_cmdpb::Command &cmd) {
 
     if (cmd.cmd_id().node_id() == node_id_) {
         auto resp = new kvrpcpb::DsKvDeleteResponse;
-        SendResponse(resp, cmd, static_cast<int>(ret.code()), affected_keys, err);
+        resp->mutable_resp()->set_affected_keys(affected_keys);
+        resp->mutable_resp()->set_code(ret.code());
+        ReplySubmit(cmd, resp, err, btime);
     } else if (err != nullptr) {
         delete err;
     }

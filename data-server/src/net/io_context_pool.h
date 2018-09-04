@@ -3,6 +3,7 @@ _Pragma("once");
 #include <atomic>
 #include <thread>
 #include <vector>
+#include <functional>
 
 #include <asio/executor_work_guard.hpp>
 #include <asio/io_context.hpp>

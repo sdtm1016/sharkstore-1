@@ -5,9 +5,16 @@ import (
 )
 
 type Response struct {
-	Code 	int				`json:"code"`
-	Msg		string			`json:"msg"`
-	Data    interface{}		`json:"data"`
+	Code int         `json:"code"`
+	Msg  string      `json:"msg"`
+	Data interface{} `json:"data"`
+}
+
+type PageData struct {
+	PageIndex int         `json:"pageIndex"`
+	PageSize  int         `json:"pageSize"`
+	Total     int         `json:"total"`
+	Data      interface{} `json:"data"`
 }
 
 type Action interface {

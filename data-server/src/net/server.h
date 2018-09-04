@@ -1,11 +1,12 @@
 _Pragma("once");
 
+#include <thread>
 #include <asio/io_context.hpp>
 #include <asio/ip/tcp.hpp>
-#include <thread>
 
 #include "base/status.h"
-#include "msg_handler.h"
+
+#include "handler.h"
 #include "options.h"
 
 namespace sharkstore {
@@ -23,7 +24,7 @@ public:
     Server& operator=(const Server&) = delete;
 
     Status ListenAndServe(const std::string& listen_ip, uint16_t listen_port,
-                          const MsgHandler& msg_handler);
+                          const Handler &handler);
 
     void Stop();
 
@@ -33,7 +34,7 @@ private:
 
 private:
     const ServerOptions opt_;
-    MsgHandler msg_handler_;
+    Handler handler_;
 
     bool stopped_ = false;
 

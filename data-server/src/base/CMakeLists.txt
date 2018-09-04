@@ -1,5 +1,6 @@
 set(base_SOURCES
     status.cpp
+    timer.cpp
     util.cpp
     )
 

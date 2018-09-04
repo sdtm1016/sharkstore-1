@@ -69,7 +69,7 @@ extern time_t g_up_time;
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+int sf_load_config_buffer(const char* content,const char* server_name);
 int sf_load_config(const char *server_name, const char *filename);
 int sf_load_socket_thread_config(IniContext *ini_context, const char *section_name,
                                  sf_socket_thread_config_t *config);

@@ -69,7 +69,7 @@ func NewWorkerManager(cluster *Cluster, opt *scheduleOption) *WorkerManager {
 
 func (wm *WorkerManager) Run() {
 	wm.addWorker(NewFailoverWorker(wm, time.Second))
-	wm.addWorker(NewDeleteTableWorker(wm, 10 * time.Minute))
+	wm.addWorker(NewDeleteTableWorker(wm, 1 * time.Minute))
 	wm.addWorker(NewTrashReplicaGCWorker(wm, time.Minute))
 	wm.addWorker(NewCreateTableWorker(wm, time.Second))
 	wm.addWorker(NewRangeHbCheckWorker(wm, 2 * time.Minute))

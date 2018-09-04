@@ -110,6 +110,10 @@ class MsServer final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::mspb::CreateTableResponse>> AsyncCreateTable(::grpc::ClientContext* context, const ::mspb::CreateTableRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::mspb::CreateTableResponse>>(AsyncCreateTableRaw(context, request, cq));
     }
+    virtual ::grpc::Status GetAutoIncId(::grpc::ClientContext* context, const ::mspb::GetAutoIncIdRequest& request, ::mspb::GetAutoIncIdResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::mspb::GetAutoIncIdResponse>> AsyncGetAutoIncId(::grpc::ClientContext* context, const ::mspb::GetAutoIncIdRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::mspb::GetAutoIncIdResponse>>(AsyncGetAutoIncIdRaw(context, request, cq));
+    }
   private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::mspb::NodeHeartbeatResponse>* AsyncNodeHeartbeatRaw(::grpc::ClientContext* context, const ::mspb::NodeHeartbeatRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::mspb::RangeHeartbeatResponse>* AsyncRangeHeartbeatRaw(::grpc::ClientContext* context, const ::mspb::RangeHeartbeatRequest& request, ::grpc::CompletionQueue* cq) = 0;
@@ -130,6 +134,7 @@ class MsServer final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::mspb::AddColumnResponse>* AsyncAddColumnRaw(::grpc::ClientContext* context, const ::mspb::AddColumnRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::mspb::CreateDatabaseResponse>* AsyncCreateDatabaseRaw(::grpc::ClientContext* context, const ::mspb::CreateDatabaseRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::mspb::CreateTableResponse>* AsyncCreateTableRaw(::grpc::ClientContext* context, const ::mspb::CreateTableRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::mspb::GetAutoIncIdResponse>* AsyncGetAutoIncIdRaw(::grpc::ClientContext* context, const ::mspb::GetAutoIncIdRequest& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -210,6 +215,10 @@ class MsServer final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::mspb::CreateTableResponse>> AsyncCreateTable(::grpc::ClientContext* context, const ::mspb::CreateTableRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::mspb::CreateTableResponse>>(AsyncCreateTableRaw(context, request, cq));
     }
+    ::grpc::Status GetAutoIncId(::grpc::ClientContext* context, const ::mspb::GetAutoIncIdRequest& request, ::mspb::GetAutoIncIdResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::mspb::GetAutoIncIdResponse>> AsyncGetAutoIncId(::grpc::ClientContext* context, const ::mspb::GetAutoIncIdRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::mspb::GetAutoIncIdResponse>>(AsyncGetAutoIncIdRaw(context, request, cq));
+    }
 
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
@@ -232,6 +241,7 @@ class MsServer final {
     ::grpc::ClientAsyncResponseReader< ::mspb::AddColumnResponse>* AsyncAddColumnRaw(::grpc::ClientContext* context, const ::mspb::AddColumnRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::mspb::CreateDatabaseResponse>* AsyncCreateDatabaseRaw(::grpc::ClientContext* context, const ::mspb::CreateDatabaseRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::mspb::CreateTableResponse>* AsyncCreateTableRaw(::grpc::ClientContext* context, const ::mspb::CreateTableRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::mspb::GetAutoIncIdResponse>* AsyncGetAutoIncIdRaw(::grpc::ClientContext* context, const ::mspb::GetAutoIncIdRequest& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::RpcMethod rpcmethod_NodeHeartbeat_;
     const ::grpc::RpcMethod rpcmethod_RangeHeartbeat_;
     const ::grpc::RpcMethod rpcmethod_AskSplit_;
@@ -251,6 +261,7 @@ class MsServer final {
     const ::grpc::RpcMethod rpcmethod_AddColumn_;
     const ::grpc::RpcMethod rpcmethod_CreateDatabase_;
     const ::grpc::RpcMethod rpcmethod_CreateTable_;
+    const ::grpc::RpcMethod rpcmethod_GetAutoIncId_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -277,6 +288,7 @@ class MsServer final {
     virtual ::grpc::Status AddColumn(::grpc::ServerContext* context, const ::mspb::AddColumnRequest* request, ::mspb::AddColumnResponse* response);
     virtual ::grpc::Status CreateDatabase(::grpc::ServerContext* context, const ::mspb::CreateDatabaseRequest* request, ::mspb::CreateDatabaseResponse* response);
     virtual ::grpc::Status CreateTable(::grpc::ServerContext* context, const ::mspb::CreateTableRequest* request, ::mspb::CreateTableResponse* response);
+    virtual ::grpc::Status GetAutoIncId(::grpc::ServerContext* context, const ::mspb::GetAutoIncIdRequest* request, ::mspb::GetAutoIncIdResponse* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_NodeHeartbeat : public BaseClass {
@@ -658,7 +670,27 @@ class MsServer final {
       ::grpc::Service::RequestAsyncUnary(18, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_NodeHeartbeat<WithAsyncMethod_RangeHeartbeat<WithAsyncMethod_AskSplit<WithAsyncMethod_ReportSplit<WithAsyncMethod_NodeLogin<WithAsyncMethod_GetNodeId<WithAsyncMethod_GetMSLeader<WithAsyncMethod_GetRoute<WithAsyncMethod_GetNode<WithAsyncMethod_GetDB<WithAsyncMethod_GetTable<WithAsyncMethod_GetTableById<WithAsyncMethod_GetColumns<WithAsyncMethod_GetColumnByName<WithAsyncMethod_GetColumnById<WithAsyncMethod_TruncateTable<WithAsyncMethod_AddColumn<WithAsyncMethod_CreateDatabase<WithAsyncMethod_CreateTable<Service > > > > > > > > > > > > > > > > > > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_GetAutoIncId : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service *service) {}
+   public:
+    WithAsyncMethod_GetAutoIncId() {
+      ::grpc::Service::MarkMethodAsync(19);
+    }
+    ~WithAsyncMethod_GetAutoIncId() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetAutoIncId(::grpc::ServerContext* context, const ::mspb::GetAutoIncIdRequest* request, ::mspb::GetAutoIncIdResponse* response) final override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetAutoIncId(::grpc::ServerContext* context, ::mspb::GetAutoIncIdRequest* request, ::grpc::ServerAsyncResponseWriter< ::mspb::GetAutoIncIdResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(19, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_NodeHeartbeat<WithAsyncMethod_RangeHeartbeat<WithAsyncMethod_AskSplit<WithAsyncMethod_ReportSplit<WithAsyncMethod_NodeLogin<WithAsyncMethod_GetNodeId<WithAsyncMethod_GetMSLeader<WithAsyncMethod_GetRoute<WithAsyncMethod_GetNode<WithAsyncMethod_GetDB<WithAsyncMethod_GetTable<WithAsyncMethod_GetTableById<WithAsyncMethod_GetColumns<WithAsyncMethod_GetColumnByName<WithAsyncMethod_GetColumnById<WithAsyncMethod_TruncateTable<WithAsyncMethod_AddColumn<WithAsyncMethod_CreateDatabase<WithAsyncMethod_CreateTable<WithAsyncMethod_GetAutoIncId<Service > > > > > > > > > > > > > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithGenericMethod_NodeHeartbeat : public BaseClass {
    private:
@@ -978,6 +1010,23 @@ class MsServer final {
     }
     // disable synchronous version of this method
     ::grpc::Status CreateTable(::grpc::ServerContext* context, const ::mspb::CreateTableRequest* request, ::mspb::CreateTableResponse* response) final override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_GetAutoIncId : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service *service) {}
+   public:
+    WithGenericMethod_GetAutoIncId() {
+      ::grpc::Service::MarkMethodGeneric(19);
+    }
+    ~WithGenericMethod_GetAutoIncId() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetAutoIncId(::grpc::ServerContext* context, const ::mspb::GetAutoIncIdRequest* request, ::mspb::GetAutoIncIdResponse* response) final override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -1362,9 +1411,29 @@ class MsServer final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedCreateTable(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::mspb::CreateTableRequest,::mspb::CreateTableResponse>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_NodeHeartbeat<WithStreamedUnaryMethod_RangeHeartbeat<WithStreamedUnaryMethod_AskSplit<WithStreamedUnaryMethod_ReportSplit<WithStreamedUnaryMethod_NodeLogin<WithStreamedUnaryMethod_GetNodeId<WithStreamedUnaryMethod_GetMSLeader<WithStreamedUnaryMethod_GetRoute<WithStreamedUnaryMethod_GetNode<WithStreamedUnaryMethod_GetDB<WithStreamedUnaryMethod_GetTable<WithStreamedUnaryMethod_GetTableById<WithStreamedUnaryMethod_GetColumns<WithStreamedUnaryMethod_GetColumnByName<WithStreamedUnaryMethod_GetColumnById<WithStreamedUnaryMethod_TruncateTable<WithStreamedUnaryMethod_AddColumn<WithStreamedUnaryMethod_CreateDatabase<WithStreamedUnaryMethod_CreateTable<Service > > > > > > > > > > > > > > > > > > > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_GetAutoIncId : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service *service) {}
+   public:
+    WithStreamedUnaryMethod_GetAutoIncId() {
+      ::grpc::Service::MarkMethodStreamed(19,
+        new ::grpc::StreamedUnaryHandler< ::mspb::GetAutoIncIdRequest, ::mspb::GetAutoIncIdResponse>(std::bind(&WithStreamedUnaryMethod_GetAutoIncId<BaseClass>::StreamedGetAutoIncId, this, std::placeholders::_1, std::placeholders::_2)));
+    }
+    ~WithStreamedUnaryMethod_GetAutoIncId() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status GetAutoIncId(::grpc::ServerContext* context, const ::mspb::GetAutoIncIdRequest* request, ::mspb::GetAutoIncIdResponse* response) final override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedGetAutoIncId(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::mspb::GetAutoIncIdRequest,::mspb::GetAutoIncIdResponse>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_NodeHeartbeat<WithStreamedUnaryMethod_RangeHeartbeat<WithStreamedUnaryMethod_AskSplit<WithStreamedUnaryMethod_ReportSplit<WithStreamedUnaryMethod_NodeLogin<WithStreamedUnaryMethod_GetNodeId<WithStreamedUnaryMethod_GetMSLeader<WithStreamedUnaryMethod_GetRoute<WithStreamedUnaryMethod_GetNode<WithStreamedUnaryMethod_GetDB<WithStreamedUnaryMethod_GetTable<WithStreamedUnaryMethod_GetTableById<WithStreamedUnaryMethod_GetColumns<WithStreamedUnaryMethod_GetColumnByName<WithStreamedUnaryMethod_GetColumnById<WithStreamedUnaryMethod_TruncateTable<WithStreamedUnaryMethod_AddColumn<WithStreamedUnaryMethod_CreateDatabase<WithStreamedUnaryMethod_CreateTable<WithStreamedUnaryMethod_GetAutoIncId<Service > > > > > > > > > > > > > > > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_NodeHeartbeat<WithStreamedUnaryMethod_RangeHeartbeat<WithStreamedUnaryMethod_AskSplit<WithStreamedUnaryMethod_ReportSplit<WithStreamedUnaryMethod_NodeLogin<WithStreamedUnaryMethod_GetNodeId<WithStreamedUnaryMethod_GetMSLeader<WithStreamedUnaryMethod_GetRoute<WithStreamedUnaryMethod_GetNode<WithStreamedUnaryMethod_GetDB<WithStreamedUnaryMethod_GetTable<WithStreamedUnaryMethod_GetTableById<WithStreamedUnaryMethod_GetColumns<WithStreamedUnaryMethod_GetColumnByName<WithStreamedUnaryMethod_GetColumnById<WithStreamedUnaryMethod_TruncateTable<WithStreamedUnaryMethod_AddColumn<WithStreamedUnaryMethod_CreateDatabase<WithStreamedUnaryMethod_CreateTable<Service > > > > > > > > > > > > > > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_NodeHeartbeat<WithStreamedUnaryMethod_RangeHeartbeat<WithStreamedUnaryMethod_AskSplit<WithStreamedUnaryMethod_ReportSplit<WithStreamedUnaryMethod_NodeLogin<WithStreamedUnaryMethod_GetNodeId<WithStreamedUnaryMethod_GetMSLeader<WithStreamedUnaryMethod_GetRoute<WithStreamedUnaryMethod_GetNode<WithStreamedUnaryMethod_GetDB<WithStreamedUnaryMethod_GetTable<WithStreamedUnaryMethod_GetTableById<WithStreamedUnaryMethod_GetColumns<WithStreamedUnaryMethod_GetColumnByName<WithStreamedUnaryMethod_GetColumnById<WithStreamedUnaryMethod_TruncateTable<WithStreamedUnaryMethod_AddColumn<WithStreamedUnaryMethod_CreateDatabase<WithStreamedUnaryMethod_CreateTable<WithStreamedUnaryMethod_GetAutoIncId<Service > > > > > > > > > > > > > > > > > > > > StreamedService;
 };
 
 }  // namespace mspb

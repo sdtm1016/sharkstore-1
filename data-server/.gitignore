@@ -1,3 +1,4 @@
+/src/proto/gen
 /src/server/version_gen.h
 /build
 /Makefile

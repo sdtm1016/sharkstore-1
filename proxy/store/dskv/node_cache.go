@@ -31,7 +31,7 @@ func (nc *NodeCache) locateNode(nodeId uint64) (*metapb.Node, bool) {
 func (nc *NodeCache) loadNode(bo *Backoffer, nodeId uint64) (node *metapb.Node, err error) {
 	for {
 		if err != nil {
-			err = bo.Backoff(boMSRPC, err)
+			err = bo.Backoff(BoCacheLoad, err)
 			if err != nil {
 				return nil, fmt.Errorf("load node %d failed, err %v", nodeId, err)
 			}

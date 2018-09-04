@@ -1,7 +1,9 @@
 #include "row_decoder.h"
 
 #include <algorithm>
-#include <frame/sf_logger.h>
+#include <sstream>
+
+#include "frame/sf_logger.h"
 #include "common/ds_encoding.h"
 #include "field_value.h"
 #include "store.h"
@@ -371,6 +373,16 @@ Status RowDecoder::DecodeAndFilter(const std::string& key, const std::string& bu
         *matched = filter(*result, filters_);
     }
     return Status::OK();
+}
+
+std::string RowDecoder::DebugString() const {
+    std::ostringstream ss;
+    ss << "filters: [";
+    for (const auto& f : filters_) {
+        ss << f.ShortDebugString();
+    }
+    ss << "]";
+    return ss.str();
 }
 
 } /* namespace storage */

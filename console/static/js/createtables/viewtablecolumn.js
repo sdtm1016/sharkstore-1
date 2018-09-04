@@ -76,12 +76,19 @@ $(document).ready(function() {
             name: "否",
             value: 0
         }];
-         var unsignedTypes = [{
+        var unsignedTypes = [{
                 name: "是",
                 value: true
             }, {
                 name: "否",
                 value: false
+        }];
+        var autoIncrTypes = [{
+            name: "是",
+            value: true
+        }, {
+            name: "否",
+            value: false
         }];
         $("#jsGrid").jsGrid({
             width: "100%",
@@ -100,11 +107,11 @@ $(document).ready(function() {
                 valueField: "value",
                 textField: "name",
                 width: 80, align: "center"            
-            }, {
-                title: '默认值',
-                name: "defaultvalue",
-                type: "text",
-                width: 100, align: "center"
+            // }, {
+            //     title: '默认值',
+            //     name: "default_value",
+            //     type: "text",
+            //     width: 100, align: "center"
             }, {
             	title: "Unsigned",
                 name: "unsigned",
@@ -118,6 +125,14 @@ $(document).ready(function() {
                 name: "primary_key",
                 type: "select",
                 items: isprimarykey,
+                valueField: "value",
+                textField: "name",
+                width: 80, align: "center"
+            }, {
+                title: "自增id",
+                name: "auto_increment",
+                type: "select",
+                items: autoIncrTypes,
                 valueField: "value",
                 textField: "name",
                 width: 80, align: "center"

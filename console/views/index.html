@@ -1,161 +1,178 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="renderer" content="webkit">
-<title>SHARKSTORE-主页</title>
-<meta name="keywords" content="">
-<meta name="description" content="">
-<link rel="shortcut icon" href="/static/favicon.ico" />
-<link rel="bookmark" href="/static/favicon.ico" />
-<link href="/static/css/bootstrap.min.css?v=3.3.6"
-	rel="stylesheet">
-<link href="/static/css/font-awesome.min.css?v=4.4.0"
-	rel="stylesheet">
-<link href="/static/css/animate.css" rel="stylesheet">
-<link href="/static/css/style.css?v=4.1.0" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="renderer" content="webkit">
+    <title>SHARKSTORE-主页</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <link rel="shortcut icon" href="/static/favicon.ico"/>
+    <link rel="bookmark" href="/static/favicon.ico"/>
+    <link href="/static/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="/static/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="/static/css/animate.css" rel="stylesheet">
+    <link href="/static/css/style.css?v=4.1.0" rel="stylesheet">
 </head>
 
-<body class="fixed-sidebar full-height-layout gray-bg"
-	style="overflow: hidden">
-	<div id="wrapper">
-		<!--左侧导航开始-->
-		<nav class="navbar-default navbar-static-side" role="navigation">
-			<div class="nav-close">
-				<i class="fa fa-times-circle"></i>
-			</div>
-			<div class="sidebar-collapse">
-				<ul class="nav" id="side-menu">
-
-					<li class="nav-header">
-						<div class="dropdown profile-element">
-							<a data-toggle="dropdown" class="dropdown-toggle" href="#"> <span
-								class="clear"> <span class="block m-t-xs"
-									style="font-size: 20px;"> <i class="logo-img"></i> <strong
-										class="font-bold">SHARKSTORE</strong>
+<body class="fixed-sidebar full-height-layout gray-bg" style="overflow: hidden">
+<div id="wrapper">
+    <!--左侧导航开始-->
+    <nav class="navbar-default navbar-static-side" role="navigation">
+        <div class="nav-close">
+            <i class="fa fa-times-circle"></i>
+        </div>
+        <div class="sidebar-collapse">
+            <ul class="nav" id="side-menu">
+                <li class="nav-header">
+                    <div class="dropdown profile-element">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <span class="clear">
+                                <span class="block m-t-xs" style="font-size: 20px;">
+                                    <i class="logo-img"></i>
+                                    <strong class="font-bold">SHARKSTORE</strong>
 								</span>
 							</span>
-							</a>
-						</div>
-						<div class="logo-element">SHARKSTORE</div>
-					</li>
-					<li class="hidden-folded padder m-t m-b-sm text-muted text-xs">
-						<span class="ng-scope">sharkstore管理平台</span>
-					</li>
-					<li>
-						<a class="J_menuItem" href="/page/user/welcome">
-							<i class="fa fa-home"></i>
-							<span class="nav-label">系统首页</span>
-						</a>
-					</li>
-                    <!--start 表单-->
-                    <li>
-                        <a href="#">
-                            <i class="fa fa fa-edit"></i>
-                            <span class="nav-label">申请入口</span>
-                            <span class="fa arrow"></span>
                         </a>
-                        <ul class="nav nav-second-level">
-                            <li><a class="J_menuItem" href="/page/lock/viewNamespace">lock空间申请</a></li>
+                    </div>
+                    <div class="logo-element">SHARKSTORE</div>
+                </li>
+                <li class="hidden-folded padder m-t m-b-sm text-muted text-xs">
+                    <span class="ng-scope">sharkstore管理平台</span>
+                </li>
+                <li>
+                    <a class="J_menuItem" href="/page/user/welcome">
+                        <i class="fa fa-home"></i>
+                        <span class="nav-label">系统首页</span>
+                    </a>
+                </li>
+                <!--start 表单-->
+                <li class="active">
+                    <a href="#">
+                        <i class="fa fa fa-edit"></i>
+                        <span class="nav-label">申请入口</span>
+                        <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li><a class="J_menuItem" href="/page/sql/viewApplyList">sql申请</a></li>
+                    </ul>
+                    <ul class="nav nav-second-level">
+                        <li><a class="J_menuItem" href="/page/lock/viewNamespace">lock空间申请</a></li>
+                    </ul>
+                    <ul class="nav nav-second-level">
+                        <li><a class="J_menuItem" href="/page/configure/viewNamespace">配置中心</a></li>
+                    </ul>
+                </li>
+                <!--end 表单 -->
+                <!--start 表单-->
+                <li>
+                    <a href="#">
+                        <i class="fa fa fa-edit"></i>
+                        <span class="nav-label">集群管理</span>
+                        <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li><a class="J_menuItem" href="/page/cluster/viewCluster">集群信息</a></li>
+                    </ul>
+                </li>
+                <!--end 表单 -->
+                <!--start 表单-->
+                <li style="display:{[{.admin}]}">
+                    <a href="#">
+                        <i class="fa fa fa-edit"></i>
+                        <span class="nav-label">元数据管理</span>
+                        <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li><a class="J_menuItem" href="/page/cluster/createcluster">创建集群</a></li>
+                    </ul>
+                </li>
+                <!--end 表单 -->
+                <!--start 表单-->
+                <li style="display:{[{.admin}]}">
+                    <a href="#">
+                        <i class="fa fa fa-edit"></i>
+                        <span class="nav-label">监控管理</span>
+                        <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li><a class="J_menuItem" href="/page/metric/viewServerList">监控服务实例</a></li>
+                        <li><a class="J_menuItem" href="/page/metric/clusterManage">集群监控配置</a></li>
+                    </ul>
+                </li>
+                <!--end 表单 -->
+                <!--start 表单 -->
+                <li style="display:{[{.admin}]}">
+                    <a href="#">
+                        <i class="fa fa-user fa-fw"></i>
+                        <span class="nav-label">用户信息管理</span>
+                        <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <!--<li><a class="J_menuItem" href="/userInfo/viewUserInfoList">用户列表</a></li>-->
+                        <li><a class="J_menuItem" href="/userInfo/viewPrivilegeList">权限列表</a></li>
+                        <li><a class="J_menuItem" href="/userInfo/viewRoleInfoList">角色管理</a></li>
+                    </ul>
+                </li>
+                <!--end 表单 -->
+                <li>
+                    <a href="#">
+                        <i class="fa fa-server fa-fw"></i>
+                        <span class="nav-label">系统管理</span>
+                        <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li><a class="J_menuItem" href="/page/system/initCluster">集群初始化</a></li>
+                        <li style="display:{[{.admin}]}"><a class="J_menuItem" href="/page/system/scheduleManage">集群管理</a></li>
+                    </ul>
+                </li>
+                <!-- /c:if -->
+            </ul>
+        </div>
+    </nav>
+    <!--左侧导航结束-->
+    <!--右侧部分开始-->
+    <div id="page-wrapper" class="gray-bg dashbard-1">
+        <!--start 顶部导航-->
+        <div class="row border-bottom">
+            <nav class="navbar navbar-static-top" role="navigation"
+                 style="margin-bottom: 0">
+                <ul class="nav navbar-top-links navbar-right">
+                    <li class="dropdown"><a class="dropdown-toggle count-info"
+                                            data-toggle="dropdown" href="#"> <i class="fa fa-user"></i>
+                        {[{.userName}]}<span class="caret"></span>
+                    </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <!--<li><a href="#">修改个人信息</a></li>-->
+                            <li><a href="/logout">退出系统</a></li>
                         </ul>
                     </li>
-                    <!--end 表单 -->
-					<!--start 表单-->
-					<li style="display:{[{.admin}]}">
-						<a href="#">
-							<i class="fa fa fa-edit"></i>
-							<span class="nav-label">元数据管理</span>
-							<span class="fa arrow"></span>
-						</a>
-						<ul class="nav nav-second-level">
-							<li><a class="J_menuItem" href="/page/cluster/createcluster">创建集群</a></li>
-						</ul>
-					</li>
-					<!--end 表单 -->
-                    <!--start 表单-->
-                    <li style="display:{[{.admin}]}">
-                        <a href="#">
-                            <i class="fa fa fa-edit"></i>
-                            <span class="nav-label">监控管理</span>
-                            <span class="fa arrow"></span>
-                        </a>
-                        <ul class="nav nav-second-level">
-                            <li><a class="J_menuItem" href="/page/metric/viewServerList">监控服务实例</a></li>
-                            <li><a class="J_menuItem" href="/page/metric/clusterManage">集群监控配置</a></li>
-                        </ul>
-                    </li>
-                    <!--end 表单 -->
-					<!--start 表单 -->
-					<li style="display:{[{.admin}]}">
-						<a href="#">
-							<i class="fa fa-user fa-fw"></i>
-							<span class="nav-label">用户信息管理</span>
-							<span class="fa arrow"></span>
-						</a>
-						<ul class="nav nav-second-level">
-							<!--<li><a class="J_menuItem" href="/userInfo/viewUserInfoList">用户列表</a></li>-->
-							<li><a class="J_menuItem" href="/userInfo/viewPrivilegeList">权限列表</a></li>
-							<li><a class="J_menuItem" href="/userInfo/viewRoleInfoList">角色管理</a></li>
-						</ul>
-					</li>
-					<!--end 表单 -->
-					<li>
-						<a href="#">
-							<i class="fa fa-server fa-fw"></i>
-							<span class="nav-label">系统管理</span>
-							<span class="fa arrow"></span>
-						</a>
-						<ul class="nav nav-second-level">
-							<li><a class="J_menuItem" href="/page/system/initCluster">集群初始化</a></li>
-							<li style="display:{[{.admin}]}"><a class="J_menuItem" href="/page/system/scheduleManage">集群管理</a></li>
-						</ul>
-					</li>
-				<!-- /c:if -->
-				</ul>
-			</div>
-		</nav>
-		<!--左侧导航结束-->
-		<!--右侧部分开始-->
-		<div id="page-wrapper" class="gray-bg dashbard-1">
-			<!--start 顶部导航-->
-			<div class="row border-bottom">
-				<nav class="navbar navbar-static-top" role="navigation"
-					style="margin-bottom: 0">
-					<ul class="nav navbar-top-links navbar-right">
-						<li class="dropdown"><a class="dropdown-toggle count-info"
-							data-toggle="dropdown" href="#"> <i class="fa fa-user"></i>
-							{[{.userName}]}<span class="caret"></span>
-						</a>
-							<ul class="dropdown-menu" role="menu">
-								<!--<li><a href="#">修改个人信息</a></li>-->
-								<li><a href="/logout">退出系统</a></li>
-							</ul></li>
-					</ul>
-				</nav>
-			</div>
-			<!--end 顶部导航-->
-			<!--start  iframe 内容切换-->
-			<div class="row J_mainContent" id="content-main">
-				<iframe id="J_iframe" width="100%" height="100%"
-					src="/page/user/welcome" frameborder="0"
-					seamless></iframe>
-			</div>
-			<!--end iframe 内容切换-->
-		</div>
-		<!--右侧部分结束-->
-	</div>
-	<!-- 全局js -->
-	<script src="/static/js/jquery.min.js?v=2.1.4"></script>
-	<script src="/static/js/bootstrap.min.js?v=3.3.6"></script>
-	<script src="/static/js/plugins/metisMenu/jquery.metisMenu.js"></script>
-	<script
-		src="/static/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
-	<script src="/static/js/plugins/layer/layer.min.js"></script>
-	<!-- 自定义js -->
-	<script src="/static/js/ipdadmin.js?v=4.1.0"></script>
-	<script type="text/javascript" src="/static/js/index.js"></script>
-	<!-- 第三方插件 -->
-	<script src="/static/js/plugins/pace/pace.min.js"></script>
+                </ul>
+            </nav>
+        </div>
+        <!--end 顶部导航-->
+        <!--start  iframe 内容切换-->
+        <div class="row J_mainContent" id="content-main">
+            <iframe id="J_iframe" width="100%" height="100%"
+                    src="/page/user/welcome" frameborder="0"
+                    seamless></iframe>
+        </div>
+        <!--end iframe 内容切换-->
+    </div>
+    <!--右侧部分结束-->
+</div>
+
+<!-- 全局js -->
+<script src="/static/js/jquery.min.js?v=2.1.4"></script>
+<script src="/static/js/bootstrap.min.js?v=3.3.6"></script>
+<script src="/static/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+<script src="/static/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+<script src="/static/js/plugins/layer/layer.min.js"></script>
+<!-- 自定义js -->
+<script src="/static/js/ipdadmin.js?v=4.1.0"></script>
+<script type="text/javascript" src="/static/js/index.js"></script>
+<!-- 第三方插件 -->
+<script src="/static/js/plugins/pace/pace.min.js"></script>
+
 </body>
 </html>

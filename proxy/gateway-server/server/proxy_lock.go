@@ -1,9 +1,9 @@
 package server
 
 import (
-	"proxy/store/dskv"
 	"model/pkg/kvrpcpb"
 	"pkg-go/ds_client"
+	"proxy/store/dskv"
 	"util"
 	"util/encoding"
 	"util/log"
@@ -34,13 +34,12 @@ func (p *Proxy) Lock(dbName, tableName string, lockName string, userCondition []
 		return nil, ErrNotExistTable
 	}
 	req := &kvrpcpb.LockRequest{
-		Key:   encodeLockName(t.GetId(), lockName),
+		Key: encodeLockName(t.GetId(), lockName),
 		Value: &kvrpcpb.LockValue{
-			Value: userCondition,
-			Id: uuid,
+			Value:      userCondition,
+			Id:         uuid,
 			DeleteTime: deleteTime,
 		},
-		By: userName,
 	}
 	proxy := dskv.GetKvProxy()
 	defer dskv.PutKvProxy(proxy)
@@ -58,8 +57,8 @@ func (p *Proxy) LockUpdate(dbName, tableName string, lockName string, uuid strin
 		return nil, ErrNotExistTable
 	}
 	req := &kvrpcpb.LockUpdateRequest{
-		Key:   encodeLockName(t.GetId(), lockName),
-		Id: uuid,
+		Key:         encodeLockName(t.GetId(), lockName),
+		Id:          uuid,
 		UpdateValue: condition,
 	}
 	proxy := dskv.GetKvProxy()
@@ -78,9 +77,9 @@ func (p *Proxy) Unlock(dbName, tableName string, lockName, uuid, userName string
 		return nil, ErrNotExistTable
 	}
 	req := &kvrpcpb.UnlockRequest{
-		Key:   encodeLockName(t.GetId(), lockName),
-		Id: uuid,
-		By: userName,
+		Key: encodeLockName(t.GetId(), lockName),
+		Id:  uuid,
+		By:  userName,
 	}
 	proxy := dskv.GetKvProxy()
 	defer dskv.PutKvProxy(proxy)
@@ -98,8 +97,8 @@ func (p *Proxy) UnlockForce(dbName, tableName string, lockName, userName string)
 		return nil, ErrNotExistTable
 	}
 	req := &kvrpcpb.UnlockForceRequest{
-		Key:   encodeLockName(t.GetId(), lockName),
-		By: userName,
+		Key: encodeLockName(t.GetId(), lockName),
+		By:  userName,
 	}
 	proxy := dskv.GetKvProxy()
 	defer dskv.PutKvProxy(proxy)
@@ -142,7 +141,7 @@ func (p *Proxy) UpdateCondition(dbName, tableName string, lockName string, userC
 		return nil, ErrNotExistTable
 	}
 	req := &kvrpcpb.LockUpdateRequest{
-		Key:   encodeLockName(t.GetId(), lockName),
+		Key:         encodeLockName(t.GetId(), lockName),
 		UpdateValue: userCondition,
 	}
 	proxy := dskv.GetKvProxy()

@@ -13,7 +13,6 @@ import (
 	"util/deepcopy"
 	"util/log"
 
-	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
 )
 
@@ -21,11 +20,16 @@ var (
 	MAX_COLUMN_NAME_LENGTH = 128
 )
 
-var PREFIX_AUTO_TRANSFER_TABLE string = fmt.Sprintf("$auto_transfer_table_%d")
-var PREFIX_AUTO_FAILOVER_TABLE string = fmt.Sprintf("$auto_failover_table_%d")
+var PREFIX_AUTO_TRANSFER_TABLE string = fmt.Sprintf("$auto_transfer_table_")
+var PREFIX_AUTO_FAILOVER_TABLE string = fmt.Sprintf("$auto_failover_table_")
+var TABLE_AUTO_INCREMENT_ID string = fmt.Sprintf("$auto_increment_table_")
 
 type Table struct {
 	*metapb.Table
+	//自增id
+	idGenerator IDGenerator
+	//geneLock
+
 	// 表属性锁
 	schemaLock sync.RWMutex
 	// 路由锁
@@ -60,6 +64,21 @@ func (t *Table) GenColId() uint64 {
 	defer t.lock.Unlock()
 	t.maxColId++
 	return t.maxColId
+}
+
+func (t *Table) GetAutoIncId(store Store, size uint32) ([]uint64, error) {
+	t.getGenerator(store)
+	return t.idGenerator.GetBatchIds(size)
+}
+
+func (t *Table) getGenerator(store Store) {
+	if t.idGenerator == nil {
+		t.lock.Lock()
+		defer t.lock.Unlock()
+		if t.idGenerator == nil {
+			t.idGenerator = NewTablePkIdGenerator(t.GetId(), store)
+		}
+	}
 }
 
 type TableProperty struct {
@@ -169,7 +188,7 @@ func (t *Table) MergeColumn(source []*metapb.Column, cluster *Cluster) error {
 	var tartCols []*metapb.Column
 	for _, col := range table.GetColumns() {
 		_, found := newColMap[col.GetName()]
-		if col.PrimaryKey == 1 || found{
+		if col.PrimaryKey == 1 || found {
 			tartCols = append(tartCols, col)
 		}
 	}
@@ -189,7 +208,7 @@ func checkTTLDataType(dataType metapb.DataType) bool {
 	return metapb.DataType_BigInt == dataType
 }
 
-func (t *Table) UpdateSchema(columns []*metapb.Column, store Store) ([]*metapb.Column, error) {
+func (t *Table) UpdateSchema(columns []*metapb.Column, cluster *Cluster) ([]*metapb.Column, error) {
 	t.schemaLock.Lock()
 	defer t.schemaLock.Unlock()
 	table := deepcopy.Iface(t.Table).(*metapb.Table)
@@ -237,15 +256,7 @@ func (t *Table) UpdateSchema(columns []*metapb.Column, store Store) ([]*metapb.C
 	table.Columns = allCols
 	table.Properties = props
 	table.Epoch.ConfVer++
-	data, err := proto.Marshal(table)
-	if err != nil {
-		return nil, err
-	}
-	batch := store.NewBatch()
-	key := []byte(fmt.Sprintf("%s%d", PREFIX_TABLE, t.GetId()))
-	batch.Put(key, data)
-	err = batch.Commit()
-	if err != nil {
+	if err := cluster.storeTable(table); err != nil {
 		return nil, err
 	}
 	t.Table = table
@@ -609,16 +620,57 @@ func (dt *DeleteTableWorker) Work(cluster *Cluster) {
 		// 超过三天，正式删除
 		if table.Status == metapb.TableStatus_TableDeleting || time.Since(table.deleteTime) > DefaultRetentionTime {
 			table.Status = metapb.TableStatus_TableDeleting
-			key := []byte(fmt.Sprintf("%s%d", PREFIX_TABLE, table.GetId()))
-			if err := cluster.store.Delete(key); err != nil {
-				log.Error("MS worker delete expired table:[%s][%d] from store is failed.",
-					table.GetName(), table.GetId())
-				return
+			log.Info("table id[%v] name[%v] is doing delete", table.GetId(), table.GetName())
+		}
+
+		if table.Status == metapb.TableStatus_TableDeleting {
+			ranges := cluster.GetTableAllRanges(table.GetId())
+			if len(ranges) == 0 {
+				log.Info("table id[%v] name[%v] ranges is empty", table.GetId(), table.GetName())
+				if err := cluster.deleteTable(table.GetId()); err != nil {
+					log.Error("MS worker delete expired table:[%s][%d] from store is failed.",
+						table.GetName(), table.GetId())
+					return
+				}
+
+				cluster.deletingTables.DeleteById(table.GetId())
+				log.Info("table id[%v] name[%v] delete ranges finish", table.GetId(), table.GetName())
+				continue
 			}
-			cluster.deletingTables.DeleteById(table.GetId())
+
+			log.Debug("table id[%v] name[%v] is deleting, len(ranges) %v", table.GetId(), table.GetName(), len(ranges))
+			for _, rang := range ranges {
+				log.Debug("table id[%v] range id[%v] is deleting", table.GetId(), rang.GetId())
+				if err := deleteRange(cluster, rang); err != nil {
+					log.Error("delete table range[%v] failed: %v", table.GetId(), err)
+				} else {
+					// del meta
+					if err := cluster.deleteRange(rang.GetId()); err != nil {
+						log.Error("delete range meta on store failed: %v", err)
+					}
+					cluster.DeleteRange(rang.GetId())
+					log.Debug("table id[%v] range id[%v] is deleted", table.GetId(), rang.GetId())
+				}
+			}
 		}
 	}
 	return
+}
+
+func deleteRange(c *Cluster, rang *Range) error {
+	if rang == nil {
+		return errors.New("range pointer is nil")
+	}
+
+	nodes := c.getRangeNodes(rang)
+	for _, node := range nodes {
+		if err := c.cli.DeleteRange(node.GetServerAddr(), rang.GetId(), 0); err != nil {
+			return errors.New(fmt.Sprintf("delete range id[%v] addr[%v]do rpc failed: %v",
+				node.GetServerAddr(), rang.GetId(), err))
+		}
+	}
+
+	return nil
 }
 
 func (dt *DeleteTableWorker) AllowWork(cluster *Cluster) bool {

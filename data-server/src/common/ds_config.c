@@ -65,13 +65,13 @@ static int load_rocksdb_config(IniContext *ini_context) {
             load_integer_value_atleast(ini_context, section, "max_open_files", 1024, 100);
 
     ds_config.rocksdb_config.bytes_per_sync =
-            load_bytes_value_ne(ini_context, section, "bytes_per_sync", 1024 * 1024);
+            load_bytes_value_ne(ini_context, section, "bytes_per_sync", 0);
 
     ds_config.rocksdb_config.write_buffer_size =
-            load_bytes_value_ne(ini_context, section, "write_buffer_size", 512 << 20);
+            load_bytes_value_ne(ini_context, section, "write_buffer_size", 128 << 20);
 
     ds_config.rocksdb_config.max_write_buffer_number =
-            load_integer_value_atleast(ini_context, section, "max_write_buffer_number", 16, 2);
+            load_integer_value_atleast(ini_context, section, "max_write_buffer_number", 8, 2);
 
     ds_config.rocksdb_config.min_write_buffer_number_to_merge =
             load_integer_value_atleast(ini_context, section, "min_write_buffer_number_to_merge", 1, 1);
@@ -84,15 +84,20 @@ static int load_rocksdb_config(IniContext *ini_context) {
     ds_config.rocksdb_config.target_file_size_base =
             load_bytes_value_ne(ini_context, section, "target_file_size_base", 128 << 20);
     ds_config.rocksdb_config.target_file_size_multiplier =
-            load_integer_value_atleast(ini_context, section, "target_file_size_multiplier", 1, 0);
+            load_integer_value_atleast(ini_context, section, "target_file_size_multiplier", 1, 1);
 
     ds_config.rocksdb_config.max_background_flushes =
-            load_integer_value_atleast(ini_context, section, "max_background_flushes", 1, 1);
+            load_integer_value_atleast(ini_context, section, "max_background_flushes", 2, 1);
     ds_config.rocksdb_config.max_background_compactions =
-            load_integer_value_atleast(ini_context, section, "max_background_compactions", 32, 1);
+            load_integer_value_atleast(ini_context, section, "max_background_compactions", 4, 1);
+    ds_config.rocksdb_config.background_rate_limit =
+            load_bytes_value_ne(ini_context, section, "background_rate_limit", 0);
+
+    ds_config.rocksdb_config.disable_auto_compactions =
+            (bool)iniGetIntValue(section, "disable_auto_compactions", ini_context, 0);
 
     ds_config.rocksdb_config.read_checksum =
-            iniGetIntValue(section, "read_checksum", ini_context, 1);
+            (bool)iniGetIntValue(section, "read_checksum", ini_context, 1);
 
     ds_config.rocksdb_config.level0_file_num_compaction_trigger =
             load_integer_value_atleast(ini_context, section, "level0_file_num_compaction_trigger", 8, 1);
@@ -102,19 +107,34 @@ static int load_rocksdb_config(IniContext *ini_context) {
             load_integer_value_atleast(ini_context, section, "level0_stop_writes_trigger", 46, 1);
 
     ds_config.rocksdb_config.disable_wal =
-            iniGetIntValue(section, "disable_wal", ini_context, 0);
+            (bool)iniGetIntValue(section, "disable_wal", ini_context, 0);
 
     ds_config.rocksdb_config.cache_index_and_filter_blocks =
-            iniGetIntValue(section, "cache_index_and_filter_blocks", ini_context, 0);
+            (bool)iniGetIntValue(section, "cache_index_and_filter_blocks", ini_context, 0);
+
+    ds_config.rocksdb_config.compression = load_integer_value_atleast(ini_context, section, "compression", 0, 0);
 
     ds_config.rocksdb_config.storage_type = load_integer_value_atleast(ini_context, section, "storage_type", 0, 0);
 
     ds_config.rocksdb_config.min_blob_size = load_integer_value_atleast(ini_context, section, "min_blob_size", 0, 0);
-
+    ds_config.rocksdb_config.blob_file_size =  load_bytes_value_ne(ini_context, section, "blob_file_size", 256 * 1024 * 1024UL);
     ds_config.rocksdb_config.enable_garbage_collection =
-            iniGetIntValue(section, "enable_garbage_collection",ini_context,  0);
+            (bool)iniGetIntValue(section, "enable_garbage_collection", ini_context, 1);
+
+    ds_config.rocksdb_config.blob_gc_percent = load_integer_value_atleast(ini_context, section, "blob_gc_percent", 75, 10);
+    if (ds_config.rocksdb_config.blob_gc_percent > 100) {
+        fprintf(stderr, "invalid rocksdb blob_gc_percent config(%d)", ds_config.rocksdb_config.blob_gc_percent);
+        return -1;
+    }
+    ds_config.rocksdb_config.blob_compression = load_integer_value_atleast(ini_context, section, "blob_compression", 0, 0);
 
     ds_config.rocksdb_config.ttl = load_integer_value_atleast(ini_context, section, "ttl", 0, 0);
+
+    ds_config.rocksdb_config.enable_stats =
+            (bool)iniGetIntValue(section, "enable_stats",ini_context, 1);
+
+    ds_config.rocksdb_config.enable_debug_log =
+            (bool)iniGetIntValue(section, "enable_debug_log",ini_context, 0);
 
     return 0;
 }
@@ -136,16 +156,24 @@ void print_rocksdb_config() {
               "\n\ttarget_file_size_multiplier: %d"
               "\n\tmax_background_flushes: %d"
               "\n\tmax_background_compactions: %d"
+              "\n\tbackground_rate_limit: %lu"
+              "\n\tdisable_auto_compactions: %d"
               "\n\tread_checksum: %d"
               "\n\tlevel0_file_num_compaction_trigger: %d"
               "\n\tlevel0_slowdown_writes_trigger: %d"
               "\n\tlevel0_stop_writes_trigger: %d"
               "\n\tdisable_wal: %d"
               "\n\tcache_index_and_filter_blocks: %d"
+              "\n\tcompression: %d"
               "\n\tstorage_type: %d"
               "\n\tmin_blob_size: %d"
+              "\n\tblob_file_size: %lu"
               "\n\tenable_garbage_collection: %d"
+              "\n\tblob_gc_percent: %d"
+              "\n\tblob_compression: %d"
               "\n\tttl: %d"
+              "\n\tenable_stats: %d"
+              "\n\tenable_debug_log: %d"
               ,
               ds_config.rocksdb_config.path,
               ds_config.rocksdb_config.block_cache_size,
@@ -162,16 +190,24 @@ void print_rocksdb_config() {
               ds_config.rocksdb_config.target_file_size_multiplier,
               ds_config.rocksdb_config.max_background_flushes,
               ds_config.rocksdb_config.max_background_compactions,
+              ds_config.rocksdb_config.background_rate_limit,
+              ds_config.rocksdb_config.disable_auto_compactions,
               ds_config.rocksdb_config.read_checksum,
               ds_config.rocksdb_config.level0_file_num_compaction_trigger,
               ds_config.rocksdb_config.level0_slowdown_writes_trigger,
               ds_config.rocksdb_config.level0_stop_writes_trigger,
               ds_config.rocksdb_config.disable_wal,
               ds_config.rocksdb_config.cache_index_and_filter_blocks,
+              ds_config.rocksdb_config.compression,
               ds_config.rocksdb_config.storage_type,
               ds_config.rocksdb_config.min_blob_size,
+              ds_config.rocksdb_config.blob_file_size,
               ds_config.rocksdb_config.enable_garbage_collection,
-              ds_config.rocksdb_config.ttl
+              ds_config.rocksdb_config.blob_gc_percent,
+              ds_config.rocksdb_config.blob_compression,
+              ds_config.rocksdb_config.ttl,
+              ds_config.rocksdb_config.enable_stats,
+              ds_config.rocksdb_config.enable_debug_log
               );
 }
 
@@ -191,7 +227,10 @@ static int load_range_config(IniContext *ini_context) {
     }
 
     ds_config.range_config.recover_skip_fail =
-            iniGetIntValue(section, "recover_skip_fail", ini_context, 0);
+            (bool)iniGetIntValue(section, "recover_skip_fail", ini_context, 1);
+
+    ds_config.range_config.recover_concurrency =
+            load_integer_value_atleast(ini_context, section, "recover_concurrency", 8, 1);
 
     ds_config.range_config.access_mode =
         iniGetIntValue(section, "access_mode", ini_context, 0);
@@ -246,8 +285,6 @@ static int load_raft_config(IniContext *ini_context) {
     static const uint16_t kDefaultPort = 6182;
     static const size_t kDefaultLogFileSize = 1024 * 1024 * 16;
     static const size_t kDefaultMaxLogFiles = 5;
-    size_t log_file_size = 0;
-    size_t max_log_files = 0;
 
     char *temp_str;
     char *section = "raft";
@@ -265,39 +302,32 @@ static int load_raft_config(IniContext *ini_context) {
         strcpy(ds_config.raft_config.log_path, "/tmp/ds/raft");
     }
 
-    log_file_size =
-        iniGetIntValue(section, "log_file_size", ini_context, kDefaultLogFileSize);
-    if (log_file_size == 0) {
-        log_file_size = kDefaultLogFileSize;
-    }
-    ds_config.raft_config.log_file_size = log_file_size;
+    ds_config.raft_config.log_file_size = load_bytes_value_ne(
+            ini_context, section, "log_file_size", kDefaultLogFileSize);
 
-    max_log_files =
-        iniGetIntValue(section, "max_log_files", ini_context, kDefaultMaxLogFiles);
-    if (max_log_files == 0) {
-        max_log_files = kDefaultMaxLogFiles;
-    }
-    ds_config.raft_config.max_log_files = max_log_files;
+    ds_config.raft_config.max_log_files = (size_t)load_integer_value_atleast(
+            ini_context, section, "max_log_files", kDefaultMaxLogFiles, 2);
 
     ds_config.raft_config.allow_log_corrupt =
          iniGetIntValue(section, "allow_log_corrupt", ini_context, 1);
 
-    ds_config.raft_config.consensus_threads =
-        iniGetIntValue(section, "consensus_threads", ini_context, 4);
-    ds_config.raft_config.consensus_queue =
-        iniGetIntValue(section, "consensus_queue", ini_context, 100000);
+    ds_config.raft_config.consensus_threads = (size_t)load_integer_value_atleast(
+            ini_context, section, "consensus_threads", 4, 1);
+    ds_config.raft_config.consensus_queue = (size_t)load_integer_value_atleast(
+            ini_context, section , "consensus_queue", 100000, 100);
 
-    ds_config.raft_config.apply_threads =
-        iniGetIntValue(section, "apply_threads", ini_context, 4);
-    ds_config.raft_config.apply_queue =
-        iniGetIntValue(section, "apply_queue", ini_context, 100000);
+    ds_config.raft_config.apply_threads = (size_t)load_integer_value_atleast(
+            ini_context, section, "apply_threads", 4, 1);
+    ds_config.raft_config.apply_queue = (size_t)load_integer_value_atleast(
+            ini_context, section, "apply_queue", 100000, 100);
 
-    ds_config.raft_config.transport_send_threads =
-        iniGetIntValue(section, "transport_send_threads", ini_context, 4);
-    ds_config.raft_config.transport_recv_threads =
-        iniGetIntValue(section, "transport_recv_threads", ini_context, 4);
-    ds_config.raft_config.tick_interval_ms =
-        iniGetIntValue(section, "tick_interval", ini_context, 500);
+    ds_config.raft_config.transport_send_threads = (size_t)load_integer_value_atleast(
+            ini_context, section, "transport_send_threads", 4, 1);
+    ds_config.raft_config.transport_recv_threads = (size_t)load_integer_value_atleast(
+            ini_context, section, "transport_recv_threads", 4, 1);
+
+    ds_config.raft_config.tick_interval_ms = (size_t)load_integer_value_atleast(
+           ini_context, section, "tick_interval", 500, 100);
 
     ds_config.raft_config.max_msg_size =
         load_bytes_value_ne(ini_context, section, "max_msg_size", 1024 * 1024);
@@ -305,56 +335,73 @@ static int load_raft_config(IniContext *ini_context) {
     return 0;
 }
 
+void print_raft_config() {
+    FLOG_INFO("raft configs: "
+              "\n\tport: %d"
+              "\n\tpath: %s"
+              "\n\tlog_file_size: %lu"
+              "\n\tmax_log_files: %lu"
+              "\n\tallow_log_corrupt: %d"
+              "\n\tconsensus_threads: %lu"
+              "\n\tconsensus_queue: %lu"
+              "\n\tapply_threads: %lu"
+              "\n\tapply_queue: %lu"
+              "\n\tsend_threads: %lu"
+              "\n\trecv_threads: %lu"
+              "\n\ttick_interval_ms: %lu"
+              "\n\tmax_msg_size: %lu"
+              ,
+              ds_config.raft_config.port,
+              ds_config.raft_config.log_path,
+              ds_config.raft_config.log_file_size,
+              ds_config.raft_config.max_log_files,
+              ds_config.raft_config.allow_log_corrupt,
+              ds_config.raft_config.consensus_threads,
+              ds_config.raft_config.consensus_queue,
+              ds_config.raft_config.apply_threads,
+              ds_config.raft_config.apply_queue,
+              ds_config.raft_config.transport_send_threads,
+              ds_config.raft_config.transport_recv_threads,
+              ds_config.raft_config.tick_interval_ms,
+              ds_config.raft_config.max_msg_size
+    );
+}
+
 static int load_metric_config(IniContext *ini_context) {
-    char *temp_str;
     char *section = "metric";
 
-    ds_config.metric_config.cluster_id =
-        iniGetIntValue(section, "cluster_id", ini_context, 1);
-    if (ds_config.metric_config.cluster_id <= 0) {
-        ds_config.metric_config.cluster_id = 1;
-    }
-
     ds_config.metric_config.interval =
-        iniGetIntValue(section, "interval", ini_context, 60);
+        iniGetIntValue(section, "interval", ini_context, 10);
     if (ds_config.metric_config.interval <= 0) {
-        ds_config.metric_config.interval = 60;
+        ds_config.metric_config.interval = 10;
+    }
+    return 0;
+}
+
+static int load_watch_config(IniContext *ini_context) {
+    char *section = "watch";
+
+    ds_config.watch_config.buffer_map_size =
+            iniGetIntValue(section, "buffer_map_size", ini_context, 10);
+    if (ds_config.watch_config.buffer_map_size <= 0) {
+        ds_config.watch_config.buffer_map_size = 10;
     }
 
-    ds_config.metric_config.port = iniGetIntValue(section, "port", ini_context, 8887);
-    if (ds_config.metric_config.port <= 0) {
-        ds_config.metric_config.port = 8887;
+    ds_config.watch_config.buffer_queue_size =
+            iniGetIntValue(section, "buffer_queue_size", ini_context, 100);
+    if (ds_config.watch_config.buffer_queue_size <= 0) {
+        ds_config.watch_config.buffer_queue_size = 100;
     }
 
-    temp_str = iniGetStrValue(section, "ip_addr", ini_context);
-    if (temp_str != NULL) {
-        snprintf(ds_config.metric_config.ip_addr, sizeof(ds_config.metric_config.ip_addr),
-                 "%s", temp_str);
-    } else {
-        FLOG_ERROR("load metric config error, ip_addr is null");
-        return -1;
-    }
-
-    temp_str = iniGetStrValue(section, "name_space", ini_context);
-    if (temp_str != NULL) {
-        snprintf(ds_config.metric_config.name_space,
-                 sizeof(ds_config.metric_config.name_space), "%s", temp_str);
-    } else {
-        FLOG_ERROR("load metric config error, name_space is null");
-        return -1;
-    }
-
-    temp_str = iniGetStrValue(section, "uri", ini_context);
-    if (temp_str != NULL) {
-        snprintf(ds_config.metric_config.uri, sizeof(ds_config.metric_config.uri), "%s",
-                 temp_str);
-    } else {
-        FLOG_ERROR("load metric config error, uri is null");
-        return -1;
+    ds_config.watch_config.watcher_set_size =
+            iniGetIntValue(section, "watcher_set_size", ini_context, 8);
+    if (ds_config.watch_config.buffer_queue_size <= 0) {
+        ds_config.watch_config.buffer_queue_size = 8;
     }
 
     return 0;
 }
+
 
 static int load_heartbeat_config(IniContext *ini_context) {
     char *section = "heartbeat";
@@ -432,12 +479,6 @@ int load_from_conf_file(IniContext *ini_context, const char *filename) {
         return result;
     }
 
-    result =
-        sf_load_socket_thread_config(ini_context, "metric", &ds_config.client_config);
-    if (result != 0) {
-        return result;
-    }
-
     if (load_woker_num_config(ini_context) != 0) {
         return -1;
     }
@@ -459,6 +500,10 @@ int load_from_conf_file(IniContext *ini_context, const char *filename) {
     }
 
     if (load_metric_config(ini_context) != 0) {
+        return -1;
+    }
+
+    if(load_watch_config(ini_context) != 0) {
         return -1;
     }
 

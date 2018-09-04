@@ -5,6 +5,7 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <functional>
 
 #include <gperftools/profiler.h>
 

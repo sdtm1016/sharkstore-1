@@ -83,7 +83,7 @@ function saveSqlCreateTable() {
   				if(data.code === 0){
   					swal("创建成功!", "表创建成功", "success");
   				}else {
-  					swal("创建表失败", data.message, "error");
+  					swal("创建表失败", data.msg, "error");
   				}
   				
   	        },

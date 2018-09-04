@@ -35,7 +35,8 @@ public:
     Status Stop() override;
 
     Status CreateRaft(const RaftOptions&, std::shared_ptr<Raft>* raft) override;
-    Status RemoveRaft(uint64_t id, bool backup) override;
+    Status RemoveRaft(uint64_t id) override;
+    Status DestroyRaft(uint64_t id, bool backup = false) override;
     std::shared_ptr<Raft> FindRaft(uint64_t id) const override;
 
     void GetStatus(ServerStatus* status) const override;
@@ -44,6 +45,7 @@ private:
     using RaftMapType = std::unordered_map<uint64_t, std::shared_ptr<RaftImpl>>;
 
     std::shared_ptr<RaftImpl> findRaft(uint64_t id) const;
+    size_t raftSize() const;
 
     void sendHeartbeat(const RaftMapType& rafts);
     void onMessage(MessagePtr& msg);

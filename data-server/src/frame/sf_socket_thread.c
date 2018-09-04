@@ -450,7 +450,7 @@ static int sf_accept_init(sf_socket_thread_t *context) {
     sf_socket_thread_config_t *config = context->socket_config;
     sf_socket_status_t *status = context->socket_status;
 
-    char name[16];
+    char name[32] = {'\0'};
     config->accept_tids = malloc(sizeof(pthread_t) * config->accept_threads);
 
     for (int i = 0; i < config->accept_threads; i++) {
@@ -463,7 +463,7 @@ static int sf_accept_init(sf_socket_thread_t *context) {
                        i, result, strerror(result));
             return result;
         } else {
-            snprintf(name, 16, "%s_accept:%d", config->thread_name_prefix, i);
+            snprintf(name, 32, "%s_accept:%d", config->thread_name_prefix, i);
             set_thread_name(config->accept_tids[i], name);
 
             __sync_fetch_and_add(&status->actual_accept_threads, 1);
@@ -494,7 +494,7 @@ static int sf_recv_init(sf_socket_thread_t *context) {
     memset(context->event_recv_data, 0, bytes);
 
     int i = 0;
-    char name[16];
+    char name[32] = {'\0'};
 
     config->recv_tids = malloc(sizeof(pthread_t) * config->event_recv_threads);
 
@@ -518,7 +518,7 @@ static int sf_recv_init(sf_socket_thread_t *context) {
                        status->actual_event_recv_threads, result, strerror(result));
             break;
         } else {
-            snprintf(name, 16, "%s_recv:%d", config->thread_name_prefix, i);
+            snprintf(name, 32, "%s_recv:%d", config->thread_name_prefix, i);
             set_thread_name(config->recv_tids[i], name);
 
             __sync_fetch_and_add(&status->actual_event_recv_threads, 1);
@@ -548,7 +548,7 @@ static int sf_send_init(sf_socket_thread_t *context) {
     memset(context->event_send_data, 0, bytes);
 
     int i = 0;
-    char name[16];
+    char name[32] = {'\0'};
     config->send_tids = malloc(sizeof(pthread_t) * config->event_send_threads);
 
     end = context->event_send_data + config->event_send_threads;
@@ -571,7 +571,7 @@ static int sf_send_init(sf_socket_thread_t *context) {
                        status->actual_event_send_threads, result, strerror(result));
             break;
         } else {
-            snprintf(name, 16, "%s_send:%d", config->thread_name_prefix, i);
+            snprintf(name, 32, "%s_send:%d", config->thread_name_prefix, i);
             set_thread_name(config->send_tids[i], name);
 
            __sync_fetch_and_add(&status->actual_event_send_threads, 1);

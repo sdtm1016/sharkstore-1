@@ -106,18 +106,20 @@ func (r *InsertResult) GetDuplicateKey() []byte {
 }
 
 type InsertTask struct {
-	do bool
-	p     *Proxy
-	table *Table
-	rows  []*kvrpcpb.KeyValue
-	done  chan error
-	rest  *InsertResult
+	do      bool
+	p       *Proxy
+	table   *Table
+	rows    []*kvrpcpb.KeyValue
+	done    chan error
+	rest    *InsertResult
+	context *dskv.ReqContext
 }
 
-func (it *InsertTask) init(proxy *Proxy, table *Table, rows []*kvrpcpb.KeyValue) *InsertTask {
+func (it *InsertTask) init(rContext *dskv.ReqContext, proxy *Proxy, table *Table, rows []*kvrpcpb.KeyValue) *InsertTask {
 	if it == nil {
 		return it
 	}
+	it.context = rContext
 	it.p = proxy
 	it.table = table
 	it.rows = rows
@@ -126,7 +128,7 @@ func (it *InsertTask) init(proxy *Proxy, table *Table, rows []*kvrpcpb.KeyValue)
 
 func (it *InsertTask) Do() {
 	it.do = true
-	affected, duplicateKey, err := it.p.insert(it.table, it.rows)
+	affected, duplicateKey, err := it.p.insert(it.context, it.table, it.rows)
 	if err != nil {
 		it.done <- err
 		return
@@ -153,7 +155,6 @@ func (it *InsertTask) Reset() {
 	}
 	*it = InsertTask{done: make(chan error, 1)}
 }
-
 
 type SelectResult struct {
 	rows [][]*Row

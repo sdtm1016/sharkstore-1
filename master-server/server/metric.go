@@ -386,8 +386,12 @@ func (m *Metric) clusterInfoStats() error {
 	}
 	stats.SizeUsed = storageSize
 	stats.CapacityTotal = storageCapacity
-	stats.LeaderBalanceRatio = 1 - minLeaderScore/maxLeaderScore
-	stats.RegionBalanceRatio = 1 - minRegionScore/maxRegionScore
+	if maxLeaderScore != 0.0 {
+		stats.LeaderBalanceRatio = 1 - minLeaderScore/maxLeaderScore
+	}
+	if maxRegionScore != 0.0 {
+		stats.RegionBalanceRatio = 1 - minRegionScore/maxRegionScore
+	}
 
 	log.Debug("start to schedule metric, and send data to metric service:[%s], data:[%v] ", m.addr, stats)
 

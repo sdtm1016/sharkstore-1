@@ -28,7 +28,7 @@
 #include "frame/sf_util.h"
 #include "frame/sf_logger.h"
 
-#include "./gen/test.pb.h"
+#include "helper/gen/test.pb.h"
 
 sf_socket_thread_config_t config;
 sf_socket_status_t status = {0};
@@ -64,7 +64,7 @@ static int64_t get_proto_head(ds_proto_header_t *proto_header, int len) {
     header.msg_type = 10;
     header.func_id = 10;
     header.proto_type = 1;
-    header.stream_hash = 0;
+    header.flags = 0;
 
     ds_serialize_header(&header, proto_header);
     return id;
@@ -136,7 +136,7 @@ static void client_recv() {
             if (msg != nullptr) {
                 if (msg->body.size() > 0) {
                     tpb::TestMsg tmsg;
-                    socket_session->GetMessage(msg->body.data(), msg->body.size(), &tmsg);
+                    GetMessage(msg->body.data(), msg->body.size(), &tmsg);
                 }
                 delete msg;
                 auto t = time(NULL);

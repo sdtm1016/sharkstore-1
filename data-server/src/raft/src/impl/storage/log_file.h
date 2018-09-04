@@ -17,7 +17,7 @@ class LogIndex;
 
 class LogFile {
 public:
-    LogFile(const std::string& path, uint64_t seq, uint64_t index);
+    LogFile(const std::string& path, uint64_t seq, uint64_t index, bool readonly = false);
     virtual ~LogFile();
 
     LogFile(const LogFile&) = delete;
@@ -67,6 +67,7 @@ private:
     const uint64_t seq_ = 0;    // 日志文件的序号
     const uint64_t index_ = 0;  // 日志文件起始index
     const std::string file_path_;
+    const bool readonly_ = false;
 
     int fd_ = -1;
     off_t file_size_ = 0;

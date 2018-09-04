@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-	"sort"
-
 	"proxy/gateway-server/mysql"
 	"proxy/gateway-server/sqlparser"
 	"model/pkg/kvrpcpb"
@@ -16,7 +14,7 @@ import (
 	"util/hack"
 	"util/log"
 	"proxy/store/dskv"
-	"golang.org/x/net/context"
+	"sort"
 )
 
 func (p *Proxy) HandleInsert(db string, stmt *sqlparser.Insert, args []interface{}) (*mysql.Result, error) {
@@ -82,9 +80,27 @@ func (p *Proxy) HandleInsert(db string, stmt *sqlparser.Insert, args []interface
 		return nil, err
 	}
 	// 检查是否缺少主键列
-	if err := p.checkPKMissing(t, colMap); err != nil {
+	pkName, err := p.checkPKMissing(t, colMap)
+	if err != nil {
 		log.Error("[insert] table %s.%s missing column(%v)", db, tableName, err)
 		return nil, err
+	}
+	//填充自增id值
+	if len(pkName) > 0 {
+		colMap[pkName] = len(colMap)
+		ids, err := p.msCli.GetAutoIncId(t.GetDbId(), t.GetId(), uint32(len(rows)))
+		if err != nil {
+			log.Error("[insert] table %s.%s get auto_increment value err, %v", db, tableName, err)
+			return nil, err
+		}
+		if len(ids) != len(rows) {
+			log.Error("[insert] table %s.%s get auto_increment value err, %v", db, tableName, err)
+			return nil, fmt.Errorf("get auto increment id size %d not equal insert size %d", len(ids), len(rows))
+		}
+		for i, row := range rows {
+			row = append(row, []byte(fmt.Sprintf("%v", ids[i])))
+			rows[i] = row
+		}
 	}
 
 	//parseTime = time.Now()
@@ -94,9 +110,9 @@ func (p *Proxy) HandleInsert(db string, stmt *sqlparser.Insert, args []interface
 	if err != nil {
 		log.Error("insert error table[%s:%s], err %s", db, tableName, err.Error())
 		return nil, err
-	}else if affected != uint64(len(rows)){
-		log.Error("insert error table[%s:%s],request num:%d,inserted num:%d", db, tableName, len(rows),affected)
-		return nil,ErrAffectRows
+	} else if affected != uint64(len(rows)) {
+		log.Error("insert error table[%s:%s],request num:%d,inserted num:%d", db, tableName, len(rows), affected)
+		return nil, ErrAffectRows
 	}
 	if len(duplicateKey) != 0 {
 		resErr := new(mysql.SqlError)
@@ -168,15 +184,20 @@ func (p *Proxy) matchInsertValues(t *Table, cols []string) (colMap map[string]in
 	return
 }
 
-// 检查插入时是否少了某列
-func (p *Proxy) checkPKMissing(t *Table, colMap map[string]int) error {
+// 检查插入时是否少了主键列： 如果缺少的列是自增id，返回要填充的col
+func (p *Proxy) checkPKMissing(t *Table, colMap map[string]int) (string, error) {
+	var pkName string
 	// 是否缺少主键
 	for _, pk := range t.PKS() {
 		if _, ok := colMap[pk]; !ok {
-			return fmt.Errorf("pk(%s) is required for insert", pk)
+			if col := t.FindColumn(pk); col != nil && col.AutoIncrement { //表定义时建，限制只能有一个主键列为自增
+				pkName = pk
+				continue
+			}
+			return "", fmt.Errorf("pk(%s) is required for insert", pk)
 		}
 	}
-	return nil
+	return pkName, nil
 }
 
 // EncodeRow 编码一行
@@ -256,27 +277,17 @@ func (p *Proxy) EncodeRow(t *Table, colMap map[string]int, rowValue InsertRowVal
 	}, nil
 }
 
-func (p *Proxy) batchInsert(t *Table, colMap map[string]int, rows []InsertRowValue) (affected uint64, duplicateKey []byte, err error) {
-	var kvPairs []*kvrpcpb.KeyValue
-	var kvGroup [][]*kvrpcpb.KeyValue
-
-	var kv *kvrpcpb.KeyValue
-	for i, r := range rows {
-		kv, err = p.EncodeRow(t, colMap, r)
-		if err != nil {
-			log.Error("[inert] table %s.%s encode row at %d failed: %v", t.DbName(), t.Name(), i, err)
-			return
-		}
-		kvPairs = append(kvPairs, kv)
-	}
+func (p *Proxy) batchInsert(context *dskv.ReqContext, t *Table, kvPairs []*kvrpcpb.KeyValue) (affected uint64, duplicateKey []byte, retryKVPairs []*kvrpcpb.KeyValue, err error) {
 	// 首先排序,这个很重要
 	sort.Sort(KvParisSlice(kvPairs))
+
+	var kvGroup [][]*kvrpcpb.KeyValue
+	retryKVPairs = make([]*kvrpcpb.KeyValue, 0)
 	// 按照route的范围划分kv group
 	ggroup := make(map[uint64][]*kvrpcpb.KeyValue)
 	for _, kv := range kvPairs {
-		//log.Debug("==========key[%v]", kv.GetKey())
-		bo := dskv.NewBackoffer(dskv.MsMaxBackoff, context.Background())
-		l, _err := t.ranges.LocateKey(bo, kv.GetKey())
+		log.Debug("task insert add key[%v]", kv.GetKey())
+		l, _err := t.ranges.LocateKey(context.GetBackOff(), kv.GetKey())
 		if _err != nil {
 			err = _err
 			log.Warn("locate key failed, err %v", err)
@@ -289,28 +300,38 @@ func (p *Proxy) batchInsert(t *Table, colMap map[string]int, rows []InsertRowVal
 			ggroup[l.Region.Id] = group
 		}
 		group = append(group, kv)
-		// 每100个kv切割一下
-		if len(group) == 100 {
-			kvGroup = append(kvGroup, group)
-			group = make([]*kvrpcpb.KeyValue, 0)
-		}
-		// TODO 非常重要
+
+		//map copy value must reset
 		ggroup[l.Region.Id] = group
+		// 每100个kv切割一下
+		if len(group) >= 100 {
+			kvGroup = append(kvGroup, group)
+			delete(ggroup, l.Region.Id)
+		}
 	}
 	for _, group := range ggroup {
 		if len(group) > 0 {
 			kvGroup = append(kvGroup, group)
 		}
 	}
+	log.Debug("%s, task insert %s group size: %d", context, t.GetName(), len(kvGroup))
 	// 只需要访问一个range
 	if len(kvGroup) == 1 {
-		return p.insert(t, kvGroup[0])
+		affected, duplicateKey, err = p.insert(context, t, kvGroup[0])
+		if err != nil && err == dskv.ErrRouteChange {
+			retryKVPairs = append(retryKVPairs, kvGroup[0]...)
+			return 0, nil, retryKVPairs, err
+		} else {
+			return affected, duplicateKey, retryKVPairs, err
+		}
 	}
+	startTime := time.Now()
 	// for more range batch insert
 	var tasks []*InsertTask
 	for _, rows := range kvGroup {
 		task := GetInsertTask()
-		task.init(p, t, rows)
+		cClone := context.Clone()
+		task.init(cClone, p, t, rows)
 		err = p.Submit(task)
 		if err != nil {
 			// release task
@@ -321,12 +342,22 @@ func (p *Proxy) batchInsert(t *Table, colMap map[string]int, rows []InsertRowVal
 		tasks = append(tasks, task)
 	}
 	// 存在部分task不能被回收的问题，但是不会造成内存泄漏
+	retryKVPairs = make([]*kvrpcpb.KeyValue, 0)
 	for _, task := range tasks {
-		err = task.Wait()
-		if err != nil {
-			log.Error("insert task do failed, err[%v]", err)
-			PutInsertTask(task)
-			return
+		err_ := task.Wait()
+		if err_ != nil {
+			err = err_
+			if err == dskv.ErrRouteChange {
+				retryKVPairs = append(retryKVPairs, task.rows...)
+				log.Debug("insert task route change, table:%s, err[%v]", t.GetName(), err)
+				PutInsertTask(task)
+				continue
+			} else {
+				log.Error("insert task do failed, table:%s, err[%v]", t.GetName(), err)
+				PutInsertTask(task)
+				return
+			}
+
 		}
 		if task.rest.GetDuplicateKey() != nil {
 			duplicateKey = task.rest.GetDuplicateKey()
@@ -336,30 +367,70 @@ func (p *Proxy) batchInsert(t *Table, colMap map[string]int, rows []InsertRowVal
 		affected += task.rest.GetAffected()
 		PutInsertTask(task)
 	}
+	context.GetBackOff().CombineTime(int(time.Since(startTime).Nanoseconds()/1000000))
+	log.Debug("%s execute batch task finish", context)
 	return
 }
 
 func (p *Proxy) insertRows(t *Table, colMap map[string]int, rows []InsertRowValue) (affected uint64, duplicateKey []byte, err error) {
-	if len(rows) > 1 {
-		return p.batchInsert(t, colMap, rows)
-	} else {
-		var kvPairs []*kvrpcpb.KeyValue
-		var kv *kvrpcpb.KeyValue
-		for i, r := range rows {
-			kv, err = p.EncodeRow(t, colMap, r)
-			if err != nil {
-				log.Error("[inert] table %s.%s encode row at %d failed: %v", t.DbName(), t.Name(), i, err)
+	var kvPairs []*kvrpcpb.KeyValue
+	var kv *kvrpcpb.KeyValue
+	for i, r := range rows {
+		kv, err = p.EncodeRow(t, colMap, r)
+		if err != nil {
+			log.Error("[insert] table %s.%s encode row at %d failed: %v", t.DbName(), t.Name(), i, err)
+			return
+		}
+		kvPairs = append(kvPairs, kv)
+	}
+
+	var affectedTp uint64
+	var duplicateKeyTp []byte
+	var errTp error
+
+	context  := dskv.NewPRConext(dskv.InsertMaxBackoff)
+	var errForRetry error
+	for metricLoop := 0; ; metricLoop++ {
+		if kvPairs == nil || len(kvPairs) == 0 {
+			break
+		}
+		if errForRetry != nil {
+			errForRetry = context.GetBackOff().Backoff(dskv.BoMSRPC, errForRetry)
+			if errForRetry != nil {
+				log.Error("%s execute timeout", context)
 				return
 			}
-			kvPairs = append(kvPairs, kv)
 		}
-		return p.insert(t, kvPairs)
+		if metricLoop > 0 {
+			log.Info("%s, retry insert table:%s, row size:%d, loop: %v", context, t.GetName(), len(kvPairs), metricLoop)
+		} else {
+			log.Debug("%s, insert table:%s, row size:%d", context, t.GetName(), len(kvPairs))
+		}
+
+		if len(kvPairs) > 1 {
+			affectedTp, duplicateKeyTp, kvPairs, errTp = p.batchInsert(context, t, kvPairs)
+		} else {
+			affectedTp, duplicateKeyTp, errTp = p.insert(context, t, kvPairs)
+		}
+
+		if errTp != nil && errTp == dskv.ErrRouteChange {
+			log.Warn("%s route change ,retry table:%s, row size:%v", context, t.GetName(), len(kvPairs))
+			duplicateKey = duplicateKeyTp
+			affected += affectedTp
+			errForRetry = errTp
+			err = errTp
+			continue
+		}
+		duplicateKey = duplicateKeyTp
+		affected += affectedTp
+		err = errTp
+		break
 	}
+	log.Debug("%s execute finish", context)
 	return
 }
 
-func (p *Proxy) insert(t *Table, rows []*kvrpcpb.KeyValue) (
-	affected uint64, duplicateKey []byte, err error) {
+func (p *Proxy) insert(context *dskv.ReqContext, t *Table, rows []*kvrpcpb.KeyValue) (affected uint64, duplicateKey []byte, err error) {
 	if len(rows) == 0 {
 		err = ErrEmptyRow
 		return
@@ -370,46 +441,23 @@ func (p *Proxy) insert(t *Table, rows []*kvrpcpb.KeyValue) (
 		CheckDuplicate: t.PkDupCheck(),
 		Timestamp:      &timestamp.Timestamp{WallTime: now.WallTime, Logical: now.Logical},
 	}
-	var resps []*kvrpcpb.InsertResponse
 	proxy := dskv.GetKvProxy()
 	defer dskv.PutKvProxy(proxy)
 	proxy.Init(p.dsCli, p.clock, t.ranges, client.WriteTimeout, client.ReadTimeoutShort)
-	// 单行写入
-	if len(rows) == 1 {
-		var resp *kvrpcpb.InsertResponse
-		resp, _, err = proxy.Insert(req, rows[0].GetKey())
-		if err != nil {
-			return
-		}
-		if resp.GetCode() == 0 {
-			affected = resp.GetAffectedKeys()
-		} else if resp.GetDuplicateKey() != nil {
-			duplicateKey = resp.GetDuplicateKey()
-		}
-		if resp.GetCode() >0 {
-			err = CodeToErr(int(resp.GetCode()))
-			return
-		}
-
+	//单range写入，包括单行数据，同range多行数据
+	var resp *kvrpcpb.InsertResponse
+	resp, _, err = proxy.Insert(context, req, rows[0].GetKey())
+	if err != nil {
 		return
-	} else {
-		scope := &kvrpcpb.Scope{Start: rows[0].GetKey(), Limit: rows[len(rows)-1].GetKey()}
-		resps, err = proxy.SqlInsert(req, scope)
-		if err != nil {
-			return
-		}
-		for _, resp := range resps {
-			if resp.GetCode() == 0 {
-				affected += resp.GetAffectedKeys()
-			} else if resp.GetDuplicateKey() != nil {
-				duplicateKey = resp.GetDuplicateKey()
-				return
-			}
-			if resp.GetCode() >0 {
-				err = CodeToErr(int(resp.GetCode()))
-				return
-			}
-		}
+	}
+	if resp.GetCode() == 0 {
+		affected = resp.GetAffectedKeys()
+	} else if resp.GetDuplicateKey() != nil {
+		duplicateKey = resp.GetDuplicateKey()
+	}
+	if resp.GetCode() > 0 {
+		err = CodeToErr(int(resp.GetCode()))
+		return
 	}
 	return
 }

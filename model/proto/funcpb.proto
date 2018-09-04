@@ -13,13 +13,18 @@ enum FunctionID {
   kFuncRawPut           = 2;
   kFuncRawDelete        = 3;
   kFuncRawExecute       = 4;
-
+  
   kFuncSelect           = 10;
   kFuncInsert           = 11;
   kFuncDelete           = 12;
   kFuncUpdate           = 13;
   KFuncReplace          = 14;
-
+	
+  kFuncWatchGet         = 50; //get and watch  
+  kFuncPureGet          = 51; //just get single key or key with prefix  
+  kFuncWatchPut         = 52; //put and trigger watch response  
+  kFuncWatchDel         = 53; //delete and trigger watch response
+    
   kFuncKvSet              = 100;
   kFuncKvGet              = 101;
   kFuncKvBatchSet         = 102;
@@ -33,8 +38,8 @@ enum FunctionID {
   kFuncLockUpdate         = 201;
   kFuncUnlock             = 202;
   kFuncUnlockForce        = 203;
-  kFuncLockScan           = 204;
-
+  kFuncLockWatch		  = 204;
+  
   kFuncCreateRange          = 1001;
   kFuncDeleteRange          = 1002;
   kFuncRangeTransferLeader  = 1003;
@@ -43,4 +48,6 @@ enum FunctionID {
   kFuncSetNodeLogLevel      = 1006;
   kFuncOfflineRange         = 1007;
   kFuncReplaceRange         = 1008;
+
+  kFuncAdmin                = 2001;
 }

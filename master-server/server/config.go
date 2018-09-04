@@ -221,11 +221,14 @@ type AlarmReceiver struct {
 
 
 type AlarmConfig struct {
-	ServerAddress string  			`toml:"server-address" json:"server-address"`
-	ServerPort int   				`toml:"server-port,omitempty" json:"port"`
-	RemoteAlarmServerAddress string`toml:"remote-alarm-server-address,omitempty" json:"remote-alarm-server-address"`
-	MessageGatewayAddress string	`toml:"message-gateway-address,omitempty" json:"message-gateway-address"`
-	Receivers []*AlarmReceiver		`toml:"receivers,omitempty" json:"receivers"`
+	ServerAddress string  		`toml:"server-address" json:"server-address"`
+	ServerPort int   		`toml:"server-port,omitempty" json:"port"`
+	RemoteAlarmServerAddress string	`toml:"remote-alarm-server-address,omitempty" json:"remote-alarm-server-address"`
+	MysqlArgs string		`toml:"mysql-args,omitempty" json:"mysql-args"`
+	//MessageGatewayAddress string	`toml:"message-gateway-address,omitempty" json:"message-gateway-address"`
+	//Receivers []*AlarmReceiver	`toml:"receivers,omitempty" json:"receivers"`
+	JimUrl string 			`toml:"jim-url,omitempty" json:"jim-url"`
+	JimApAddr string		`toml:"jim-ap-addr,omitempty" json:"jim-ap-addr"`
 }
 
 func (c *ClusterConfig) adjust() error {

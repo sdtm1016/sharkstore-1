@@ -31,7 +31,7 @@ func TestRpcColumn(t *testing.T) {
 	cols := []*metapb.Column{
 		&metapb.Column{Name: "rangeid", DataType: metapb.DataType_BigInt, PrimaryKey: 1, Id: 1},
 		&metapb.Column{Name: "ctime", DataType: metapb.DataType_BigInt, PrimaryKey: 1, Id: 2},
-		&metapb.Column{Name: "c_size", DataType: metapb.DataType_BigInt, Id:3},
+		&metapb.Column{Name: "c_size", DataType: metapb.DataType_BigInt, Id: 3},
 	}
 	regxs := []*metapb.Column{
 		&metapb.Column{Name: "test_.*", DataType: metapb.DataType_BigInt, Id: 4},
@@ -61,7 +61,7 @@ func TestRpcColumn(t *testing.T) {
 	ctx := context.Background()
 	_, err = server.handleGetDb(ctx, &mspb.GetDBRequest{
 		Header: &mspb.RequestHeader{},
-		Name: "test",
+		Name:   "test",
 	})
 	if err != nil {
 		t.Error("test failed, err %v", err)
@@ -69,8 +69,8 @@ func TestRpcColumn(t *testing.T) {
 	}
 
 	_, err = server.handleGetTable(ctx, &mspb.GetTableRequest{
-		Header: &mspb.RequestHeader{},
-		DbName: db.GetName(),
+		Header:    &mspb.RequestHeader{},
+		DbName:    db.GetName(),
 		TableName: "t1",
 	})
 	if err != nil {
@@ -78,8 +78,8 @@ func TestRpcColumn(t *testing.T) {
 		return
 	}
 	_, err = server.handleGetTableById(ctx, &mspb.GetTableByIdRequest{
-		Header: &mspb.RequestHeader{},
-		DbId: db.GetId(),
+		Header:  &mspb.RequestHeader{},
+		DbId:    db.GetId(),
 		TableId: table.GetId(),
 	})
 	if err != nil {
@@ -87,8 +87,8 @@ func TestRpcColumn(t *testing.T) {
 		return
 	}
 	resp, err := server.handleGetColumns(ctx, &mspb.GetColumnsRequest{
-		Header: &mspb.RequestHeader{},
-		DbId: db.GetId(),
+		Header:  &mspb.RequestHeader{},
+		DbId:    db.GetId(),
 		TableId: table.GetId(),
 	})
 	if err != nil {
@@ -100,18 +100,18 @@ func TestRpcColumn(t *testing.T) {
 		return
 	}
 	_, err = server.handleGetColumnById(ctx, &mspb.GetColumnByIdRequest{
-		Header: &mspb.RequestHeader{},
-		DbId: db.GetId(),
+		Header:  &mspb.RequestHeader{},
+		DbId:    db.GetId(),
 		TableId: table.GetId(),
-		ColId: 1,
+		ColId:   1,
 	})
 	if err != nil {
 		t.Error("test failed, err %v", err)
 		return
 	}
 	_, err = server.handleGetColumnByName(ctx, &mspb.GetColumnByNameRequest{
-		Header: &mspb.RequestHeader{},
-		DbId: db.GetId(),
+		Header:  &mspb.RequestHeader{},
+		DbId:    db.GetId(),
 		TableId: table.GetId(),
 		ColName: "rangeid",
 	})
@@ -121,12 +121,12 @@ func TestRpcColumn(t *testing.T) {
 	}
 	cols_new := []*metapb.Column{
 		&metapb.Column{Name: "test_1", DataType: metapb.DataType_BigInt,},
-		&metapb.Column{Name: "test_2", DataType: metapb.DataType_BigInt, },
-		&metapb.Column{Name: "test_3", DataType: metapb.DataType_BigInt, },
+		&metapb.Column{Name: "test_2", DataType: metapb.DataType_BigInt,},
+		&metapb.Column{Name: "test_3", DataType: metapb.DataType_BigInt,},
 	}
 	_, err = server.handleAddColumns(ctx, &mspb.AddColumnRequest{
-		Header: &mspb.RequestHeader{},
-		DbId: db.GetId(),
+		Header:  &mspb.RequestHeader{},
+		DbId:    db.GetId(),
 		TableId: table.GetId(),
 		Columns: cols_new,
 	})
@@ -195,6 +195,7 @@ func TestRpcRangeSplit(t *testing.T) {
 		Epoch:      &metapb.TableEpoch{ConfVer: uint64(1), Version: uint64(1)},
 		CreateTime: time.Now().Unix(),
 		PkDupCheck: false,
+		Status:     metapb.TableStatus_TableRunning,
 	}
 	err = cluster.storeTable(_table)
 	if err != nil {
@@ -237,19 +238,19 @@ func TestRpcRangeSplit(t *testing.T) {
 			_start = append(_start, start...)
 			_start = append(_start, byte(i))
 		}
-		if i == num -1 {
+		if i == num-1 {
 			_end = end
 		} else {
 			_end = append(_end, end...)
-			_end = append(_end, byte(i + 1))
+			_end = append(_end, byte(i+1))
 		}
-		r := &metapb.Range {
-			Id:     rangeId,
-			StartKey: _start,
-			EndKey: _end,
+		r := &metapb.Range{
+			Id:         rangeId,
+			StartKey:   _start,
+			EndKey:     _end,
 			RangeEpoch: &metapb.RangeEpoch{ConfVer: uint64(1), Version: uint64(1)},
-			Peers: peers,
-			TableId: tableId,
+			Peers:      peers,
+			TableId:    tableId,
 		}
 		err = cluster.storeRange(r)
 		if err != nil {
@@ -310,12 +311,12 @@ func TestRpcRangeSplit(t *testing.T) {
 	splitKey = append(splitKey, rng.GetStartKey()...)
 	splitKey = append(splitKey, []byte("a")...)
 	_, err = server.handleAskSplit(ctx, &mspb.AskSplitRequest{
-		Header:  &mspb.RequestHeader{},
-		Range: rng.Range,
+		Header:   &mspb.RequestHeader{},
+		Range:    rng.Range,
 		SplitKey: splitKey,
 	})
 	if err != nil {
-		t.Error("test failed")
+		t.Errorf("test failed, %v", err)
 		return
 	}
 
@@ -325,9 +326,9 @@ func TestRpcRangeSplit(t *testing.T) {
 	right := deepcopy.Iface(rng.Range).(*metapb.Range)
 	right.StartKey = splitKey
 	_, err = server.handleReportSplit(ctx, &mspb.ReportSplitRequest{
-		Header:  &mspb.RequestHeader{},
-		Left: left,
-		Right: right,
+		Header: &mspb.RequestHeader{},
+		Left:   left,
+		Right:  right,
 	})
 	if err != nil {
 		t.Error("test failed")
@@ -340,8 +341,8 @@ func TestRpcRangeSplit(t *testing.T) {
 	r.EndKey = []byte("invalid")
 	rng = NewRange(r, nil)
 	_, err = server.handleAskSplit(ctx, &mspb.AskSplitRequest{
-		Header:  &mspb.RequestHeader{},
-		Range: rng.Range,
+		Header:   &mspb.RequestHeader{},
+		Range:    rng.Range,
 		SplitKey: splitKey,
 	})
 	if err == nil {
@@ -354,8 +355,8 @@ func TestRpcRangeSplit(t *testing.T) {
 	r.RangeEpoch.Version++
 	rng = NewRange(r, nil)
 	_, err = server.handleAskSplit(ctx, &mspb.AskSplitRequest{
-		Header:  &mspb.RequestHeader{},
-		Range: rng.Range,
+		Header:   &mspb.RequestHeader{},
+		Range:    rng.Range,
 		SplitKey: splitKey,
 	})
 	if err == nil {
@@ -423,7 +424,7 @@ func TestRpcRangeHeartbeat(t *testing.T) {
 		Epoch:      &metapb.TableEpoch{ConfVer: uint64(1), Version: uint64(1)},
 		CreateTime: time.Now().Unix(),
 		PkDupCheck: false,
-		Status: metapb.TableStatus_TableRunning,
+		Status:     metapb.TableStatus_TableRunning,
 	}
 	err = cluster.storeTable(_table)
 	if err != nil {
@@ -466,19 +467,19 @@ func TestRpcRangeHeartbeat(t *testing.T) {
 			_start = append(_start, start...)
 			_start = append(_start, byte(i))
 		}
-		if i == num -1 {
+		if i == num-1 {
 			_end = end
 		} else {
 			_end = append(_end, end...)
-			_end = append(_end, byte(i + 1))
+			_end = append(_end, byte(i+1))
 		}
-		r := &metapb.Range {
-			Id:     rangeId,
-			StartKey: _start,
-			EndKey: _end,
+		r := &metapb.Range{
+			Id:         rangeId,
+			StartKey:   _start,
+			EndKey:     _end,
 			RangeEpoch: &metapb.RangeEpoch{ConfVer: uint64(1), Version: uint64(1)},
-			Peers: peers,
-			TableId: tableId,
+			Peers:      peers,
+			TableId:    tableId,
 		}
 		err = cluster.storeRange(r)
 		if err != nil {
@@ -536,8 +537,8 @@ func TestRpcRangeHeartbeat(t *testing.T) {
 	ctx := context.Background()
 	rng := ranges[0]
 	server.handleRangeHeartbeat(ctx, &mspb.RangeHeartbeatRequest{
-		Header:  &mspb.RequestHeader{},
-		Range: rng.Range,
+		Header: &mspb.RequestHeader{},
+		Range:  rng.Range,
 		Leader: rng.GetLeader(),
 	})
 
@@ -557,8 +558,8 @@ func TestRpcRangeHeartbeat(t *testing.T) {
 	r.Peers = peers
 	rng = NewRange(r, nil)
 	server.handleRangeHeartbeat(ctx, &mspb.RangeHeartbeatRequest{
-		Header:  &mspb.RequestHeader{},
-		Range: rng.Range,
+		Header: &mspb.RequestHeader{},
+		Range:  rng.Range,
 		Leader: rng.GetLeader(),
 	})
 	if _, find := node1.GetRange(rng.GetId()); find {
@@ -573,9 +574,9 @@ func TestRpcRangeHeartbeat(t *testing.T) {
 	// 模拟脑裂
 	rng = ranges[2]
 	r = deepcopy.Iface(rng.Range).(*metapb.Range)
-	var downPeer []*mspb.PeerStats
+	var downPeer []*mspb.PeerStatus
 	for _, peer := range rng.GetPeers() {
-		downPeer = append(downPeer, &mspb.PeerStats{Peer: peer})
+		downPeer = append(downPeer, &mspb.PeerStatus{Peer: peer, DownSeconds: uint64(1)})
 		if len(downPeer) == 2 {
 			break
 		}
@@ -585,7 +586,7 @@ func TestRpcRangeHeartbeat(t *testing.T) {
 		Header:  &mspb.RequestHeader{},
 		Range: r,
 		Leader: rng.GetPeers()[0],
-		DownPeers: downPeer,
+		PeersStatus: downPeer,
 	})
 	if len(rng.GetDownPeers()) > 0 {
 		t.Error("test failed")
@@ -652,7 +653,7 @@ func TestRpcRangeHeartbeatWhenTableInit(t *testing.T) {
 		Epoch:      &metapb.TableEpoch{ConfVer: uint64(1), Version: uint64(1)},
 		CreateTime: time.Now().Unix(),
 		PkDupCheck: false,
-		Status: metapb.TableStatus_TableInit,
+		Status:     metapb.TableStatus_TableInit,
 	}
 	err = cluster.storeTable(_table)
 	if err != nil {
@@ -696,19 +697,19 @@ func TestRpcRangeHeartbeatWhenTableInit(t *testing.T) {
 			_start = append(_start, start...)
 			_start = append(_start, byte(i))
 		}
-		if i == num -1 {
+		if i == num-1 {
 			_end = end
 		} else {
 			_end = append(_end, end...)
-			_end = append(_end, byte(i + 1))
+			_end = append(_end, byte(i+1))
 		}
-		r := &metapb.Range {
-			Id:     rangeId,
-			StartKey: _start,
-			EndKey: _end,
+		r := &metapb.Range{
+			Id:         rangeId,
+			StartKey:   _start,
+			EndKey:     _end,
 			RangeEpoch: &metapb.RangeEpoch{ConfVer: uint64(1), Version: uint64(1)},
-			Peers: peers,
-			TableId: tableId,
+			Peers:      peers,
+			TableId:    tableId,
 		}
 		err = cluster.storeRange(r)
 		if err != nil {
@@ -766,14 +767,14 @@ func TestRpcRangeHeartbeatWhenTableInit(t *testing.T) {
 	ctx := context.Background()
 	rng := ranges[0]
 	resp := server.handleRangeHeartbeat(ctx, &mspb.RangeHeartbeatRequest{
-		Header:  &mspb.RequestHeader{},
-		Range: rng.Range,
+		Header: &mspb.RequestHeader{},
+		Range:  rng.Range,
 		Leader: rng.GetLeader(),
 	})
-    if resp.GetTask() != nil {
-	    t.Error("test failed")
-	    return
-    }
+	if resp.GetTask() != nil {
+		t.Error("test failed")
+		return
+	}
 }
 
 func TestRpcRangeHeartbeatWhenTablePrepare(t *testing.T) {
@@ -835,7 +836,7 @@ func TestRpcRangeHeartbeatWhenTablePrepare(t *testing.T) {
 		Epoch:      &metapb.TableEpoch{ConfVer: uint64(1), Version: uint64(1)},
 		CreateTime: time.Now().Unix(),
 		PkDupCheck: false,
-		Status: metapb.TableStatus_TablePrepare,
+		Status:     metapb.TableStatus_TablePrepare,
 	}
 	err = cluster.storeTable(_table)
 	if err != nil {
@@ -878,19 +879,19 @@ func TestRpcRangeHeartbeatWhenTablePrepare(t *testing.T) {
 			_start = append(_start, start...)
 			_start = append(_start, byte(i))
 		}
-		if i == num -1 {
+		if i == num-1 {
 			_end = end
 		} else {
 			_end = append(_end, end...)
-			_end = append(_end, byte(i + 1))
+			_end = append(_end, byte(i+1))
 		}
-		r := &metapb.Range {
-			Id:     rangeId,
-			StartKey: _start,
-			EndKey: _end,
+		r := &metapb.Range{
+			Id:         rangeId,
+			StartKey:   _start,
+			EndKey:     _end,
 			RangeEpoch: &metapb.RangeEpoch{ConfVer: uint64(1), Version: uint64(1)},
-			Peers: peers,
-			TableId: tableId,
+			Peers:      peers,
+			TableId:    tableId,
 		}
 		err = cluster.storeRange(r)
 		if err != nil {
@@ -948,14 +949,14 @@ func TestRpcRangeHeartbeatWhenTablePrepare(t *testing.T) {
 	ctx := context.Background()
 	rng := ranges[0]
 	resp := server.handleRangeHeartbeat(ctx, &mspb.RangeHeartbeatRequest{
-		Header:  &mspb.RequestHeader{},
-		Range: rng.Range,
+		Header: &mspb.RequestHeader{},
+		Range:  rng.Range,
 		Leader: rng.GetLeader(),
 	})
-    if resp.GetTask() == nil {
-	    t.Error("test failed")
-	    return
-    }
+	if resp.GetTask() == nil {
+		t.Error("test failed")
+		return
+	}
 	if resp.GetTask().GetType() != taskpb.TaskType_RangeAddPeer {
 		t.Error("test failed")
 		return
@@ -1021,7 +1022,7 @@ func TestRpcRangeHeartbeatWhenTableDeleting(t *testing.T) {
 		Epoch:      &metapb.TableEpoch{ConfVer: uint64(1), Version: uint64(1)},
 		CreateTime: time.Now().Unix(),
 		PkDupCheck: false,
-		Status: metapb.TableStatus_TableDeleting,
+		Status:     metapb.TableStatus_TableDeleting,
 	}
 	err = cluster.storeTable(_table)
 	if err != nil {
@@ -1064,19 +1065,19 @@ func TestRpcRangeHeartbeatWhenTableDeleting(t *testing.T) {
 			_start = append(_start, start...)
 			_start = append(_start, byte(i))
 		}
-		if i == num -1 {
+		if i == num-1 {
 			_end = end
 		} else {
 			_end = append(_end, end...)
-			_end = append(_end, byte(i + 1))
+			_end = append(_end, byte(i+1))
 		}
-		r := &metapb.Range {
-			Id:     rangeId,
-			StartKey: _start,
-			EndKey: _end,
+		r := &metapb.Range{
+			Id:         rangeId,
+			StartKey:   _start,
+			EndKey:     _end,
 			RangeEpoch: &metapb.RangeEpoch{ConfVer: uint64(1), Version: uint64(1)},
-			Peers: peers,
-			TableId: tableId,
+			Peers:      peers,
+			TableId:    tableId,
 		}
 		err = cluster.storeRange(r)
 		if err != nil {
@@ -1134,8 +1135,8 @@ func TestRpcRangeHeartbeatWhenTableDeleting(t *testing.T) {
 	ctx := context.Background()
 	rng := ranges[0]
 	resp := server.handleRangeHeartbeat(ctx, &mspb.RangeHeartbeatRequest{
-		Header:  &mspb.RequestHeader{},
-		Range: rng.Range,
+		Header: &mspb.RequestHeader{},
+		Range:  rng.Range,
 		Leader: rng.GetLeader(),
 	})
 
@@ -1208,7 +1209,7 @@ func TestRpcRangeHeartbeatWhenTableMiss(t *testing.T) {
 		Epoch:      &metapb.TableEpoch{ConfVer: uint64(1), Version: uint64(1)},
 		CreateTime: time.Now().Unix(),
 		PkDupCheck: false,
-		Status: metapb.TableStatus_TableRunning,
+		Status:     metapb.TableStatus_TableRunning,
 	}
 	err = cluster.storeTable(_table)
 	if err != nil {
@@ -1251,19 +1252,19 @@ func TestRpcRangeHeartbeatWhenTableMiss(t *testing.T) {
 			_start = append(_start, start...)
 			_start = append(_start, byte(i))
 		}
-		if i == num -1 {
+		if i == num-1 {
 			_end = end
 		} else {
 			_end = append(_end, end...)
-			_end = append(_end, byte(i + 1))
+			_end = append(_end, byte(i+1))
 		}
-		r := &metapb.Range {
-			Id:     rangeId,
-			StartKey: _start,
-			EndKey: _end,
+		r := &metapb.Range{
+			Id:         rangeId,
+			StartKey:   _start,
+			EndKey:     _end,
 			RangeEpoch: &metapb.RangeEpoch{ConfVer: uint64(1), Version: uint64(1)},
-			Peers: peers,
-			TableId: tableId,
+			Peers:      peers,
+			TableId:    tableId,
 		}
 		err = cluster.storeRange(r)
 		if err != nil {
@@ -1318,7 +1319,7 @@ func TestRpcRangeHeartbeatWhenTableMiss(t *testing.T) {
 		return
 	}
 
-	_, err =cluster.DeleteTable("test", "t1", true)
+	_, err = cluster.DeleteTable("test", "t1", true)
 	if err != nil {
 		t.Error("test failed")
 		return
@@ -1327,8 +1328,8 @@ func TestRpcRangeHeartbeatWhenTableMiss(t *testing.T) {
 	ctx := context.Background()
 	rng := ranges[0]
 	resp := server.handleRangeHeartbeat(ctx, &mspb.RangeHeartbeatRequest{
-		Header:  &mspb.RequestHeader{},
-		Range: rng.Range,
+		Header: &mspb.RequestHeader{},
+		Range:  rng.Range,
 		Leader: rng.GetLeader(),
 	})
 	if resp.GetTask() == nil {
@@ -1443,19 +1444,19 @@ func TestRpcNodeHeartbeat(t *testing.T) {
 			_start = append(_start, start...)
 			_start = append(_start, byte(i))
 		}
-		if i == num -1 {
+		if i == num-1 {
 			_end = end
 		} else {
 			_end = append(_end, end...)
-			_end = append(_end, byte(i + 1))
+			_end = append(_end, byte(i+1))
 		}
-		r := &metapb.Range {
-			Id:     rangeId,
-			StartKey: _start,
-			EndKey: _end,
+		r := &metapb.Range{
+			Id:         rangeId,
+			StartKey:   _start,
+			EndKey:     _end,
 			RangeEpoch: &metapb.RangeEpoch{ConfVer: uint64(1), Version: uint64(1)},
-			Peers: peers,
-			TableId: tableId,
+			Peers:      peers,
+			TableId:    tableId,
 		}
 		err = cluster.storeRange(r)
 		if err != nil {
@@ -1513,13 +1514,13 @@ func TestRpcNodeHeartbeat(t *testing.T) {
 	// 模拟node offline 恢复
 	node1.State = metapb.NodeState_N_Offline
 	server.handleNodeHeartbeat(ctx, &mspb.NodeHeartbeatRequest{
-		Header:   &mspb.RequestHeader{},
-		NodeId:     node1.GetId(),
-		Stats:     &mspb.NodeStats{
-			RangeCount: uint32(len(node1.GetAllRanges())),
+		Header: &mspb.RequestHeader{},
+		NodeId: node1.GetId(),
+		Stats: &mspb.NodeStats{
+			RangeCount:       uint32(len(node1.GetAllRanges())),
 			RangeLeaderCount: 1,
-			Capacity: 100000,
-			UsedSize: 1000,
+			Capacity:         100000,
+			UsedSize:         1000,
 		},
 	})
 	n, err := cluster.loadNode(node1.GetId())
@@ -1535,13 +1536,32 @@ func TestRpcNodeHeartbeat(t *testing.T) {
 	node2.State = metapb.NodeState_N_Tombstone
 	time.Sleep(time.Second * 100)
 	server.handleNodeHeartbeat(ctx, &mspb.NodeHeartbeatRequest{
-		Header:   &mspb.RequestHeader{},
-		NodeId:     node2.GetId(),
-		Stats:     &mspb.NodeStats{
-			RangeCount: uint32(len(node1.GetAllRanges())),
+		Header: &mspb.RequestHeader{},
+		NodeId: node2.GetId(),
+		Stats: &mspb.NodeStats{
+			RangeCount:       uint32(len(node1.GetAllRanges())),
 			RangeLeaderCount: 1,
-			Capacity: 100000,
-			UsedSize: 1000,
+			Capacity:         100000,
+			UsedSize:         1000,
+		},
+	})
+	n, err = cluster.loadNode(node2.GetId())
+	if err != nil {
+		t.Errorf("load node failed, err %v", err)
+		return
+	}
+	if n.State != metapb.NodeState_N_Offline {
+		t.Error("test failed")
+		return
+	}
+	server.handleNodeHeartbeat(ctx, &mspb.NodeHeartbeatRequest{
+		Header: &mspb.RequestHeader{},
+		NodeId: node2.GetId(),
+		Stats: &mspb.NodeStats{
+			RangeCount:       uint32(len(node1.GetAllRanges())),
+			RangeLeaderCount: 1,
+			Capacity:         100000,
+			UsedSize:         1000,
 		},
 	})
 	n, err = cluster.loadNode(node2.GetId())

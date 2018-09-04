@@ -97,6 +97,12 @@ std::string Status::ToString() const {
         case kNoLeftSpace:
             type = "No Left Space: ";
             break;
+        case kUnexpected:
+            type = "Unexpected: ";
+            break;
+        case kOutOfBound:
+            type = "Out Of Bound: ";
+            break;
         default:
             snprintf(tmp, sizeof(tmp), "Unknown code(%d): ", static_cast<int>(code_));
             type = tmp;

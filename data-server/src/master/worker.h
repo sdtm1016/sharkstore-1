@@ -1,74 +1,31 @@
 _Pragma("once");
 
-#include <condition_variable>
-#include <mutex>
-#include <queue>
-#include <string>
-#include <thread>
-#include <unordered_map>
-
 #include "base/status.h"
-#include "rpc_types.h"
+#include "proto/gen/mspb.pb.h"
+#include "task_handler.h"
 
 namespace sharkstore {
 namespace dataserver {
 namespace master {
 
-class Client;
-class TaskHandler;
-
-class Worker final {
+class Worker {
 public:
-    Worker(const std::vector<std::string> &ms_addrs, int node_hb_secs);
-    ~Worker();
+    virtual ~Worker() = default;
 
-    Worker(const Worker &) = delete;
-    Worker &operator=(const Worker &) = delete;
+    virtual Status GetNodeId(mspb::GetNodeIdRequest& req,
+            uint64_t *node_id, bool *clearup) = 0;
 
-    Status GetNodeId(uint16_t raft_port, uint16_t srv_port, uint16_t http_port,
-                     const std::string &version, uint64_t *node_id,
-                     bool *clearup);
+    virtual Status NodeLogin(uint64_t node_id) = 0;
 
-    Status NodeLogin(uint64_t node_id);
+    virtual Status Start(TaskHandler *handler) = 0;
+    virtual void Stop() = 0;
 
-    Status Start(TaskHandler *handler);
-    void Stop();
+    virtual Status GetRaftAddress(uint64_t node_id, std::string *addr) = 0;
 
-    Status GetRaftAddress(uint64_t node_id, std::string *addr);
-    Status GetServerAddress(uint64_t node_id, std::string *addr);
-
-    void AsyncNodeHeartbeat(const mspb::NodeHeartbeatRequest &req);
-    void AsyncRangeHeartbeat(const mspb::RangeHeartbeatRequest &req);
-    void AsyncAskSplit(const mspb::AskSplitRequest &req);
-    void AsyncReportSplit(const mspb::ReportSplitRequest &req);
-
-    size_t GetRPCQueueSize() const;
-
-private:
-    struct AsyncRPCTask {
-        AsyncCallType type;
-        std::function<Status()> call_func;
-    };
-
-    // return true if pushed into queue
-    // TODO: don't use raw pointer
-    bool pushCall(AsyncRPCTask *task);
-    void doCallRPC();
-    void doNodeHeartbeat(TaskHandler *handler);
-
-private:
-    const size_t node_heartbeat_secs_ = 10;
-
-    Client *client_ = nullptr;
-
-    bool stopped_ = false;
-
-    std::queue<AsyncRPCTask *> rpc_queue_;
-    mutable std::mutex mu_;
-    std::condition_variable cond_;
-
-    std::thread send_rpc_thr_;
-    std::thread node_hb_thr_;
+    virtual void AsyncNodeHeartbeat(const mspb::NodeHeartbeatRequest &req) = 0;
+    virtual void AsyncRangeHeartbeat(const mspb::RangeHeartbeatRequest &req) = 0;
+    virtual void AsyncAskSplit(const mspb::AskSplitRequest &req) = 0;
+    virtual void AsyncReportSplit(const mspb::ReportSplitRequest &req) = 0;
 };
 
 }  // namespace master

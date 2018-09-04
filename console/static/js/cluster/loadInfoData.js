@@ -1,401 +1,452 @@
-$(function(){
+$(function () {
     //设置时间
-	datePairs($('#startMonitor'), $('#endMonitor'));
-	datePairs($('#startTask'), $('#endTask'));
-	datePairs($('#startGateWay'), $('#endGateWay'));
-	datePairs($('#startEvent'), $('#endEvent'));
+    datePairs($('#startMonitor'), $('#endMonitor'));
+    datePairs($('#startTask'), $('#endTask'));
+    datePairs($('#startGateWay'), $('#endGateWay'));
+    datePairs($('#startEvent'), $('#endEvent'));
 });
 function formatDate(formatDate){
-	  function padding(str){
-	    if(str > 0 && str < 10){
-	      return '0' + str;
-	    }else{
-	      return str;
-	    }
-	  }
-	  var year = formatDate.getFullYear(),
-	      month = padding(formatDate.getMonth() + 1),
-	      date = padding(formatDate.getDate()),
-	      hour = padding(formatDate.getHours()),
-	      minute = padding(formatDate.getMinutes());
-	  return year + '-' + month + '-' + date + ' ' + hour + ':' + minute;
-	}
-function datePairs(date1, date2, start, maxDate){
-	  var nowdate = new Date(),
-	      startDate = new Date(nowdate.getTime() - (maxDate || 1000 * 60 * 60 *24 * 30)),
-	      defaultEnd = formatDate(nowdate),
-	      startVal = start || 4 * 1000 * 60 * 60,
-	      defaultStart = formatDate(new Date(nowdate.getTime() - startVal));
-	  date1.datetimepicker({
-	    format: 'yyyy-mm-dd hh:ii',
-	    autoclose: true,
-	    todayBtn: true,
-	    startDate: startDate,
-	    endDate: nowdate
-	  })
-	  .on('changeDate', function(ev){
-	    if (date1.val() > date2.val()){
-	        alert("开始时间不能大于结束时间");
-	        date1.val(date2.val());
-	        date1.datetimepicker('update');
-	    }
-	  });
-	  date2.datetimepicker({
-	    format: 'yyyy-mm-dd hh:ii',
-	    autoclose: true,
-	    todayBtn: true,
-	    startDate: startDate,
-	    endDate: nowdate
-	  }).on('changeDate', function(ev){
-	    if (date1.val() > date2.val()){
-	        alert("束时间不能小于开始时间");
-	        date2.val(date1.val());
-	        date2.datetimepicker('update');
-	    }
-	  });
-	  date1.val(defaultStart).datetimepicker('update');
-	  date2.val(defaultEnd).datetimepicker('update');
-	}
+    function padding(str){
+        if(str > 0 && str < 10){
+            return '0' + str;
+        }else{
+            return str;
+        }
+    }
+    var year = formatDate.getFullYear(),
+        month = padding(formatDate.getMonth() + 1),
+        date = padding(formatDate.getDate()),
+        hour = padding(formatDate.getHours()),
+        minute = padding(formatDate.getMinutes());
+    return year + '-' + month + '-' + date + ' ' + hour + ':' + minute;
+}
+
+function datePairs(date1, date2, start, maxDate) {
+    var nowdate = new Date(),
+        startDate = new Date(nowdate.getTime() - (maxDate || 1000 * 60 * 60 * 24 * 30)),
+        defaultEnd = formatDate(nowdate),
+        startVal = start || 4 * 1000 * 60 * 60,
+        defaultStart = formatDate(new Date(nowdate.getTime() - startVal));
+    date1.datetimepicker({
+        format: 'yyyy-mm-dd hh:ii',
+        autoclose: true,
+        todayBtn: true,
+        startDate: startDate,
+        endDate: nowdate
+    })
+        .on('changeDate', function (ev) {
+            if (date1.val() > date2.val()) {
+                alert("开始时间不能大于结束时间");
+                date1.val(date2.val());
+                date1.datetimepicker('update');
+            }
+        });
+    date2.datetimepicker({
+        format: 'yyyy-mm-dd hh:ii',
+        autoclose: true,
+        todayBtn: true,
+        startDate: startDate,
+        endDate: nowdate
+    }).on('changeDate', function (ev) {
+        if (date1.val() > date2.val()) {
+            alert("束时间不能小于开始时间");
+            date2.val(date1.val());
+            date2.datetimepicker('update');
+        }
+    });
+    date1.val(defaultStart).datetimepicker('update');
+    date2.val(defaultEnd).datetimepicker('update');
+}
+
 var app = angular.module('myCluster', []);
 //gateway监控
-app.controller('clusterGateWay', function($rootScope, $scope, $http, $timeout) {
+app.controller('clusterGateWay', function ($rootScope, $scope, $http, $timeout) {
 
 });
 //集群事件监控
-app.controller('clusterEvent', function($rootScope, $scope, $http, $timeout) {
-	var clusterId = $('#clusterId').val();
-	var startTime = $('#startEvent').val();
-	var endTime = $('#endEvent').val();
-	var options = {
-    	data: [],
-    	columns: [
-              	  {
-		          	  title: '数据库名',
-		              field: 'dbName',
-		              align: 'left',
-		              valign: 'left',
-		          },{
-                	  title: '表名',
-                      field: 'tableName',
-                      align: 'left',
-                      valign: 'left',
-                  }, {
-                      title: 'rangeId',
-                      field: 'rangeId',
-                      align: 'center',
-                      valign: 'middle'
-                  },{
-                      title: 'nodeId',
-                      field: 'nodeId',
-                      align: 'center',
-                      valign: 'middle'
-                  },{
-                      title: '类型',
-                      field: 'statisticsType',
-                      align: 'center',
-                      valign: 'middle'
-                  },{
-                      title: '开始时间',
-                      field: 'startTime',
-                      align: 'center',
-                      valign: 'middle'
-                  },{
-                      title: '结束时间',
-                      field: 'endTime',
-                      align: 'center',
-                      valign: 'middle'
-                  },{
-                      title: '持续时间（纳秒）',
-                      field: 'continuedTime',
-                      align: 'center',
-                      valign: 'middle'
-                  }
-              ],
-      pagination: true,
-      iconSize: 'outline'
+app.controller('clusterEvent', function ($rootScope, $scope, $http, $timeout) {
+    var clusterId = $('#clusterId').val();
+    var startTime = $('#startEvent').val();
+    var endTime = $('#endEvent').val();
+    var options = {
+        data: [],
+        columns: [
+            {
+                title: '数据库名',
+                field: 'dbName',
+                align: 'left',
+                valign: 'left',
+            }, {
+                title: '表名',
+                field: 'tableName',
+                align: 'left',
+                valign: 'left',
+            }, {
+                title: 'rangeId',
+                field: 'rangeId',
+                align: 'center',
+                valign: 'middle'
+            }, {
+                title: 'nodeId',
+                field: 'nodeId',
+                align: 'center',
+                valign: 'middle'
+            }, {
+                title: '类型',
+                field: 'statisticsType',
+                align: 'center',
+                valign: 'middle'
+            }, {
+                title: '开始时间',
+                field: 'startTime',
+                align: 'center',
+                valign: 'middle'
+            }, {
+                title: '结束时间',
+                field: 'endTime',
+                align: 'center',
+                valign: 'middle'
+            }, {
+                title: '持续时间（纳秒）',
+                field: 'continuedTime',
+                align: 'center',
+                valign: 'middle'
+            }
+        ],
+        pagination: true,
+        iconSize: 'outline'
     };
-	//请求数据
-	$.ajax({
-		url:"/cluster/getClusterEvent",
-		type:"post",
-		async: false,
-        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-        dataType:"json",
-        data:{
-        	"clusterId":clusterId,
-        	"startTime":startTime,
-        	"endTime":endTime
+    //请求数据
+    $.ajax({
+        url: "/cluster/getClusterEvent",
+        type: "post",
+        async: false,
+        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        dataType: "json",
+        data: {
+            "clusterId": clusterId,
+            "startTime": startTime,
+            "endTime": endTime
         },
-		success: function(data){
-			if(data.code === 0){
-				options.data = data.attach;
-			}
+        success: function (data) {
+            if (data.code === 0) {
+                options.data = data.attach;
+            }
         }
-	});
-	//渲染表单
-	$('#viewclustereventlist').bootstrapTable(options);
+    });
+    //渲染表单
+    $('#viewclustereventlist').bootstrapTable(options);
 });
 //集群监控数据获取
-app.controller('myClusterMonitor', function($rootScope, $scope, $http, $timeout) {
+app.controller('myClusterMonitor', function ($rootScope, $scope, $http, $timeout) {
     //默认不查
     //load_monitor_data("defaultOptions")
-    function load_monitor_data(type){//获取集群id
+    function load_monitor_data(type) {//获取集群id
         var clusterId = $('#clusterId').val();
-        var startTime ;
-        var endTime ;
-        if(type != "defaultOptions"){
+        var startTime;
+        var endTime;
+        if (type != "defaultOptions") {
             startTime = Date.parse(new Date($("#startMonitor").val()));
             endTime = Date.parse(new Date($("#endMonitor").val()));
         }
 
-        $("#clusterSummary").attr("src", getMonitorUrl("ji-qun-gai-kuang", "1", clusterId,  startTime, endTime, ""))
+        $("#clusterSummary").attr("src", getMonitorUrl("ji-qun-gai-kuang", "1", clusterId, startTime, endTime, ""))
         $("#clusterSummary").load();
 
-        $("#clientNum").attr("src", getMonitorUrl("ji-qun-gai-kuang", "5", clusterId,  startTime, endTime, ""))
+        $("#clientNum").attr("src", getMonitorUrl("ji-qun-gai-kuang", "5", clusterId, startTime, endTime, ""))
         $("#clientNum").load();
 
-        $("#capacity").attr("src", getMonitorUrl("ji-qun-gai-kuang", "9", clusterId,  startTime, endTime, ""))
+        $("#capacity").attr("src", getMonitorUrl("ji-qun-gai-kuang", "9", clusterId, startTime, endTime, ""))
         $("#capacity").load();
 
-        $("#tps").attr("src", getMonitorUrl("ji-qun-gai-kuang", "3", clusterId,  startTime, endTime, ""))
+        $("#tps").attr("src", getMonitorUrl("ji-qun-gai-kuang", "3", clusterId, startTime, endTime, ""))
         $("#tps").load();
 
-        $("#tp999").attr("src", getMonitorUrl("ji-qun-gai-kuang", "8", clusterId,  startTime, endTime, ""))
+        $("#tp999").attr("src", getMonitorUrl("ji-qun-gai-kuang", "8", clusterId, startTime, endTime, ""))
         $("#tp999").load();
 
-        $("#tpStd").attr("src", getMonitorUrl("ji-qun-gai-kuang", "4", clusterId,  startTime, endTime, ""))
+        $("#tpStd").attr("src", getMonitorUrl("ji-qun-gai-kuang", "4", clusterId, startTime, endTime, ""))
         $("#tpStd").load();
     }
+
     //根据时间段去查询数据
-    $scope.queryFilter = function(){
+    $scope.queryFilter = function () {
         load_monitor_data("setOptions");
     }
 });
 //集群DB列表信息展示
-app.controller('myClusterDbList', function($rootScope, $scope, $http, $timeout) {
-	var clusterId = $('#clusterId').val();
-	var bt_data = [];
-//	console.log("getalldb of cluster")
-	$.ajax({
-		url:"/metadata/dbDataGetAll",
-		type:"post",
-		async: false,
-        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-        dataType:"json",
-        data:{
-            "clusterId":clusterId
+app.controller('myClusterDbList', function ($rootScope, $scope, $http, $timeout) {
+    var clusterId = $('#clusterId').val();
+    var bt_data = [];
+    $.ajax({
+        url: "/metadata/dbDataGetAll",
+        type: "post",
+        async: false,
+        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        dataType: "json",
+        data: {
+            "clusterId": clusterId
         },
-		success: function(data){
-		    if(data.code == 0){
-		        if(data.data.length > 0){
-		         bt_data = data.data;
-		        }
-		    }
+        success: function (data) {
+            if (data.code == 0) {
+                if (data.data.length > 0) {
+                    bt_data = data.data;
+                }
+            }
         }
-	});
+    });
     $('#viewdbList').bootstrapTable({
-    	data: bt_data,
-    	columns: [
-                  {
-                	  title: 'ID',
-                      field: 'id',
-                      align: 'center',
-                      valign: 'middle',
-                  }, {
-                      title: '数据库名',
-                      field: 'name',
-                      align: 'center',
-                      valign: 'middle'
-                  },{
-                	  field: '操作',
-                      title: '操作',
-                      align: 'center',
-                      formatter: function(value,row,index){
-                    	  return [
-"<button id=\"dbconsole\" class=\"btn btn-primary btn-rounded\" type=\"button\" value=\"控制台\" onclick=\"viewConsole('"+row.id+"','"+row.name+"');\">控制台</button>&nbsp;&nbsp;",
-"<button id=\"updatenode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value=\"查看表\" onclick=\"getTableInfo('"+row.id+"','"+row.name+"');\">查看表</button>&nbsp;&nbsp;",
-"<button id=\"viewdbmonitor\" class=\"btn btn-primary btn-rounded\" type=\"button\" value=\"监控\" onclick=\"dbmonitor('"+row.id+"','"+row.name+"');\">监控</button>"
-						     ].join('');
-                      }
-                  }
-              ],
-      pagination: true,
-      iconSize: 'outline'
+        data: bt_data,
+        columns: [
+            {
+                title: 'ID',
+                field: 'id',
+                align: 'center',
+                valign: 'middle',
+            }, {
+                title: '数据库名',
+                field: 'name',
+                align: 'center',
+                valign: 'middle'
+            }, {
+                field: '操作',
+                title: '操作',
+                align: 'center',
+                formatter: function (value, row, index) {
+                    return [
+                        "<button id=\"dbconsole\" class=\"btn btn-primary btn-rounded\" type=\"button\" value=\"控制台\" onclick=\"viewConsole('" + row.id + "','" + row.name + "');\">控制台</button>&nbsp;&nbsp;",
+                        "<button id=\"updatenode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value=\"查看表\" onclick=\"getTableInfo('" + row.id + "','" + row.name + "');\">查看表</button>&nbsp;&nbsp;",
+                        "<button id=\"deleteDb\" class=\"btn btn-primary btn-rounded\" type=\"button\" value=\"删库\" onclick=\"deleteDb('" + row.name + "');\">删库</button>&nbsp;&nbsp;",
+                        "<button id=\"viewdbmonitor\" class=\"btn btn-primary btn-rounded\" type=\"button\" value=\"监控\" onclick=\"dbmonitor('" + row.id + "','" + row.name + "');\">监控</button>",
+                    ].join('');
+                }
+            }
+        ],
+        pagination: true,
+        iconSize: 'outline'
     });
 });
+
 //展示数据库控制台
-function viewConsole(dbId,dbName) {
-	var clusterId = $('#clusterId').val();
-	window.location.href="/page/db/viewConsole?dbName="+dbName+"&dbId="+dbId+"&clusterId="+clusterId;
+function viewConsole(dbId, dbName) {
+    var clusterId = $('#clusterId').val();
+    window.location.href = "/page/db/viewConsole?dbName=" + dbName + "&dbId=" + dbId + "&clusterId=" + clusterId;
 }
+
 /**
  * 根据数据库dbName 、 dbid 查询tables
  * 跳转到tables页面
  * @param id
  */
-function getTableInfo(dbId,dbName) {
-	var clusterId = $('#clusterId').val();
-	window.location.href="/page/tables/tablelist?dbName="+dbName+"&dbId="+dbId+"&clusterId="+clusterId;
+function getTableInfo(dbId, dbName) {
+    var clusterId = $('#clusterId').val();
+    window.location.href = "/page/tables/tablelist?dbName=" + dbName + "&dbId=" + dbId + "&clusterId=" + clusterId;
 }
-//请求db监控页面
-function dbmonitor(dbId,dbName) {
-	var clusterId = $('#clusterId').val();
-	window.location.href="/monitor/dbmonitor?dbId="+dbId+"&dbName="+dbName+"&clusterId="+clusterId;
-}
-//集群中的服务器实例展示列表
-app.controller('myClusterNodeInfo', function($rootScope, $scope, $http, $timeout) {
-	var bt_data;
-	var clusterId = $('#clusterId').val();
-	$.ajax({
-		url:"/node/nodeInfoGetAll",
-		type:"post",
-		async: false,
-        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-        dataType:"json",
-        data:{
-            "clusterId":clusterId
+
+//删库
+function deleteDb(dbName) {
+    swal({
+            title: "删库操作",
+            text: "没有表的库才能删除",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "执行",
+            closeOnConfirm: false
         },
-        success: function(data){
-            if(data.code === 0){
-            	bt_data = data.data;
+        function () {
+            //获取集群id
+            var clusterId = $('#clusterId').val();
+            $.ajax({
+                url: "/metadata/deleteDb",
+                type: "post",
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                dataType: "json",
+                data: {
+                    "dbName": dbName,
+                    "clusterId": clusterId,
+                },
+                success: function (data) {
+                    if (data.code === 0) {
+                        swal("删库成功！", "删库成功!", "success");
+                    } else {
+                        swal("删库失败！", data.msg, "error");
+                    }
+                },
+                error: function (res) {
+                    swal("删库失败！", "请联系管理员!", "error");
+                }
+            });
+        });
+}
+
+//请求db监控页面
+function dbmonitor(dbId, dbName) {
+    var clusterId = $('#clusterId').val();
+    window.location.href = "/monitor/dbmonitor?dbId=" + dbId + "&dbName=" + dbName + "&clusterId=" + clusterId;
+}
+
+//集群中的服务器实例展示列表
+app.controller('myClusterNodeInfo', function ($rootScope, $scope, $http, $timeout) {
+    var bt_data;
+    var clusterId = $('#clusterId').val();
+    $.ajax({
+        url: "/node/nodeInfoGetAll",
+        type: "post",
+        async: false,
+        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        dataType: "json",
+        data: {
+            "clusterId": clusterId
+        },
+        success: function (data) {
+            if (data.code === 0) {
+                bt_data = data.data;
             }
         }
-	});
+    });
     $('#viewnodeList').bootstrapTable({
-    	data: bt_data,
-    	columns:[
-                  {
-                     field: '',checkbox : true, align : 'center'
-                  }, {
-                	  title: 'ID',
-                      field: 'id',
-                      align: 'center',
-                      valign: 'middle',
-                  }, {
-                      title: 'address',
-                      field: 'server_addr',
-                      align: 'center',
-                      valign: 'middle'
-                  }, {
-                      title: 'heartbeat_addr',
-                      field: 'http_addr',
-                      align: 'center',
-                      valign: 'middle'
-                  }, {
-                      title: 'replicate_addr',
-                      field: 'raft_addr',
-                      align: 'center',
-                      valign: 'middle'
-                  }, {
-    	              title: 'opsStat_max',
-                      field: 'version',
-                      align: 'center',
-                      valign: 'middle'
-                  }, {
-                      title: 'isolation_label',
-                      field: 'isolation_label',
-                      align: 'center',
-                      valign: 'middle'
-                  }, {
-                      title: '状态',
-                      field: 'state',
-                      align: 'center',
-                      valign: 'middle',
-                      formatter: function(value, row, index){
-                        if(value == 0){
-                            return "N_Invalid";
-                        }else if(value == 1){
-                            return "N_Login";
-                        }else if(value == 2){
-                            return "N_Logout";
-                        }else if(value == 3){
-                            return "N_Offline";
-                        }else if(value == 4){
-                            return "N_Tombstone";
-                        }else if(value == 5){
-                            return "N_Upgrade";
-                        }else if(value == 6){
-                            return "N_Initial";
-                        }else{
-                            return value;
-                        }
-                      }
-                  }, {
-                	  field: '操作',
-                      title: '操作',
-                      align: 'center',
-                      formatter: function(value,row,index){
-                    	  return [
-"<button id=\"upgradeNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"升级\" onclick=\"upgradeNode('"+row.id+"');\">升级</button>&nbsp;&nbsp;",
-"<button id=\"viewNodeMonitor\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"监控\" onclick=\"viewNodeMonitor('"+row.id+"','"+row.server_addr+"');\">监控</button>&nbsp;&nbsp;",
-"<button id=\"updateNodeStatus\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改状态\" onclick=\"updateNodeStatus('"+row.id+"');\">状态修改</button>&nbsp;&nbsp;",
-"<button id=\"deleteNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"删除\" onclick=\"deleteNode("+row.id+");\">删除</button>&nbsp;&nbsp;",
-"<button id=\"updateNodeLogLevel\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改日志级别\" onclick=\"updateNodeLogLevel('"+row.id+"');\">设置日志级别</button>&nbsp;&nbsp;",
-"<button id=\"getRangeTopoOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"查看range\" onclick=\"getRangeTopoOfNode('"+row.id+"');\">查看range</button>&nbsp;&nbsp;",
-"<button id=\"updateIsolationLabel\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改隔离标识\" onclick=\"updateIsolationLabel('"+row.id+"');\">修改隔离标识/button>&nbsp;&nbsp;"
-						     ].join('');
-                      }
-                  }
-              ],
-      pagination: true,
-      pageNumber: 1,
-      pageSize: 10,
-      pageList: [10, 100, 1000],
-      iconSize: 'outline'
+        data: bt_data,
+        columns: [
+            {
+                field: '', checkbox: true, align: 'center'
+            }, {
+                title: 'ID',
+                field: 'id',
+                align: 'center',
+                valign: 'middle',
+            }, {
+                title: 'server_address',
+                field: 'server_addr',
+                align: 'center',
+                valign: 'middle'
+            }, {
+                title: 'admin_addr',
+                field: 'admin_addr',
+                align: 'center',
+                valign: 'middle'
+            }, {
+                title: 'replicate_addr',
+                field: 'raft_addr',
+                align: 'center',
+                valign: 'middle'
+            }, {
+                title: 'opsStat_max',
+                field: 'version',
+                align: 'center',
+                valign: 'middle'
+            }, {
+                title: 'isolation_label',
+                field: 'isolation_label',
+                align: 'center',
+                valign: 'middle'
+            }, {
+                title: '状态',
+                field: 'state',
+                align: 'center',
+                valign: 'middle',
+                formatter: function (value, row, index) {
+                    if (value == 0) {
+                        return "N_Invalid";
+                    } else if (value == 1) {
+                        return "N_Login";
+                    } else if (value == 2) {
+                        return "N_Logout";
+                    } else if (value == 3) {
+                        return "N_Offline";
+                    } else if (value == 4) {
+                        return "N_Tombstone";
+                    } else if (value == 5) {
+                        return "N_Upgrade";
+                    } else if (value == 6) {
+                        return "N_Initial";
+                    } else {
+                        return value;
+                    }
+                }
+            }, {
+                field: '操作',
+                title: '操作',
+                align: 'center',
+                formatter: function (value, row, index) {
+                    return [
+                        "<button id=\"upgradeNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"升级\" onclick=\"upgradeNode('" + row.id + "');\">升级</button>&nbsp;&nbsp;",
+                        "<button id=\"viewNodeMonitor\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"监控\" onclick=\"viewNodeMonitor('" + row.id + "','" + row.server_addr + "');\">监控</button>&nbsp;&nbsp;",
+                        "<button id=\"updateNodeStatus\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改状态\" onclick=\"updateNodeStatus('" + row.id + "');\">状态修改</button>&nbsp;&nbsp;",
+                        "<button id=\"deleteNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"删除\" onclick=\"deleteNode(" + row.id + ");\">删除</button>&nbsp;&nbsp;",
+                        "<button id=\"updateNodeLogLevel\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改日志级别\" onclick=\"updateNodeLogLevel('" + row.id + "');\">设置日志级别</button>&nbsp;&nbsp;",
+                        "<button id=\"getRangeTopoOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"查看range\" onclick=\"getRangeTopoOfNode('" + row.id + "');\">查看range</button>&nbsp;&nbsp;",
+                        "<button id=\"updateIsolationLabel\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改隔离标识\" onclick=\"updateIsolationLabel('"+row.id+"');\">修改隔离标识/button>&nbsp;&nbsp;",
+                        "<button id=\"getConfigOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"查看config\" onclick=\"getConfigOfNode('" + row.id + "');\">查看config</button>&nbsp;&nbsp;",
+                        "<button id=\"setConfigOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"设置config\" onclick=\"setConfigOfNode('" + row.id + "');\">设置config</button>&nbsp;&nbsp;",
+                        "<button id=\"getDsInfoOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"DS运行信息\" onclick=\"getDsInfoOfNode('" + row.id + "');\">DS运行信息</button>&nbsp;&nbsp;",
+                        "<button id=\"clearQueueOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"清理Queue\" onclick=\"clearQueueOfNode('" + row.id + "');\">清理Queue</button>&nbsp;&nbsp;",
+                        "<button id=\"getPendingQueuesOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"查看Pending任务\" onclick=\"getPendingQueuesOfNode('" + row.id + "');\">查看Pending任务</button>&nbsp;&nbsp;",
+                        "<button id=\"flushDBOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"FlushDB\" onclick=\"flushDBOfNode('" + row.id + "');\">FlushDB</button>&nbsp;&nbsp;"
+                    ].join('');
+                }
+            }
+        ],
+        pagination: true,
+        pageNumber: 1,
+        pageSize: 10,
+        pageList: [10, 100, 1000],
+        iconSize: 'outline'
     });
 });
+
 //node监控数据展示
-function viewNodeMonitor(nodeId,host){
-	var clusterId = $('#clusterId').val();
-	window.location.href="/monitor/nodeMonitor?nodeId="+nodeId+"&host="+host + "&clusterId=" + clusterId;
+function viewNodeMonitor(nodeId, host) {
+    var clusterId = $('#clusterId').val();
+    window.location.href = "/monitor/nodeMonitor?nodeId=" + nodeId + "&host=" + host + "&clusterId=" + clusterId;
 }
+
 //修改node状态， force上线(initail)、下线logout//todo 是否需要支持其他状态 ：login、tombstone、offline
-function updateNodeStatus(nodeId){
-	swal({
-  	  title: "实例状态操作",
-  	  text: "<select class='form-control' id='selectNodeStatus' style='height: 33px'><option value='1'>force上线</option><option value='2'>下线</option></select>",
-  	  html: true,
-  	  showCancelButton: true,
-  	  confirmButtonColor: "#DD6B55",
-  	  confirmButtonText: "执行",
-  	  closeOnConfirm: false
-  	},
-    function () {
-         var status = $('#selectNodeStatus').val();
-         if( !hasText(status)){
-            swal("请选择要修改的节点状态");
-            return
-         }
-	   	 //获取集群id
-	   	 var clusterId = $('#clusterId').val();
-	   	 $.ajax({
-		        url:"/node/nodeStatusUpdate",
-		        type:"post",
-		        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-		        dataType:"json",
-		        data:{
-		        	"nodeId":nodeId,
-		        	"clusterId":clusterId,
-		        	"status": status
-		        },
-		        success: function(data){
-		        	if(data.code === 0){
-		        		swal("节点状态修改成功！", "节点状态修改成功!", "success");//todo 刷状态
-		        	}else{
-		        		swal("节点状态修改失败！", data.message, "error");
-		        	}
-		        },
-		        error: function(res){
-		        	swal("状态修改失败！", "请联系管理员!", "error");
-		        }
-		    });
-    });
+function updateNodeStatus(nodeId) {
+    swal({
+            title: "实例状态操作",
+            text: "<select class='form-control' id='selectNodeStatus' style='height: 33px'><option value='1'>force上线</option><option value='2'>下线</option></select>",
+            html: true,
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "执行",
+            closeOnConfirm: false
+        },
+        function () {
+            var status = $('#selectNodeStatus').val();
+            if (!hasText(status)) {
+                swal("请选择要修改的节点状态");
+                return
+            }
+            //获取集群id
+            var clusterId = $('#clusterId').val();
+            $.ajax({
+                url: "/node/nodeStatusUpdate",
+                type: "post",
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                dataType: "json",
+                data: {
+                    "nodeId": nodeId,
+                    "clusterId": clusterId,
+                    "status": status
+                },
+                success: function (data) {
+                    if (data.code === 0) {
+                        swal("节点状态修改成功！", "节点状态修改成功!", "success");//todo 刷状态
+                    } else {
+                        swal("节点状态修改失败！", data.msg, "error");
+                    }
+                },
+                error: function (res) {
+                    swal("状态修改失败！", "请联系管理员!", "error");
+                }
+            });
+        });
 }
 
 //node批量下线操作
-function batchDeleteNode(){
+function batchDeleteNode() {
     var selectedNodeRows = $('#viewnodeList').bootstrapTable('getSelections');
-    if(selectedNodeRows.length <= 0){
+    if (selectedNodeRows.length <= 0) {
         swal("批量删除实例", "请选择要删除的实例", "error")
         return
     }
@@ -415,28 +466,28 @@ function batchDeleteNode(){
             //获取集群id
             var clusterId = $('#clusterId').val();
             $.ajax({
-                url:"/node/deleteNode",
-                type:"post",
-                contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-                dataType:"json",
-                data:{
-                    "clusterId":clusterId,
+                url: "/node/deleteNode",
+                type: "post",
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                dataType: "json",
+                data: {
+                    "clusterId": clusterId,
                     "nodeIds": JSON.stringify(nodeIds)
                 },
-                success: function(data){
-                    if(data.code === 0){
+                success: function (data) {
+                    if (data.code === 0) {
                         swal("删除成功！", "删除成功!", "success");
                         for (var i = 0; i < nodeIds.length; i++) {
-                            $('#viewnodeList').bootstrapTable('remove',{
-                                field:'id',
-                                values:nodeIds[i]
+                            $('#viewnodeList').bootstrapTable('remove', {
+                                field: 'id',
+                                values: nodeIds[i]
                             });
                         }
-                    }else{
-                        swal("删除失败！", data.message, "error");
+                    } else {
+                        swal("删除失败！", data.msg, "error");
                     }
                 },
-                error: function(res){
+                error: function (res) {
                     swal("删除失败！", "请联系管理员!", "error");
                 }
             });
@@ -444,82 +495,82 @@ function batchDeleteNode(){
 }
 
 //node下线操作
-function deleteNode(nodeId){
+function deleteNode(nodeId) {
     var nodeIds = [];
     nodeIds.push(nodeId);
-	swal({
-  	  title: "删除实例操作, 只有logout的节点才能被删除",
-  	  type: "warning",
-  	  showCancelButton: true,
-  	  confirmButtonColor: "#DD6B55",
-  	  confirmButtonText: "执行",
-  	  closeOnConfirm: false
-  	},
-    function () {
-	   	 //获取集群id
-	   	 var clusterId = $('#clusterId').val();
-	   	 $.ajax({
-		        url:"/node/deleteNode",
-		        type:"post",
-		        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-		        dataType:"json",
-		        data:{
-		        	"nodeIds": JSON.stringify(nodeIds),
-		        	"clusterId":clusterId
-		        },
-		        success: function(data){
-		        	if(data.code === 0){
-		        		swal("删除成功！", "删除成功!", "success");
-		        		$('#viewnodeList').bootstrapTable('remove',{
-		        			field:'id',
-		        			values:nodeId
-		        		});
-		        	}else{
-		        		swal("删除失败！", data.message, "error");
-		        	}
-		        },
-		        error: function(res){
-		        	swal("删除失败！", "请联系管理员!", "error");
-		        }
-		    });
-    });
+    swal({
+            title: "删除实例操作, 只有logout的节点才能被删除",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "执行",
+            closeOnConfirm: false
+        },
+        function () {
+            //获取集群id
+            var clusterId = $('#clusterId').val();
+            $.ajax({
+                url: "/node/deleteNode",
+                type: "post",
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                dataType: "json",
+                data: {
+                    "nodeIds": JSON.stringify(nodeIds),
+                    "clusterId": clusterId
+                },
+                success: function (data) {
+                    if (data.code === 0) {
+                        swal("删除成功！", "删除成功!", "success");
+                        $('#viewnodeList').bootstrapTable('remove', {
+                            field: 'id',
+                            values: nodeId
+                        });
+                    } else {
+                        swal("删除失败！", data.msg, "error");
+                    }
+                },
+                error: function (res) {
+                    swal("删除失败！", "请联系管理员!", "error");
+                }
+            });
+        });
 }
 
 //调用后台升级操作
 function upgradeNode(nodeId) {
     swal({
-  	  title: "您确定要升级吗?",
-  	  type: "warning",
-  	  showCancelButton: true,
-  	  confirmButtonColor: "#DD6B55",
-  	  confirmButtonText: "执行",
-  	  closeOnConfirm: false
-  	},
-    function () {
-	   	 //获取集群id
-         var clusterId = $('#clusterId').val();
-         $.ajax({
-                url:"/node/nodeStatusUpdate",
-                type:"post",
-                contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-                dataType:"json",
-                data:{
-                    "nodeId":nodeId,
-                    "clusterId":clusterId,
+            title: "您确定要升级吗?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "执行",
+            closeOnConfirm: false
+        },
+        function () {
+            //获取集群id
+            var clusterId = $('#clusterId').val();
+            $.ajax({
+                url: "/node/nodeStatusUpdate",
+                type: "post",
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                dataType: "json",
+                data: {
+                    "nodeId": nodeId,
+                    "clusterId": clusterId,
                     "status": 3
                 },
-                success: function(data){
-                    if(data.code === 0){
+                success: function (data) {
+                    if (data.code === 0) {
                         swal("节点升级成功！", "节点升级成功!", "success");
-                    }else{
-                        swal("节点升级失败！", data.message, "error");
+                    } else {
+                        swal("节点升级失败！", data.msg, "error");
                     }
                 },
-                error: function(res){
+                error: function (res) {
                     swal("状态升级失败！", "请联系管理员!", "error");
                 }
             });
-    });
+        });
 //	 swal({
 //	         title: "您确定要升级吗?",
 //	         text: "升级后将无法恢复，请谨慎操作！",
@@ -565,46 +616,46 @@ function upgradeNode(nodeId) {
 //	     });
 }
 
-function updateNodeLogLevel(nodeId){
+function updateNodeLogLevel(nodeId) {
     swal({
-      title: "日志级别设置",
-      text: "<select class='form-control' id='selectLogLevel' style='height: 33px'><option value='debug'>debug</option><option value='info'>info</option><option value='warn'>warn</option><option value='error'>error</option></select>",
-      html: true,
-      showCancelButton: true,
-      confirmButtonColor: "#DD6B55",
-      confirmButtonText: "执行",
-      closeOnConfirm: false
-    },
-    function () {
-         var logLevel = $('#selectLogLevel').val();
-         if( !hasText(logLevel)){
-            swal("请选择要设置的日志级别");
-            return
-         }
-         //获取集群id
-         var clusterId = $('#clusterId').val();
-         $.ajax({
-                url:"/node/nodeLogLevelUpdate",
-                type:"post",
-                contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-                dataType:"json",
-                data:{
-                    "nodeId":nodeId,
-                    "clusterId":clusterId,
+            title: "日志级别设置",
+            text: "<select class='form-control' id='selectLogLevel' style='height: 33px'><option value='debug'>debug</option><option value='info'>info</option><option value='warn'>warn</option><option value='error'>error</option></select>",
+            html: true,
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "执行",
+            closeOnConfirm: false
+        },
+        function () {
+            var logLevel = $('#selectLogLevel').val();
+            if (!hasText(logLevel)) {
+                swal("请选择要设置的日志级别");
+                return
+            }
+            //获取集群id
+            var clusterId = $('#clusterId').val();
+            $.ajax({
+                url: "/node/nodeLogLevelUpdate",
+                type: "post",
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                dataType: "json",
+                data: {
+                    "nodeId": nodeId,
+                    "clusterId": clusterId,
                     "logLevel": logLevel
                 },
-                success: function(data){
-                    if(data.code === 0){
+                success: function (data) {
+                    if (data.code === 0) {
                         swal("节点日志级别修改成功！", "节点日志级别修改成功!", "success");
-                    }else{
-                        swal("节点日志级别修改失败！", data.message, "error");
+                    } else {
+                        swal("节点日志级别修改失败！", data.msg, "error");
                     }
                 },
-                error: function(res){
+                error: function (res) {
                     swal("节点日志级别修改失败！", "请联系管理员!", "error");
                 }
             });
-    });
+        });
 }
 
 function getRangeTopoOfNode(nodeId) {
@@ -655,218 +706,383 @@ function updateIsolationLabel(nodeId) {
     );
 }
 
+function getConfigOfNode(nodeId) {
+    //获取集群id
+    var clusterId = $('#clusterId').val();
+    window.location.href = "/node/goConfigPage?clusterId=" + clusterId + "&nodeId=" + nodeId + "&isGet=true";
+}
+
+function setConfigOfNode(nodeId) {
+    //获取集群id
+    var clusterId = $('#clusterId').val();
+    window.location.href = "/node/goConfigPage?clusterId=" + clusterId + "&nodeId=" + nodeId + "&isGet=false";
+}
+
+function getDsInfoOfNode(nodeId) {
+    swal({
+            title: "获取DS运行信息",
+            text: "输入path查询，为空返回server信息",
+            type: "input",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "查询",
+            closeOnConfirm: false
+        },
+        function (inputValue) {
+            if (inputValue === false) return;
+            if (inputValue === "") {
+                //swal.showInputError("你需要输入path");
+                //return
+                inputValue = "server"
+            }
+
+            var path = inputValue;
+            var clusterId = $('#clusterId').val();
+            $.ajax({
+                url: "/node/getDsInfoOfNode",
+                type: "post",
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                dataType: "json",
+                data: {
+                    "nodeId": nodeId,
+                    "clusterId": clusterId,
+                    "dsInfoPath": path
+                },
+                success: function (data) {
+                    if (data.code === 0) {
+                        var info_html = "<textarea style='overflow: auto;width: 100%;height: 100px' readonly >" + data.data + "</textarea>";
+                        //swal("DS运行信息", info, "success");
+                        swal({title: "info",
+                            text: info_html,
+                            html: true,
+                            type: "success"
+                        });
+                    } else {
+                        swal("获取DS运行信息失败！", data.msg, "error");
+                    }
+                },
+                error: function (res) {
+                    swal("获取DS运行信息失败！", res, "error");
+                }
+            });
+        });
+}
+
+function clearQueueOfNode(nodeId) {
+    swal({
+            title: "选择清理类型",
+            text: "<select class='form-control' id='selectQueueType' style='height: 33px'><option value='0'>ALL</option><option value='1'>FAST_WORKER</option><option value='2'>SLOW_WORKER</option></select>",
+            html: true,
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "执行",
+            closeOnConfirm: false,
+        },
+        function () {
+            var queueType = $('#selectQueueType').val();
+            if (!hasText(queueType)) {
+                swal("请选择要清理的任务类型");
+                return
+            }
+            //获取集群id
+            var clusterId = $('#clusterId').val();
+            $.ajax({
+                url: "/node/clearQueueOfNode",
+                type: "post",
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                dataType: "json",
+                data: {
+                    "nodeId": nodeId,
+                    "clusterId": clusterId,
+                    "queueType": queueType
+                },
+                success: function (data) {
+                    if (data.code === 0) {
+                        swal("清理DS任务队列成功！", "cleared=" + data.data, "success");
+                    } else {
+                        swal("清理DS任务队列失败！", data.msg, "error");
+                    }
+                },
+                error: function (res) {
+                    swal("清理DS任务队列失败！", res, "error");
+                }
+            });
+        });
+}
+
+function getPendingQueuesOfNode(nodeId) {
+    swal({
+            title: "请指定类型和数量",
+            type: "input",
+            text: "<select class='form-control' id='selectPendingType' style='height: 33px'><option value='0'>ALL</option><option value='1'>INSERT</option><option value='2'>SELECT</option><option value='3'>POINT_SELECT</option><option value='4'>RANGE_SELECT</option></select>",
+            html: true,
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "执行",
+            closeOnConfirm: false
+        },
+        function (inputValue) {
+            var pendingType = $('#selectPendingType').val();
+            if (!hasText(pendingType)) {
+                swal("请选择要查看的Pending任务类型");
+                return
+            }
+            if (inputValue === false) return;
+            if (inputValue === "") {
+                swal.showInputError("请输入数量");
+                return
+            }
+            var count = inputValue;
+            //获取集群id
+            var clusterId = $('#clusterId').val();
+            $.ajax({
+                url: "/node/getPendingQueuesOfNode",
+                type: "post",
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                dataType: "json",
+                data: {
+                    "nodeId": nodeId,
+                    "clusterId": clusterId,
+                    "pendingType": pendingType,
+                    "count": count
+                },
+                success: function (data) {
+                    if (data.code === 0) {
+                        swal("获取Pending任务队列成功！", data.data, "success");
+                    } else {
+                        swal("获取Pending任务队列失败！", data.msg, "error");
+                    }
+                },
+                error: function (res) {
+                    swal("获取Pending任务队列失败！", res, "error");
+                }
+            });
+        });
+}
+
+function flushDBOfNode(nodeId) {
+    swal({
+            title: "Wait FlushDB?",
+            text: "<select class='form-control' id='selectWaitType' style='height: 33px'><option value='true'>True</option><option value='false'>False</option></select>",
+            html: true,
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "执行",
+            closeOnConfirm: false
+        },
+        function () {
+            var waitType = $('#selectWaitType').val();
+            if (!hasText(waitType)) {
+                swal("请选择是否等待");
+                return
+            }
+            //获取集群id
+            var clusterId = $('#clusterId').val();
+            $.ajax({
+                url: "/node/flushDBOfNode",
+                type: "post",
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                dataType: "json",
+                data: {
+                    "nodeId": nodeId,
+                    "clusterId": clusterId,
+                    "wait": waitType
+                },
+                success: function (data) {
+                    if (data.code === 0) {
+                        swal("Flush DB 成功！", "Flush DB 成功!", "success");
+                    } else {
+                        swal("Flush DB 失败！", data.msg, "error");
+                    }
+                },
+                error: function (res) {
+                    swal("Flush DB 失败！", res, "error");
+                }
+            });
+        });
+}
+
 //获取历史任务列表
-app.controller('historyClusterTask', function($rootScope, $scope, $http, $timeout) {
-     //获取任务类型
-     $http.get('/task/getTypeAll?clusterId=' + $('#clusterId').val()).success(function(data){
-     		 if(data.code === 0){
-     			 $scope.taskTypes = data.data;
-     			 $scope.item = "所有"
-     		 }else {
-     			swal("获取失败", data.msg, "error");
-     		 }
-     });
+app.controller('historyClusterTask', function ($rootScope, $scope, $http, $timeout) {
+    //获取任务类型
+    $http.get('/task/getTypeAll?clusterId=' + $('#clusterId').val()).success(function (data) {
+        if (data.code === 0) {
+            $scope.taskTypes = data.data;
+            $scope.item = "所有"
+        } else {
+            swal("获取失败", data.msg, "error");
+        }
+    });
+
 //    load_history_task("defaultOptions")
-    function load_history_task(type){//获取集群id
+    function load_history_task(type) {//获取集群id
         var clusterId = $('#clusterId').val();
-        var startTime ;
-        var endTime ;
-        if(type != "defaultOptions"){
+        var startTime;
+        var endTime;
+        if (type != "defaultOptions") {
             startTime = Date.parse(new Date($("#startTask").val()));
             endTime = Date.parse(new Date($("#endTask").val()));
         }
         var taskType = $('#taskType').val();
-        if(!hasText(taskType)){
-                $("#historyTask").attr("src", getMonitorUrl("li-shi-ren-wu-lie-biao-cluster", "1", clusterId,  startTime, endTime, ""))
-        }else{
-                $("#historyTask").attr("src", getMonitorUrl("li-shi-ren-wu-lie-biao-cluster-type", "1", clusterId,  startTime, endTime, $('#taskType').find("option:selected").text()))
+        if (!hasText(taskType)) {
+            $("#historyTask").attr("src", getMonitorUrl("li-shi-ren-wu-lie-biao-cluster", "1", clusterId, startTime, endTime, ""))
+        } else {
+            $("#historyTask").attr("src", getMonitorUrl("li-shi-ren-wu-lie-biao-cluster-type", "1", clusterId, startTime, endTime, $('#taskType').find("option:selected").text()))
         }
         $("#historyTask").load();
     }
+
     //根据时间段查询任务列表
-    $scope.queryFilter = function() {
-    	load_history_task("setOptions");
-	};
+    $scope.queryFilter = function () {
+        load_history_task("setOptions");
+    };
 });
 //加载当前任务
-app.controller('presentClusterTask', function($rootScope, $scope, $http, $timeout) {
-	var clusterId = $('#clusterId').val();
-	var selectTask=$("#selectTask").val();
-	var options = {
-    	data: [],
-    	columns: [
-              	  {
-		          	  title: '任务ID',
-		              field: 'id',
-		              align: 'left',
-		              valign: 'left',
-		          },
-                  {
-                      title: 'rangeID',
-                      field: 'range_id',
-                      align: 'left',
-                      valign: 'left',
-                  },{
-                      title: '类型',
-                      field: 'type',
-                      align: 'center',
-                      valign: 'middle'
-                  },{
-                	  title: '任务描述',
-                      field: 'describe',
-                      align: 'left',
-                      valign: 'left',
-                  // }, {
-                  //     title: '创建时间',
-                  //     field: 'createtime',
-                  //     align: 'center',
-                  //     valign: 'middle',
-                  //     formatter : function(cellValue) {
-					// 		// 调用下面方法进行时间戳格式化
-					// 		return formatDate((new Date(cellValue * 1000)),"yyyy-MM-dd hh:mm:ss");
-					// 	}
-                  },{
-                      title: '状态',
-                      field: 'state',
-                      align: 'center',
-                      valign: 'middle'
-                  },{
+app.controller('presentClusterTask', function ($rootScope, $scope, $http, $timeout) {
+    var clusterId = $('#clusterId').val();
+    var selectTask = $("#selectTask").val();
+    var options = {
+        data: [],
+        columns: [
+            {
+                title: '任务ID',
+                field: 'id',
+                align: 'left',
+                valign: 'left',
+            },
+            {
+                title: 'rangeID',
+                field: 'range_id',
+                align: 'left',
+                valign: 'left',
+            }, {
+                title: '类型',
+                field: 'type',
+                align: 'center',
+                valign: 'middle'
+            }, {
+                title: '任务描述',
+                field: 'describe',
+                align: 'left',
+                valign: 'left',
+                // }, {
+                //     title: '创建时间',
+                //     field: 'createtime',
+                //     align: 'center',
+                //     valign: 'middle',
+                //     formatter : function(cellValue) {
+                // 		// 调用下面方法进行时间戳格式化
+                // 		return formatDate((new Date(cellValue * 1000)),"yyyy-MM-dd hh:mm:ss");
+                // 	}
+            }, {
+                title: '状态',
+                field: 'state',
+                align: 'center',
+                valign: 'middle'
+            }, {
                 field: '操作',
                 align: 'center',
-                checkbox:true
+                checkbox: true
             }
-              ],
-      pagination: true,
-      iconSize: 'outline',
+        ],
+        pagination: true,
+        iconSize: 'outline',
     };
     //请求数据
-	$.ajax({
-		url:"/task/getPresentTaskById",
-		type:"post",
-		async: false,
-        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-        dataType:"json",
-        data:{
-        	"type":"allTask",
-        	"clusterId":clusterId
+    $.ajax({
+        url: "/task/getPresentTaskById",
+        type: "post",
+        async: false,
+        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        dataType: "json",
+        data: {
+            "type": "allTask",
+            "clusterId": clusterId
         },
-		success: function(data){
-			if(data.code === 0){
-			    if(data.data.length > 0){
-			        options.data = data.data;
-			    }
-			}
+        success: function (data) {
+            if (data.code === 0) {
+                if (data.data != null && data.data.length > 0) {
+                    options.data = data.data;
+                }
+            }
         }
-	});
-	//渲染表单
-	$('#viewpresentlist').bootstrapTable(options);
-	//执行集群任务操作，删除、暂停、重试
-	$('#queryPut').click(function () {
-	    var selectedTaskRows = $('#viewpresentlist').bootstrapTable('getSelections');
-		if (selectedTaskRows.length == 0) {
-			alert("请选择任务!");
-			return;
-		}
-		var ids = [];
-	    $.each(selectedTaskRows, function (index, row) {
-			ids.push(row.id);
-	    });
-	    var selectTask = $('#selectTask').val();
-	    swal({
-	    	  title: "任务操作",
-	    	  type: "warning",
-	    	  showCancelButton: true,
-	    	  confirmButtonColor: "#DD6B55",
-	    	  confirmButtonText: "执行",
-	    	  closeOnConfirm: false
-	    	},
-	    function(){
-	    	//执行ajax提交
-    		$.ajax({
-    			url:"/task/taskOperationById",
-    	        type:"post",
-    	        async: false,
-    	        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-    	        dataType:"json",
-    	        data:{
-    	            "type":selectTask,
-    	            "clusterId":clusterId,
-    	            "taskId":JSON.stringify(ids)
-    	        },
-    			success: function(data){
-    				if(data.code === 0){
-    	            	if(data.data.length > 0){
-    	            		swal("结果", data.msg+"\n 失败任务ID："+data.data, "info");
-    	            		for(var i = 0;i < data.data.length; i++){
-    	            			for(var j = 0;j < ids.length; j++){
-    	            				if(data.data[i] == ids[j]){
-    	            					ids.splice(j, 1);
-    	            				}
-    		            		}
-    	            		}
-    	            	}else{
-    	            		swal("成功", data.msg, "info");
-    	            	}
-    	            	//如果是删除操作，执行删除删除的行
-    	            	if(selectTask == "delete"){
-    	            		$('#viewpresentlist').bootstrapTable('remove', {field: 'id', values: ids});
-    	            	}
-    	            }
-    	        },
-    	        error: function(res){
-    	        	swal("操作失败", res, "error");
-    	        }
-	    	});
-	    });
-	});
+    });
+    //渲染表单
+    $('#viewpresentlist').bootstrapTable(options);
+    //执行集群任务操作，删除、暂停、重试
+    $('#queryPut').click(function () {
+        var selectedTaskRows = $('#viewpresentlist').bootstrapTable('getSelections');
+        if (selectedTaskRows.length == 0) {
+            alert("请选择任务!");
+            return;
+        }
+        var ids = [];
+        $.each(selectedTaskRows, function (index, row) {
+            ids.push(row.id);
+        });
+        var selectTask = $('#selectTask').val();
+        swal({
+                title: "任务操作",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "执行",
+                closeOnConfirm: false
+            },
+            function () {
+                //执行ajax提交
+                $.ajax({
+                    url: "/task/taskOperationById",
+                    type: "post",
+                    async: false,
+                    contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                    dataType: "json",
+                    data: {
+                        "type": selectTask,
+                        "clusterId": clusterId,
+                        "taskId": JSON.stringify(ids)
+                    },
+                    success: function (data) {
+                        if (data.code === 0) {
+                            if (data.data.length > 0) {
+                                swal("结果", data.msg + "\n 失败任务ID：" + data.data, "info");
+                                for (var i = 0; i < data.data.length; i++) {
+                                    for (var j = 0; j < ids.length; j++) {
+                                        if (data.data[i] == ids[j]) {
+                                            ids.splice(j, 1);
+                                        }
+                                    }
+                                }
+                            } else {
+                                swal("成功", data.msg, "info");
+                            }
+                            //如果是删除操作，执行删除删除的行
+                            if (selectTask == "delete") {
+                                $('#viewpresentlist').bootstrapTable('remove', {field: 'id', values: ids});
+                            }
+                        }
+                    },
+                    error: function (res) {
+                        swal("操作失败", res, "error");
+                    }
+                });
+            });
+    });
 });
 
-//格式化日期,
-function formatDate(date, format) {
-	var paddNum = function(num) {
-		num += "";
-		return num.replace(/^(\d)$/, "0$1");
-	}
-	// 指定格式字符
-	var cfg = {
-		yyyy : date.getFullYear() // 年 : 4位
-		,
-		yy : date.getFullYear().toString().substring(2)// 年 : 2位
-		,
-		M : date.getMonth() + 1 // 月 : 如果1位的时候不补0
-		,
-		MM : paddNum(date.getMonth() + 1) // 月 : 如果1位的时候补0
-		,
-		d : date.getDate() // 日 : 如果1位的时候不补0
-		,
-		dd : paddNum(date.getDate())// 日 : 如果1位的时候补0
-		,
-		hh : date.getHours() // 时
-		,
-		mm : date.getMinutes() // 分
-		,
-		ss : date.getSeconds()
-	// 秒
-	}
-	format || (format = "yyyy-MM-dd hh:mm:ss");
-	return format.replace(/([a-z])(\1)*/ig, function(m) {
-		return cfg[m];
-	});
-}
-
 function tabsHandler(event) {
-     var data = event.data;
-     showTabs(data.id, data.url);
-     return false; //阻止默认a标签响应
+    var data = event.data;
+    showTabs(data.id, data.url);
+    return false; //阻止默认a标签响应
 }
 
 function showTabs(tabsId, url) {
-     $("a[href='#"+tabsId+"']").tab('show');
+    $("a[href='#" + tabsId + "']").tab('show');
 //     $('#'+tabsId).load();
- }
+}
 
-function getMonitorUrl(dashboardName, panelId, clusterId, startTime, endTime, type){
-    return "/page/monitor/cluster?clusterId="+clusterId+"&dashboardName="+dashboardName+"&panelId=" + panelId + "&startTime="+ startTime + "&endTime=" + endTime + "&type=" + type;
+function getMonitorUrl(dashboardName, panelId, clusterId, startTime, endTime, type) {
+    return "/page/monitor/cluster?clusterId=" + clusterId + "&dashboardName=" + dashboardName + "&panelId=" + panelId + "&startTime=" + startTime + "&endTime=" + endTime + "&type=" + type;
 }
 
 function goAndUpdateNodeIsolationLabel(clusterId, nodeId, isolationLabel) {

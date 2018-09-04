@@ -23,7 +23,6 @@ struct SnapResult {
 
 using SnapReporter = std::function<void(const SnapContext&, const SnapResult&)>;
 
-
 } /* namespace impl */
 } /* namespace raft */
 } /* namespace sharkstore */

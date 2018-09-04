@@ -4,10 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/sessions"
 	"github.com/muesli/cache2go"
-	"time"
-	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"util/log"
+	"database/sql"
+	"time"
 )
 
 var UserCache = cache2go.Cache("user_cache")
@@ -70,10 +70,10 @@ func GetPrivilege(db *sql.DB) gin.HandlerFunc {
 }
 
 func GetUserCluster(db *sql.DB, userName string) (*User, error) {
-	return GetUserClusterFake(db, userName)
+	return getUserClusterFake(db, userName)
 }
 
-func GetUserClusterFake(db *sql.DB, userName string) (*User, error) {
+func getUserClusterFake(db *sql.DB, userName string) (*User, error) {
 	user := &User{
 		Name: userName,
 		Right: map[int64]Right{0:1},

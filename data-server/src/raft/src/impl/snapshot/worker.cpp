@@ -27,7 +27,7 @@ SnapWorker::~SnapWorker() {
     thr_.join();
 }
 
-void SnapWorker::post(const std::shared_ptr<SnapTask>& task) {
+void SnapWorker::Post(const std::shared_ptr<SnapTask>& task) {
     {
         std::lock_guard<std::mutex> lock(mu_);
         assert(task_ == nullptr);
@@ -46,11 +46,15 @@ void SnapWorker::runTask() {
             }
             if (!running_) return;
             task = std::move(task_);
+            task_ = nullptr;
         }
 
+        pool_->addRunning(task);
         task->Run();
+        pool_->removeRunning(task);
 
-        pool_->addToFreeList(this);
+        // 归还worker
+        pool_->addFreeWorker(this);
     }
 }
 

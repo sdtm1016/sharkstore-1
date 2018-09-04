@@ -19,6 +19,12 @@ const (
 	NODE_DELETENODE = "/node/deleteNode"
 	NODE_GET_RANGE_TOPOLOGY = "/node/getRangeTopoByNode"
 	NODE_UPDATE_ISOLATION_LABEL = "/node/updateIsolationLabel"
+	NODE_GET_CONFIG = "/node/getConfigOfNode"
+	NODE_SET_CONFIG = "/node/setConfigOfNode"
+	NODE_GET_DS_INFO = "/node/getDsInfoOfNode"
+	NODE_CLEAR_QUEUE = "/node/clearQueueOfNode"
+	NODE_GET_PENDING_QUEUES = "/node/getPendingQueuesOfNode"
+	NODE_FLUSH_DB = "/node/flushDBOfNode"
 )
 
 type NodeViewInfo struct {
@@ -208,4 +214,192 @@ func (ctrl *UpdateIsolationLabel) Execute(c *gin.Context) (interface{}, error) {
 		return nil, err
 	}
 	return nil, nil
+}
+
+type NodeGetConfig struct {
+}
+
+func NewNodeGetConfig() *NodeGetConfig {
+	return &NodeGetConfig{}
+}
+
+func (ctrl *NodeGetConfig) Execute(c *gin.Context) (interface{}, error) {
+	cIdStr := c.PostForm("clusterId")
+	nIdStr := c.PostForm("nodeId")
+	getConfigKey := c.PostForm("getConfigKey")
+	if cIdStr == "" || nIdStr == "" || getConfigKey == ""{
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	clusterId, err := strconv.Atoi(cIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	nodeId, err := strconv.Atoi(nIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	log.Debug("node get config. clusterId:[%v], nodeId:[%v], getConfigKey:[%v]", clusterId, nodeId, getConfigKey)
+
+	return service.NewService().GetConfigOfNode(clusterId, nodeId, getConfigKey)
+}
+
+type NodeSetConfig struct {
+}
+
+func NewNodeSetConfig() *NodeSetConfig {
+	return &NodeSetConfig{}
+}
+
+func (ctrl *NodeSetConfig) Execute(c *gin.Context) (interface{}, error) {
+	cIdStr := c.PostForm("clusterId")
+	nIdStr := c.PostForm("nodeId")
+	setConfig := c.PostForm("setConfig")
+	if cIdStr == "" || nIdStr == "" || setConfig == ""{
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	clusterId, err := strconv.Atoi(cIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	nodeId, err := strconv.Atoi(nIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	log.Debug("node set config. clusterId:[%v], nodeId:[%v], setConfig:[%v]", clusterId, nodeId, setConfig)
+
+	return service.NewService().SetConfigOfNode(clusterId, nodeId, setConfig)
+}
+
+type NodeGetDsInfo struct {
+}
+
+func NewNodeGetDsInfo() *NodeGetDsInfo {
+	return &NodeGetDsInfo{}
+}
+
+func (ctrl *NodeGetDsInfo) Execute(c *gin.Context) (interface{}, error) {
+	cIdStr := c.PostForm("clusterId")
+	nIdStr := c.PostForm("nodeId")
+	path := c.PostForm("dsInfoPath")
+
+	if cIdStr == "" || nIdStr == "" || path == "" {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	clusterId, err := strconv.Atoi(cIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	nodeId, err := strconv.Atoi(nIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	log.Debug("node get ds_info. clusterId:[%v], nodeId:[%v], path=[%s]", clusterId, nodeId, path)
+
+	return service.NewService().GetDsInfoOfNode(clusterId, nodeId, path)
+}
+
+type NodeClearQueue struct {
+}
+
+func NewNodeClearQueue() *NodeClearQueue {
+	return &NodeClearQueue{}
+}
+
+func (ctrl *NodeClearQueue) Execute(c *gin.Context) (interface{}, error) {
+	cIdStr := c.PostForm("clusterId")
+	nIdStr := c.PostForm("nodeId")
+	queueType := c.PostForm("queueType")
+
+	if cIdStr == "" || nIdStr == "" || queueType == "" {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	clusterId, err := strconv.Atoi(cIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	nodeId, err := strconv.Atoi(nIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	log.Debug("node clear queue. clusterId:[%v], nodeId:[%v], queueType=[%s]", clusterId, nodeId, queueType)
+
+	return service.NewService().ClearQueueOfNode(clusterId, nodeId, queueType)
+}
+
+type NodeGetPendingQueues struct {
+}
+
+func NewNodeGetPendingQueues() *NodeGetPendingQueues {
+	return &NodeGetPendingQueues{}
+}
+
+func (ctrl *NodeGetPendingQueues) Execute(c *gin.Context) (interface{}, error) {
+	cIdStr := c.PostForm("clusterId")
+	nIdStr := c.PostForm("nodeId")
+	pendingType := c.PostForm("pendingType")
+	count := c.PostForm("count")
+
+	if cIdStr == "" || nIdStr == "" || pendingType == "" || count == "" {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	clusterId, err := strconv.Atoi(cIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	nodeId, err := strconv.Atoi(nIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	log.Debug("node get pendings. clusterId:[%v], nodeId:[%v], pendingType=[%s], count=[%s]", clusterId, nodeId, pendingType, count)
+
+	return service.NewService().GetPendingQueuesOfNode(clusterId, nodeId, pendingType, count)
+}
+
+type NodeFlushDB struct {
+}
+
+func NewNodeFlushDB() *NodeFlushDB {
+	return &NodeFlushDB{}
+}
+
+func (ctrl *NodeFlushDB) Execute(c *gin.Context) (interface{}, error) {
+	cIdStr := c.PostForm("clusterId")
+	nIdStr := c.PostForm("nodeId")
+	wait := c.PostForm("wait")
+	var waitBool bool
+	var err error
+
+	if cIdStr == "" || nIdStr == "" {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+	if wait == "" {
+		waitBool = false
+	}
+	if waitBool, err = strconv.ParseBool(wait); err != nil {
+		waitBool = false
+	}
+
+	clusterId, err := strconv.Atoi(cIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	nodeId, err := strconv.Atoi(nIdStr)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	log.Debug("flush db of node. clusterId:[%v], nodeId:[%v], wait:[%t]", clusterId, nodeId, waitBool)
+
+	return service.NewService().FlushDBOfNode(clusterId, nodeId, waitBool)
 }

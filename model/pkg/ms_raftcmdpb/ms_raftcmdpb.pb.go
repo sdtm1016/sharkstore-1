@@ -24,15 +24,12 @@
 */
 package ms_raftcmdpb
 
-import (
-	"fmt"
-	"io"
-	"math"
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
+import _ "github.com/gogo/protobuf/gogoproto"
 
-	proto "github.com/golang/protobuf/proto"
-
-	_ "github.com/gogo/protobuf/gogoproto"
-)
+import io "io"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal

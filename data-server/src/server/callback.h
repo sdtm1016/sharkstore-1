@@ -10,8 +10,6 @@
 extern "C" {
 #endif
 
-void ds_manager_deal_callback(request_buff_t *request, void *args);
-
 void ds_worker_deal_callback(request_buff_t *request, void *args);
 
 void ds_send_done_callback(response_buff_t *response, void *args, int err);

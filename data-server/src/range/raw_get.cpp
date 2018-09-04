@@ -2,9 +2,13 @@
 
 #include "server/range_server.h"
 
+#include "range_logger.h"
+
 namespace sharkstore {
 namespace dataserver {
 namespace range {
+
+using namespace sharkstore::monitor;
 
 kvrpcpb::KvRawGetResponse *Range::RawGetResp(const std::string &key) {
     if (is_leader_ && KeyInRange(key)) {
@@ -22,7 +26,7 @@ kvrpcpb::KvRawGetResponse *Range::RawGetResp(const std::string &key) {
 }
 
 kvrpcpb::KvRawGetResponse *Range::RawGetTry(const std::string &key) {
-    auto rng = context_->range_server->find(split_range_id_);
+    auto rng = context_->FindRange(split_range_id_);
     if (rng == nullptr) {
         return nullptr;
     }
@@ -34,12 +38,12 @@ void Range::RawGet(common::ProtoMessage *msg, kvrpcpb::DsKvRawGetRequest &req) {
     errorpb::Error *err = nullptr;
 
     auto btime = get_micro_second();
-    context_->run_status->PushTime(monitor::PrintTag::Qwait, btime - msg->begin_time);
+    context_->Statistics()->PushTime(HistogramType::kQWait, btime - msg->begin_time);
 
     auto ds_resp = new kvrpcpb::DsKvRawGetResponse;
     auto header = ds_resp->mutable_header();
 
-    FLOG_DEBUG("range[%" PRIu64 "] RawGet begin", meta_.id());
+    RANGE_LOG_DEBUG("RawGet begin");
 
     do {
         if (!VerifyLeader(err)) {
@@ -48,7 +52,7 @@ void Range::RawGet(common::ProtoMessage *msg, kvrpcpb::DsKvRawGetRequest &req) {
 
         auto &key = req.req().key();
         if (key.empty()) {
-            FLOG_WARN("range[%" PRIu64 "] RawGet error: key empty", meta_.id());
+            RANGE_LOG_WARN("RawGet error: key empty");
             err = KeyNotInRange(key);
             break;
         }
@@ -78,19 +82,18 @@ void Range::RawGet(common::ProtoMessage *msg, kvrpcpb::DsKvRawGetRequest &req) {
 
         auto btime = get_micro_second();
         auto ret = store_->Get(req.req().key(), resp->mutable_value());
-        context_->run_status->PushTime(monitor::PrintTag::Store,
+        context_->Statistics()->PushTime(HistogramType::kStore,
                                        get_micro_second() - btime);
 
         resp->set_code(static_cast<int>(ret.code()));
     } while (false);
 
     if (err != nullptr) {
-        FLOG_WARN("range[%" PRIu64 "] RawGet error: %s", meta_.id(),
-                  err->message().c_str());
+        RANGE_LOG_WARN("RawGet error: %s", err->message().c_str());
     }
 
-    context_->socket_session->SetResponseHeader(req.header(), header, err);
-    context_->socket_session->Send(msg, ds_resp);
+    common::SetResponseHeader(req.header(), header, err);
+    context_->SocketSession()->Send(msg, ds_resp);
 }
 
 }  // namespace range

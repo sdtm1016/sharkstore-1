@@ -275,7 +275,6 @@ void RaftFsm::sendAppend(uint64_t to, Replica& pr) {
             sending_snap_ = newSendSnapTask(to, &snap_index);
             pr.becomeSnapshot(snap_index);
         }
-
     } else {
         MessagePtr msg(new pb::Message);
         msg->set_type(pb::APPEND_ENTRIES_REQUEST);
@@ -318,9 +317,8 @@ void RaftFsm::appendEntry(const std::vector<EntryPtr>& ents) {
 
 static uint64_t unixNano() {
     auto now = std::chrono::system_clock::now();
-    return std::chrono::time_point_cast<std::chrono::nanoseconds>(now)
-        .time_since_epoch()
-        .count();
+    auto count = std::chrono::time_point_cast<std::chrono::nanoseconds>(now).time_since_epoch().count();
+    return static_cast<uint64_t>(count);
 }
 
 std::shared_ptr<SendSnapTask> RaftFsm::newSendSnapTask(uint64_t to,

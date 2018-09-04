@@ -652,7 +652,7 @@ void AddDescriptorsImpl() {
       "\001(\001\022\r\n\005tp_50\030\005 \001(\001\022\r\n\005tp_90\030\006 \001(\001\022\r\n\005tp_"
       "99\030\007 \001(\001\022\016\n\006tp_999\030\010 \001(\001\022\024\n\014total_number"
       "\030\t \001(\004\022\022\n\nerr_number\030\n \001(\004\")\n\007SlowLog\022\020\n"
-      "\010slow_log\030\001 \001(\t\022\014\n\004lats\030\002 \001(\001\"3\n\014SlowLog"
+      "\010slow_log\030\001 \001(\t\022\014\n\004lats\030\002 \001(\003\"3\n\014SlowLog"
       "Stats\022#\n\tslow_logs\030\001 \003(\0132\020.statspb.SlowL"
       "og\"\274\001\n\006DsInfo\022\023\n\013range_count\030\001 \001(\004\022\031\n\021ra"
       "nge_split_count\030\002 \001(\r\022\032\n\022sending_snap_co"
@@ -7337,7 +7337,7 @@ SlowLog::SlowLog(const SlowLog& from)
 
 void SlowLog::SharedCtor() {
   slow_log_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  lats_ = 0;
+  lats_ = GOOGLE_LONGLONG(0);
   _cached_size_ = 0;
 }
 
@@ -7380,7 +7380,7 @@ void SlowLog::Clear() {
   (void) cached_has_bits;
 
   slow_log_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  lats_ = 0;
+  lats_ = GOOGLE_LONGLONG(0);
   _internal_metadata_.Clear();
 }
 
@@ -7410,13 +7410,13 @@ bool SlowLog::MergePartialFromCodedStream(
         break;
       }
 
-      // double lats = 2;
+      // int64 lats = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(17u /* 17 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   double, ::google::protobuf::internal::WireFormatLite::TYPE_DOUBLE>(
+                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_INT64>(
                  input, &lats_)));
         } else {
           goto handle_unusual;
@@ -7460,9 +7460,9 @@ void SlowLog::SerializeWithCachedSizes(
       1, this->slow_log(), output);
   }
 
-  // double lats = 2;
+  // int64 lats = 2;
   if (this->lats() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteDouble(2, this->lats(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteInt64(2, this->lats(), output);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -7490,9 +7490,9 @@ void SlowLog::SerializeWithCachedSizes(
         1, this->slow_log(), target);
   }
 
-  // double lats = 2;
+  // int64 lats = 2;
   if (this->lats() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteDoubleToArray(2, this->lats(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(2, this->lats(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -7519,9 +7519,11 @@ size_t SlowLog::ByteSizeLong() const {
         this->slow_log());
   }
 
-  // double lats = 2;
+  // int64 lats = 2;
   if (this->lats() != 0) {
-    total_size += 1 + 8;
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int64Size(
+        this->lats());
   }
 
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
@@ -7653,15 +7655,15 @@ void SlowLog::set_allocated_slow_log(::std::string* slow_log) {
   // @@protoc_insertion_point(field_set_allocated:statspb.SlowLog.slow_log)
 }
 
-// double lats = 2;
+// int64 lats = 2;
 void SlowLog::clear_lats() {
-  lats_ = 0;
+  lats_ = GOOGLE_LONGLONG(0);
 }
-double SlowLog::lats() const {
+::google::protobuf::int64 SlowLog::lats() const {
   // @@protoc_insertion_point(field_get:statspb.SlowLog.lats)
   return lats_;
 }
-void SlowLog::set_lats(double value) {
+void SlowLog::set_lats(::google::protobuf::int64 value) {
   
   lats_ = value;
   // @@protoc_insertion_point(field_set:statspb.SlowLog.lats)

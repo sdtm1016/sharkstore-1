@@ -39,4 +39,17 @@
         }\
     } while (false)
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+const char* get_log_level_name(int level);
+int get_log_level_from_name(const char *name);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* end of include guard: FBASE_DATA_SERVER_COMMON_LOGGER_H_ */

@@ -5,6 +5,9 @@
 
 namespace sharkstore {
 namespace dataserver {
+
+namespace admin { class AdminServer; }
+
 namespace server {
 
 class DataServer {
@@ -34,6 +37,7 @@ private:
 
 private:
     ContextServer *context_ = nullptr;
+    std::unique_ptr<admin::AdminServer> admin_server_;
 };
 
 } /* namespace server */

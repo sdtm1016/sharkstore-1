@@ -1,0 +1,152 @@
+syntax = "proto3";
+package watchpb;
+
+import "gogoproto/gogo.proto";
+import "kvrpcpb.proto";
+
+option (gogoproto.marshaler_all) = true;
+option (gogoproto.sizer_all)     = true;
+option (gogoproto.unmarshaler_all) = true;
+option java_package = "com.tig.shark.common.network.grpc";
+
+enum EventType {
+    PUT    = 0;
+    DELETE = 1;
+}
+
+enum ScopeValue {
+    RESPONSE_PART    = 0;
+    RESPONSE_ALL     = 1;
+}
+
+enum FilterType {
+    // filter out put event.
+    NOPUT    = 0;
+    // filter out delete event.
+    NODELETE = 1;
+}
+
+message Event {
+    // type is the kind of event. If type is a PUT, it indicates
+    // new data has been stored to the key. If type is a DELETE,
+    // it indicates the key was deleted.
+    EventType type    = 1;
+    // kv holds the KeyValue for the event.
+    // A PUT event contains current kv pair.
+    // A PUT event with kv.Version=1 indicates the creation of a key.
+    // A DELETE/EXPIRE event contains the deleted key with
+    // its modification revision set to the revision of deletion.
+    WatchKeyValue kv  = 2;
+}
+
+//simple key
+message WatchKeyValue {
+    int64 tableId      = 1;
+    // key is the key in bytes. An empty key is not allowed.
+    repeated bytes key = 2;
+    // version is the version of the key. A deletion resets
+    // the version to zero and any modification of the key
+    // increases its version.
+    int64 version      = 3;
+    // value is the value held by the key, in bytes.
+    bytes value        = 4;
+    //expire time
+    uint64 expireAt    = 5;
+    //reserve    
+    bytes ext          = 6;
+}
+
+//create watch simple key
+message DsWatchRequest {
+    kvrpcpb.RequestHeader header = 1;
+    WatchCreateRequest req       = 2;
+}
+
+message WatchCreateRequest {
+    // key is the key to register for watching.
+    WatchKeyValue kv            = 1;
+    // start_revision is an optional revision to watch from (inclusive). No start_revision is "now".
+    int64 startVersion          = 2;
+    // filters filter the events at server side before it sends back to the watcher.
+    repeated FilterType filters = 3;
+    // If watch_id is provided and non-zero, it will be assigned to this watcher.
+    // Since creating a watcher in etcd is not a synchronous operation,
+    // this can be used ensure that ordering is correct when creating multiple
+    // watchers on the same stream. Creating a watcher with an ID already in
+    // use on the stream will cause an error to be returned.
+    int64 watchId               = 4; //暂时不传
+    //TTL
+    int64 expireAt              = 5;
+    bool prefix                 = 6;
+    //longPull timeOut
+    //timeUnit millisecond
+    int64 longPull              = 7;
+}
+
+//watch simple key response
+message DsWatchResponse {
+    kvrpcpb.ResponseHeader header = 1;
+    WatchResponse resp            = 2;
+}
+
+//common watch response
+message WatchResponse {
+    // watch_id is the ID of the watcher that corresponds to the response.
+    int64 watchId         = 1;
+    int32 code            = 3; // 0 success 1 failure
+    int32 scope           = 6; // 0 part(default)    1 all
+    repeated Event events = 9; // 是否需要只返回一个
+}
+
+//simple KV add request
+message DsKvWatchPutRequest {
+    kvrpcpb.RequestHeader header = 1;
+    KvWatchPutRequest req        = 2;
+}
+
+//simple KV add response
+message DsKvWatchPutResponse {
+    kvrpcpb.ResponseHeader header = 1;
+    KvWatchResponse resp          = 2;
+}
+
+message KvWatchPutRequest {
+    WatchKeyValue kv             = 1;
+}
+
+//simple KV delete request
+message DsKvWatchDeleteRequest {
+    kvrpcpb.RequestHeader header = 1;
+    KvWatchDeleteRequest req     = 2;
+}
+
+//simple KV delete response
+message DsKvWatchDeleteResponse {
+    kvrpcpb.ResponseHeader header = 1;
+    KvWatchResponse resp          = 2;
+}
+
+message KvWatchDeleteRequest {
+    WatchKeyValue kv = 1;
+    bool prefix      = 2;
+}
+
+//common simple KV operation response
+message KvWatchResponse {
+    int32 code       = 1; // 0 success 1 failure
+}
+
+//get single or multiple keys request
+message DsKvWatchGetMultiRequest {
+    kvrpcpb.RequestHeader header = 1;
+    WatchKeyValue kv             = 2;
+    bool prefix                  = 3; // 单key false ，prefix（多key） true
+    uint32 limit                 = 4;
+}
+
+//get single or multiple keys response
+message DsKvWatchGetMultiResponse {
+    kvrpcpb.ResponseHeader header = 1;
+    int32 code                    = 2; // 0 success 1 failure
+    repeated WatchKeyValue kvs    = 3;
+}

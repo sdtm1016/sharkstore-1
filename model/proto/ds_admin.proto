@@ -1,0 +1,153 @@
+syntax = "proto3";
+
+package ds_adminpb;
+
+message AdminAuth {
+    enum AuthMethod {
+        MD5_DIGEST = 0;
+    }
+
+    AuthMethod method = 1; // not used, keep default is ok
+    int64 epoch = 2;   // time since 1970 in seconds
+    string sign = 3;    // md5(admin_type, epoch, token)
+};
+
+enum AdminType {
+    UNKNOWN = 0;
+    SET_CONFIG = 1;
+    GET_CONFIG = 2;
+    GET_INFO = 3;
+    FORCE_SPLIT = 4;
+    COMPACTION = 5;
+    CLEAR_QUEUE = 6; // clear worker queue
+    GET_PENDINGS = 7; // pending user requests
+    FLUSH_DB = 8;
+}
+
+message AdminRequest {
+    AdminType typ = 1;
+    AdminAuth auth = 2;
+
+    SetConfigRequest set_cfg_req = 10;
+    GetConfigRequest get_cfg_req = 11;
+    GetInfoRequest get_info_req = 12;
+    ForceSplitRequest force_split_req = 13;
+    CompactionRequest compaction_req = 14;
+    ClearQueueRequest clear_queue_req = 15;
+    GetPendingsRequest get_pendings_req = 16;
+    FlushDBRequest flush_db_req = 17;
+}
+
+message AdminResponse {
+    uint32 code       = 1;
+    string error_msg  = 2;
+
+    SetConfigResponse set_cfg_resp = 10;
+    GetConfigResponse get_cfg_resp = 11;
+    GetInfoResponse get_info_response = 12;
+    ForceSplitResponse force_split_resp = 13;
+    CompactionResponse compaction_resp = 14;
+    ClearQueueResponse clear_queue_resp = 15;
+    GetPendingsResponse get_pendings_resp = 16;
+    FlushDBResponse flush_db_resp = 17;
+}
+
+
+message ConfigKey {
+    string section = 1;
+    string name    = 2;
+}
+
+message ConfigItem {
+    ConfigKey key  = 1;
+    string value   = 2;
+}
+
+message SetConfigRequest {
+    repeated ConfigItem configs = 1;
+}
+
+message SetConfigResponse {
+}
+
+message GetConfigRequest {
+    repeated ConfigKey key = 1;
+}
+
+message GetConfigResponse {
+    repeated ConfigItem configs = 1;
+}
+
+// path: diffent types that caller care about
+// eg: rocksdb, rocksdb.cache-usage, 
+//     server, server.version, server.start
+//     raft, raft.{range_id}
+// if path is empty, will return server's status summary
+message GetInfoRequest {
+    string path = 1; 
+}
+
+message GetInfoResponse {
+    string data = 1; // json data
+}
+
+
+message ForceSplitRequest {
+    uint64 range_id = 1;
+    uint64 version = 2; // current RangeEpoch version
+}
+
+message ForceSplitResponse {
+    bytes split_key = 1;
+}
+
+
+message CompactionRequest {
+    uint64 range_id = 1; // if range_id equals zero means to compact full db
+    int64 transaction_id = 2; // for retry
+}
+
+message CompactionResponse {
+    bytes begin_key = 1;
+    bytes end_key   = 2;
+}
+
+
+message ClearQueueRequest {
+    enum QueueType {
+        ALL = 0;
+        FAST_WORKER = 1;
+        SLOW_WORKER = 2;
+    }
+    QueueType queue_type = 1;
+}
+
+message ClearQueueResponse {
+    uint64 cleared = 1;
+}
+
+
+message GetPendingsRequest {
+    enum PendingType {
+        ALL = 0;
+        INSERT = 1;
+        SELECT = 2;
+        PONIT_SELECT = 3;
+        RANGE_SELECT = 4;
+    }
+
+    PendingType ptype = 1;
+    uint64 count = 2;
+}
+
+message GetPendingsResponse {
+    string desc = 1; // description in json
+}
+
+
+message FlushDBRequest {
+    bool wait = 1;   // If true, the flush will wait until the flush is done.
+}
+
+message FlushDBResponse {
+}

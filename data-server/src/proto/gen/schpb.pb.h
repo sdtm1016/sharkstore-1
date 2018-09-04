@@ -618,12 +618,19 @@ class DeleteRangeRequest : public ::google::protobuf::Message /* @@protoc_insert
   ::google::protobuf::uint64 range_id() const;
   void set_range_id(::google::protobuf::uint64 value);
 
+  // uint64 peer_id = 3;
+  void clear_peer_id();
+  static const int kPeerIdFieldNumber = 3;
+  ::google::protobuf::uint64 peer_id() const;
+  void set_peer_id(::google::protobuf::uint64 value);
+
   // @@protoc_insertion_point(class_scope:schpb.DeleteRangeRequest)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::schpb::RequestHeader* header_;
   ::google::protobuf::uint64 range_id_;
+  ::google::protobuf::uint64 peer_id_;
   mutable int _cached_size_;
   friend struct protobuf_schpb_2eproto::TableStruct;
 };
@@ -2289,6 +2296,20 @@ inline void DeleteRangeRequest::set_range_id(::google::protobuf::uint64 value) {
   
   range_id_ = value;
   // @@protoc_insertion_point(field_set:schpb.DeleteRangeRequest.range_id)
+}
+
+// uint64 peer_id = 3;
+inline void DeleteRangeRequest::clear_peer_id() {
+  peer_id_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 DeleteRangeRequest::peer_id() const {
+  // @@protoc_insertion_point(field_get:schpb.DeleteRangeRequest.peer_id)
+  return peer_id_;
+}
+inline void DeleteRangeRequest::set_peer_id(::google::protobuf::uint64 value) {
+  
+  peer_id_ = value;
+  // @@protoc_insertion_point(field_set:schpb.DeleteRangeRequest.peer_id)
 }
 
 // -------------------------------------------------------------------

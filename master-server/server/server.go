@@ -8,6 +8,7 @@ import (
 
 	"util/log"
 	"util/server"
+	"util/alarm"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -15,28 +16,27 @@ import (
 	"master-server/raft"
 	"golang.org/x/net/context"
 	"master-server/metric"
-		"util/alarm"
 )
 
 type Server struct {
-	raftPeers         map[uint64]*Peer
-	conf *Config
-	opt  *scheduleOption
+	raftPeers map[uint64]*Peer
+	conf      *Config
+	opt       *scheduleOption
 
-	cluster   *Cluster
-	store     Store
+	cluster *Cluster
+	store   Store
 
-	server      *server.Server
-	rpcServer   *grpc.Server
+	server    *server.Server
+	rpcServer *grpc.Server
 
 	metricServer *metric.Metric
-	alarmServer *alarm.Server
-	alarmClient *alarm.Client
+	alarmServer  *alarm.Server
+	alarmClient  *alarm.Client
 
 	leaderChangeNotify chan uint64
-	wg     sync.WaitGroup
-	ctx    context.Context
-	cancel context.CancelFunc
+	wg                 sync.WaitGroup
+	ctx                context.Context
+	cancel             context.CancelFunc
 }
 
 func (service *Server) ParseClusterInfo() []*Peer {
@@ -57,9 +57,10 @@ func (service *Server) ParseClusterInfo() []*Peer {
 	return peers
 }
 
-func (service *Server) initHttpHandler() (){
+func (service *Server) initHttpHandler() () {
 	s := service.server
 	s.Handle("/manage/database/create", NewHandler(service.validRequest, service.handleDatabaseCreate))
+	s.Handle("/manage/database/delete", NewHandler(service.validRequest, service.handleDatabaseDelete))
 	s.Handle("/manage/table/create", NewHandler(service.validRequest, service.handleTableCreate))
 	s.Handle("/manage/sql/table/create", NewHandler(service.validRequest, service.handleSqlTableCreate))
 
@@ -75,6 +76,12 @@ func (service *Server) initHttpHandler() (){
 	s.Handle("/manage/node/setLogLevel", NewHandler(service.validRequest, service.handleNodeSetLogLevel))
 	s.Handle("/manage/node/getRangeTopo", NewHandler(service.validRequest, service.handleNodeGetRangeTopo))
 	s.Handle("/manage/node/updateIsolationLabel", NewHandler(service.validRequest, service.handleNodeUpdateIsolationLabel))
+	s.Handle("/manage/node/getConfigOfNode", NewHandler(service.validRequest, service.handleNodeGetConfig))
+	s.Handle("/manage/node/setConfigOfNode", NewHandler(service.validRequest, service.handleNodeSetConfig))
+	s.Handle("/manage/node/getDsInfoOfNode", NewHandler(service.validRequest, service.handleNodeGetDsInfo))
+	s.Handle("/manage/node/clearQueueOfNode", NewHandler(service.validRequest, service.handleNodeClearQueue))
+	s.Handle("/manage/node/getPendingQueuesOfNode", NewHandler(service.validRequest, service.handleNodeGetPendingQueues))
+	s.Handle("/manage/node/flushDBOfNode", NewHandler(service.validRequest, service.handleNodeFlushDB))
 
 	s.Handle("/manage/scheduler/getall", NewHandler(service.validRequest, service.handleSchedulerGetAll))
 	s.Handle("/manage/scheduler/add", NewHandler(service.validRequest, service.handleAddScheduler))
@@ -114,6 +121,8 @@ func (service *Server) initHttpHandler() (){
 	s.Handle("/manage/range/offlineRange", NewHandler(service.validRequest, service.handleRangeOffline))
 	s.Handle("/manage/range/transfer", NewHandler(service.validRequest, service.handleRangeTransfer))
 	s.Handle("/manage/range/getOpsTopN", NewHandler(service.validRequest, service.handleRangeTopNQuery))
+	s.Handle("/manage/range/forceSplitRange", NewHandler(service.validRequest, service.handleRangeForceSplit))
+	s.Handle("/manage/range/forceCompactRange", NewHandler(service.validRequest, service.handleRangeForceCompact))
 
 	s.Handle("/manage/task/getall", NewHandler(service.validRequest, service.handleGetAllTask))
 	s.Handle("/manage/task/delete", NewHandler(service.validRequest, service.handleDeleteTask))
@@ -140,7 +149,7 @@ func (service *Server) initHttpHandler() (){
 	s.Handle("/metric/config/set", NewHandler(service.validRequest, service.handleMetricConfigSet))
 	s.Handle("/metric/config/get", NewHandler(service.validRequest, service.handleMetricConfigGet))
 	s.Handle("/test/alarm", NewHandler(nil, service.handleTestAlarm))
-  
+
 	return
 }
 
@@ -152,14 +161,14 @@ func (service *Server) InitMasterServer(conf *Config) {
 		return
 	}
 	cnf := &StoreConfig{
-		RaftRetainLogs: int64(conf.Raft.RetainLogsCount),
-		RaftHeartbeatInterval:  conf.Raft.HeartbeatInterval.Duration,
-		RaftHeartbeatAddr: conf.raftHeartbeatAddr,
-		RaftReplicateAddr: conf.raftReplicaAddr,
-		RaftPeers:         peers,
+		RaftRetainLogs:        int64(conf.Raft.RetainLogsCount),
+		RaftHeartbeatInterval: conf.Raft.HeartbeatInterval.Duration,
+		RaftHeartbeatAddr:     conf.raftHeartbeatAddr,
+		RaftReplicateAddr:     conf.raftReplicaAddr,
+		RaftPeers:             peers,
 
-		NodeID:         conf.NodeId,
-		DataPath:       service.conf.DataPath,
+		NodeID:   conf.NodeId,
+		DataPath: service.conf.DataPath,
 
 		LeaderChangeHandler: func(leader uint64) {
 			service.leaderChangeNotify <- leader
@@ -180,14 +189,14 @@ func (service *Server) InitMasterServer(conf *Config) {
 	service.cluster = NewCluster(uint64(conf.Cluster.ClusterID), uint64(conf.NodeId), saveStore, opt)
 	if service.server == nil {
 		s := server.NewServer()
-		s.Init("master", &server.ServerConfig {
-			Sock:      service.conf.webManageAddr,
+		s.Init("master", &server.ServerConfig{
+			Sock:    service.conf.webManageAddr,
 			Version: "v1",
 		}, )
 		service.server = s
 	}
 	service.initHttpHandler()
-	if "" != conf.Alarm.ServerAddress {
+	if len(conf.Alarm.ServerAddress) != 0 {
 		service.alarmClient, err = alarm.NewAlarmClient(conf.Alarm.ServerAddress)
 		if err != nil {
 			log.Fatal("create alarm client failed, err[%v]", err)
@@ -197,23 +206,38 @@ func (service *Server) InitMasterServer(conf *Config) {
 }
 
 func (service *Server) InitAlarmServer(conf AlarmConfig) (err error) {
-	var alarmReceivers []*alarm.User
-	for _, r := range conf.Receivers {
-		alarmReceivers = append(alarmReceivers, &alarm.User{
-			Mail: r.Mail,
-			Sms: r.Sms,
-		})
-	}
-	service.alarmServer, err = alarm.NewAlarmServer(service.ctx, conf.ServerPort, conf.MessageGatewayAddress, conf.RemoteAlarmServerAddress, alarm.NewSimpleReceiver(alarmReceivers))
-	return err
-}
+	//var alarmReceivers []*alarm.User
+	//for _, r := range conf.Receivers {
+	//	alarmReceivers = append(alarmReceivers, &alarm.User{
+	//		Mail: r.Mail,
+	//		Sms:  r.Sms,
+	//	})
+	//}
+	log.Info("alarm server config: \n" +
+		"	server port: %v\n" +
+		"	remote alarm server addr: %v\n" +
+		"	mysql args: %v\n" +
+		"	jim url: %v\n" +
+		"	jim app addr: %v\n", conf.ServerPort,
+		conf.RemoteAlarmServerAddress, conf.MysqlArgs, conf.JimUrl, conf.JimApAddr)
 
+	service.alarmServer, err = alarm.NewAlarmServer(service.ctx, conf.ServerPort,
+		conf.RemoteAlarmServerAddress, conf.MysqlArgs, conf.JimUrl, conf.JimApAddr)
+	if err != nil {
+		log.Error("alarm.NewAlarmServer failed, err: [%v]", err)
+		return nil
+	}
+
+	// app ping url, for alive alarm
+	service.server.Handle("/app/ping", service.alarmServer.HandleAppPing)
+	return nil
+}
 
 func (service *Server) InitMetricServer(conf *Config) {
 	if service.server == nil {
 		s := server.NewServer()
-		s.Init("metric", &server.ServerConfig {
-			Sock:      conf.Metric.Server.Address,
+		s.Init("metric", &server.ServerConfig{
+			Sock:    conf.Metric.Server.Address,
 			Version: "v1",
 		})
 		service.server = s
@@ -228,7 +252,7 @@ func (service *Server) InitMetricServer(conf *Config) {
 	}
 	service.metricServer = metric.NewMetric(service.server, store, conf.Threshold)
 
-	if "" != conf.Alarm.ServerAddress {
+	if len(conf.Alarm.ServerAddress) != 0 {
 		var err error
 		service.alarmClient, err = alarm.NewAlarmClient(conf.Alarm.ServerAddress)
 		if err != nil {
@@ -311,7 +335,7 @@ func (service *Server) IsLeader() bool {
 	return service.cluster.IsLeader()
 }
 
-func (service *Server) getRaftMembers() []*Peer  {
+func (service *Server) getRaftMembers() []*Peer {
 	var raftMembers []*Peer
 	for _, p := range service.raftPeers {
 		raftMembers = append(raftMembers, p)
@@ -372,4 +396,3 @@ func (service *Server) background() {
 func (service *Server) Quit() {
 	// TODO: safe quit
 }
-

@@ -7,23 +7,17 @@
 #include "frame/sf_socket_buff.h"
 #include "proto/gen/errorpb.pb.h"
 #include "proto/gen/kvrpcpb.pb.h"
+#include "proto/gen/watchpb.pb.h"
 
 #include "ds_proto.h"
 #include "socket_base.h"
+#include "frame/sf_util.h"
+
+#include "socket_message.h"
 
 namespace sharkstore {
 namespace dataserver {
 namespace common {
-
-typedef struct {
-    int64_t session_id;
-    int64_t begin_time;
-    int64_t expire_time;
-    int64_t msg_id;
-    ds_header_t header;
-    SocketBase *socket;
-    std::vector<char> body;
-} ProtoMessage;
 
 class SocketSession {
 public:
@@ -33,16 +27,7 @@ public:
     SocketSession(const SocketSession &) = delete;
     SocketSession &operator=(const SocketSession &) = delete;
 
-    virtual ProtoMessage *GetProtoMessage(const void *data) = 0;
-
     virtual void Send(ProtoMessage *msg, google::protobuf::Message *resp) = 0;
-
-    virtual bool GetMessage(const char *data, size_t size,
-                            google::protobuf::Message *req) = 0;
-
-    virtual void SetResponseHeader(const kvrpcpb::RequestHeader &req,
-                                   kvrpcpb::ResponseHeader *resp,
-                                   errorpb::Error *err = nullptr) = 0;
 };
 
 }  // namespace common

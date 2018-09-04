@@ -11,15 +11,13 @@ import (
 	"strconv"
 	"time"
 	"strings"
+	"util"
+	"sync"
 
-	"model/pkg/kvrpcpb"
 	"model/pkg/metapb"
 	"util/bufalloc"
 	"util/log"
-	"master-server/server"
 	"proxy/metric"
-	"util"
-	"sync"
 )
 
 type Response struct {
@@ -169,7 +167,7 @@ func (s *Server) handleKVCommand(w http.ResponseWriter, r *http.Request) {
 
 	t := s.proxy.router.FindTable(dbname, tname)
 	if t == nil {
-		log.Error("table %s.%s doesn.t exist", dbname, tname)
+		log.Error("table %s.%s doesn't exist", dbname, tname)
 		reply = &Reply{Code: errCommandNoTable, Message: ErrNotExistTable.Error()}
 		return
 	}
@@ -220,19 +218,12 @@ func (s *Server) handleKVCommand(w http.ResponseWriter, r *http.Request) {
 
 func (query *Query) getCommand(proxy *Proxy, t *Table) (*Reply, error) {
 	log.Debug("get command ........... %v", query)
-	log.Debug("get command: %v", query.Command)
 	// 解析选择列
-	columns := query.parseColumnNames()
-	fieldList := make([]*kvrpcpb.SelectField, 0, len(columns))
-	for _, c := range columns {
-		col := t.FindColumn(c)
-		if col == nil {
-			return nil, fmt.Errorf("invalid column(%s)", c)
-		}
-		fieldList = append(fieldList, &kvrpcpb.SelectField{
-			Typ:    kvrpcpb.SelectField_Column,
-			Column: col,
-		})
+	columns := query.parseSelectCols(t)
+	fieldList, err := makeFieldList(t, columns)
+	if err != nil {
+		log.Error("get command, find %s.%s field list error(%s), ", t.DbName(), t.Name(), err)
+		return nil, err
 	}
 
 	if len(query.Command.PKs) == 0 {
@@ -313,7 +304,7 @@ func (query *Query) getCommand(proxy *Proxy, t *Table) (*Reply, error) {
 	}
 }
 
-func formatReply(columnMap map[string]*metapb.Column, rowss [][]*Row, order []*Order, columns []string) *Reply {
+func formatReply(columnMap map[string]*metapb.Column, rowss [][]*Row, order []*Order, columns []*SelColumn) *Reply {
 	rowset := make([][]interface{}, 0)
 	for _, rows := range rowss {
 		for _, row := range rows {
@@ -323,6 +314,11 @@ func formatReply(columnMap map[string]*metapb.Column, rowss [][]*Row, order []*O
 					row_ = append(row_, nil)
 					continue
 				}
+				if _,find := columnMap[f.col]; !find {
+					row_ = append(row_, f.value)
+					continue
+				}
+
 				switch columnMap[f.col].GetDataType() {
 				case metapb.DataType_Tinyint:
 					fallthrough
@@ -378,12 +374,12 @@ func formatReply(columnMap map[string]*metapb.Column, rowss [][]*Row, order []*O
 	if order != nil {
 		for _, o := range order {
 			for n, c := range columns {
-				if c == o.By {
+				if c.col == o.By {
 					// sort
 					sorter := &rowsetSorter{
 						rowset:          rowset,
 						orderByFieldNum: n,
-						column:          columnMap[c],
+						column:          columnMap[c.col],
 					}
 					sort.Sort(sorter)
 				}
@@ -452,20 +448,6 @@ func (query *Query) setCommand(proxy *Proxy, t *Table) (*Reply, error) {
 	// 解析选择列
 	cols := query.parseColumnNames()
 
-	// 按照表的每个列查找对应列值位置
-	colMap, t, err := proxy.matchInsertValues(t, cols)
-	if err != nil {
-		log.Error("[insert] table %s.%s match column values error(%v)", db, tableName, err)
-		return nil, err
-	}
-
-	// 检查是否缺少某列
-	// TODO：支持默认值
-	/*if err := proxy.checkMissingColumn(t, colMap); err != nil {
-		log.Error("[insert] table %s.%s missing column(%v)", db, tableName, err)
-		return nil, err
-	}*/
-
 	buffer := bufalloc.AllocBuffer(512)
 	defer bufalloc.FreeBuffer(buffer)
 	rows, err := query.parseRowValues(buffer)
@@ -473,6 +455,39 @@ func (query *Query) setCommand(proxy *Proxy, t *Table) (*Reply, error) {
 	if err != nil {
 		log.Error("parse row values error: %v", err)
 		return nil, err
+	}
+
+	// 按照表的每个列查找对应列值位置
+	colMap, t, err := proxy.matchInsertValues(t, cols)
+	if err != nil {
+		log.Error("[insert] table %s.%s match column values error(%v)", db, tableName, err)
+		return nil, err
+	}
+
+	// TODO：支持默认值
+
+	// 检查是否缺少pk
+	pkName,  err := proxy.checkPKMissing(t, colMap)
+	if err != nil {
+		log.Error("[insert] table %s.%s missing column(%v)", db, tableName, err)
+		return nil, err
+	}
+	//填充自增id值
+	if len(pkName) > 0 {
+		colMap[pkName] = len(colMap)
+		ids, err := proxy.msCli.GetAutoIncId(t.GetDbId(), t.GetId(), uint32(len(rows)))
+		if err != nil {
+			log.Error("[insert] table %s.%s get auto_increment value err, %v", db, tableName, err)
+			return nil, err
+		}
+		if len(ids) != len(rows) {
+			log.Error("[insert] table %s.%s get auto_increment id size %d not equal insert size %d", db, tableName, len(ids), len(rows))
+			return nil, fmt.Errorf("get auto_increment id size %d not equal insert size %d", len(ids), len(rows))
+		}
+		for i, row := range rows {
+			row = append(row, []byte(fmt.Sprintf("%v", ids[i])))
+			rows[i] = row
+		}
 	}
 
 	affected, duplicateKey, err := proxy.insertRows(t, colMap, rows)
@@ -733,8 +748,8 @@ func (s *Server) handleCreateTable(w http.ResponseWriter, r *http.Request) {
 
 	dbname := query.DatabaseName
 	tablename := query.TableName
-	columns := func() *server.TableProperty {
-		properties := new(server.TableProperty)
+	columns := func() *TableProperty {
+		properties := new(TableProperty)
 		var cols []*metapb.Column
 		for _, col := range query.Columns {
 			cols = append(cols, &metapb.Column{

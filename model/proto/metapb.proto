@@ -46,8 +46,8 @@ message Node {
     string server_addr    = 2;
     // raft　服务地址
     string raft_addr      = 3;
-    // http 管理地址
-    string http_addr      = 4;
+    // 管理地址
+    string admin_addr      = 4;
 
     NodeState state       = 5;
     string version        = 6;
@@ -189,11 +189,12 @@ message Column {
     int32 ordinal              = 9;
     // 索引 Binary不支持索引，其他类型列默认均是索引列
     bool index                 = 10;
-    // 自增 bool auto_increment
     // 唯一键 bool unique
 
     bytes default_value        = 11;
     string properties          = 12;
+    //自增
+    bool auto_increment        = 13;
 }
 
 message Primary {

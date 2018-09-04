@@ -17,9 +17,14 @@ namespace storage {
 
 static const size_t kLogWriteBufSize = 1024 * 16;
 
-LogFile::LogFile(const std::string& path, uint64_t seq, uint64_t index)
-    : seq_(seq), index_(index), file_path_(makeFilePath(path, seq, index)) {
-    write_buf_.resize(kLogWriteBufSize);
+LogFile::LogFile(const std::string& path, uint64_t seq, uint64_t index, bool readonly) :
+    seq_(seq),
+    index_(index),
+    file_path_(makeFilePath(path, seq, index)),
+    readonly_(readonly) {
+    if (!readonly_) {
+        write_buf_.resize(kLogWriteBufSize);
+    }
 }
 
 LogFile::~LogFile() { Close(); }
@@ -29,16 +34,22 @@ std::string LogFile::makeFilePath(const std::string& path, uint64_t seq, uint64_
 }
 
 Status LogFile::Open(bool allow_corrupt, bool last_one) {
-    fd_ = ::open(file_path_.c_str(), O_CREAT | O_APPEND | O_RDWR, 0644);
+    // open fd
+    int oflag = readonly_ ? O_RDONLY : (O_CREAT | O_APPEND | O_RDWR);
+    fd_ = ::open(file_path_.c_str(), oflag, 0644);
     if (-1 == fd_) {
         return Status(Status::kIOError, "open", strErrno(errno));
     }
-    writer_ = ::fdopen(fd_, "a+");
-    if (NULL == writer_) {
-        return Status(Status::kIOError, "fdopen", strErrno(errno));
-    }
-    if (::setvbuf(writer_, write_buf_.data(), _IOFBF, write_buf_.size()) != 0) {
-        return Status(Status::kIOError, "setvbuf", strErrno(errno));
+
+    // open write stream
+    if (!readonly_) {
+        writer_ = ::fdopen(fd_, "a+");
+        if (NULL == writer_) {
+            return Status(Status::kIOError, "fdopen", strErrno(errno));
+        }
+        if (::setvbuf(writer_, write_buf_.data(), _IOFBF, write_buf_.size()) != 0) {
+            return Status(Status::kIOError, "setvbuf", strErrno(errno));
+        }
     }
 
     // get file size
@@ -77,7 +88,6 @@ Status LogFile::Sync() {
     if (!s.ok()) {
         return s;
     }
-
     if (::fsync(fd_) == -1) {
         return Status(Status::kIOError, "sync log file", strErrno(errno));
     } else {
@@ -87,9 +97,8 @@ Status LogFile::Sync() {
 
 Status LogFile::Close() {
     if (fd_ > 0) {
-        int ret = ::fclose(writer_);
+        int ret = (writer_ != nullptr) ? ::fclose(writer_) : ::close(fd_);
         if (ret != 0) {
-            // TODO: EINTR
             return Status(Status::kIOError, "close", strErrno(errno));
         }
         writer_ = nullptr;
@@ -125,7 +134,7 @@ Status LogFile::Get(uint64_t index, EntryPtr* e) const {
 
     EntryPtr entry(new impl::pb::Entry);
     // TODO: check crc
-    if (!entry->ParseFromArray(payload.data(), payload.size())) {
+    if (!entry->ParseFromArray(payload.data(), static_cast<int>(payload.size()))) {
         return Status(Status::kCorruption, "read log entry", "deserizial failed");
     }
     if (entry->index() != index) {
@@ -143,6 +152,10 @@ Status LogFile::Term(uint64_t index, uint64_t* term) const {
 }
 
 Status LogFile::Append(const EntryPtr& e) {
+    if (readonly_) {
+        return Status(Status::kNotSupported, "append", "read only");
+    }
+
     if (log_index_.Empty()
             ? (e->index() != index_)
             : (e->index() < log_index_.First() || e->index() > log_index_.Last() + 1)) {
@@ -159,7 +172,7 @@ Status LogFile::Append(const EntryPtr& e) {
             return s;
         }
     }
-    uint32_t offset = file_size_;
+    uint32_t offset = static_cast<uint32_t>(file_size_);
     auto s = writeRecord(RecordType::kLogEntry, *e);
     if (!s.ok()) {
         return s;
@@ -171,6 +184,10 @@ Status LogFile::Append(const EntryPtr& e) {
 }
 
 Status LogFile::Flush() {
+    if (readonly_) {
+        return Status(Status::kNotSupported, "flush", "read-only");
+    }
+    assert(writer_ != nullptr);
     int ret = ::fflush(writer_);
     if (ret == 0) {
         return Status::OK();
@@ -180,7 +197,11 @@ Status LogFile::Flush() {
 }
 
 Status LogFile::Rotate() {
-    uint32_t offset = file_size_;
+    if (readonly_) {
+        return Status(Status::kNotSupported, "rotate", "read only");
+    }
+
+    uint32_t offset = static_cast<uint32_t >(file_size_);
     std::vector<char> buf;
     pb::LogIndex pb_index;
     log_index_.Serialize(&pb_index);
@@ -226,7 +247,7 @@ Status LogFile::loadIndexes() {
 
 Status LogFile::traverse(uint32_t& offset) {
     Status s;
-    while (offset < static_cast<uint64_t>(file_size_)) {
+    while (offset < static_cast<uint32_t>(file_size_)) {
         Record rec;
         std::vector<char> payload;
         s = readRecord(offset, &rec, &payload);
@@ -239,7 +260,7 @@ Status LogFile::traverse(uint32_t& offset) {
         }
         if (rec.type == RecordType::kLogEntry) {
             impl::pb::Entry e;
-            if (!e.ParseFromArray(payload.data(), payload.size())) {
+            if (!e.ParseFromArray(payload.data(), static_cast<int>(payload.size()))) {
                 return Status(Status::kCorruption,
                               "parse entry at offset " + std::to_string(offset),
                               "pb return false");
@@ -299,7 +320,7 @@ Status LogFile::recover(bool allow_corrupt) {
     if (!s.ok()) {
         if (!allow_corrupt) {
             return s;
-        } else {
+        } else if (!readonly_) {
             s = backup();
             if (!s.ok()) {
                 return s;
@@ -325,10 +346,10 @@ Status LogFile::readFooter(uint32_t* index_offset) const {
     // 读取footer
     Footer footer;
     memset(&footer, 0, sizeof(footer));
-    int ret = ::pread(fd_, &footer, sizeof(footer), file_size_ - sizeof(footer));
+    auto ret = ::pread(fd_, &footer, sizeof(footer), file_size_ - sizeof(footer));
     if (ret == -1) {
         return Status(Status::kIOError, "read log footer", strErrno(errno));
-    } else if (ret < static_cast<int64_t>(sizeof(footer))) {
+    } else if (ret < static_cast<ssize_t>(sizeof(footer))) {
         return Status(Status::kCorruption, "insufficient log file size",
                       std::to_string(file_size_));
     }
@@ -352,7 +373,7 @@ Status LogFile::writeFooter(uint32_t index_offset) {
     footer.index_offset = index_offset;
     footer.Encode();
 
-    int ret = ::fwrite(&footer, sizeof(footer), 1, writer_);
+    auto ret = ::fwrite(&footer, sizeof(footer), 1, writer_);
     if (ret != 1) {
         return Status(Status::kIOError, "write footer", strErrno(errno));
     }
@@ -365,12 +386,12 @@ Status LogFile::writeFooter(uint32_t index_offset) {
 Status LogFile::readRecord(off_t offset, Record* rec, std::vector<char>* payload) const {
     // 读记录头
     memset(rec, 0, sizeof(Record));
-    int ret = ::pread(fd_, rec, sizeof(Record), offset);
+    auto ret = ::pread(fd_, rec, sizeof(Record), offset);
     if (ret == -1) {
         return Status(Status::kIOError, "read log record", strErrno(errno));
     } else if (ret == 0) {
         return Status(Status::kEndofFile, "read log record", strErrno(errno));
-    } else if (ret < static_cast<int64_t>(sizeof(Record))) {
+    } else if (ret < static_cast<ssize_t>(sizeof(Record))) {
         return Status(Status::kCorruption, "insufficient log record size",
                       std::to_string(ret));
     }
@@ -408,7 +429,7 @@ Status LogFile::writeRecord(RecordType type, const ::google::protobuf::Message& 
         return Status(Status::kCorruption, "serialize log record", "pb return false");
     }
 
-    int ret = ::fwrite(buf.data(), buf.size(), 1, writer_);
+    auto ret = ::fwrite(buf.data(), buf.size(), 1, writer_);
     if (ret != 1) {
         return Status(Status::kIOError, "write record", strErrno(errno));
     }
@@ -419,9 +440,14 @@ Status LogFile::writeRecord(RecordType type, const ::google::protobuf::Message& 
 }
 
 Status LogFile::Truncate(uint64_t index) {
+    if (readonly_) {
+        return Status(Status::kNotSupported, "truncate", "read only");
+    }
+
     if (log_index_.Empty() || log_index_.Last() < index) {
         return Status::OK();
     }
+
     uint32_t offset = log_index_.Offset(index);
     assert(offset < file_size_);
     int ret = ::ftruncate(fd_, offset);
@@ -437,8 +463,8 @@ Status LogFile::Truncate(uint64_t index) {
 #ifndef NDEBUG
 void LogFile::TEST_Append_RandomData() {
     std::string data = randomString(10);
-    int ret = ::write(fd_, data.data(), data.length());
-    assert(ret == static_cast<int>(data.length()));
+    auto ret = ::write(fd_, data.data(), data.length());
+    assert(ret == static_cast<ssize_t>(data.length()));
     file_size_ += data.size();
 }
 

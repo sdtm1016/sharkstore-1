@@ -239,6 +239,45 @@ int sf_load_config(const char *server_name, const char *filename) {
     return 0;
 }
 
+
+int sf_load_config_buffer(const char* content,const char* server_name) {
+    int result;
+
+    IniContext ini_context;
+
+    memset(&ini_context, 0, sizeof(IniContext));
+    ;
+    if ((result = iniLoadFromBuffer(content, &ini_context)) != 0) {
+        FLOG_ERROR("load conf file \"%s\" fail, code: %d", content, result);
+        return result;
+    }
+
+    result = sf_load_log_config(&ini_context, server_name, &sf_config.log_config);
+    if (result != 0) {
+        return result;
+    }
+
+    result = sf_load_socket_config(&ini_context, &sf_config.socket_config);
+    if (result != 0) {
+        return result;
+    }
+
+    result = sf_load_run_config(&ini_context, &sf_config.run_config);
+    if (result != 0) {
+        return result;
+    }
+
+    if (sf_load_config_callback != NULL) {
+        char* filename={'\0'};
+        if ((result = sf_load_config_callback(&ini_context, filename)) != 0) {
+            return result;
+        }
+    }
+
+    iniFreeContext(&ini_context);
+    return 0;
+}
+
 int sf_load_socket_thread_config(IniContext *ini_context, const char *section_name,
                                  sf_socket_thread_config_t *config) {
     char *temp_char;

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 namespace sharkstore {
 namespace dataserver {
@@ -30,6 +31,7 @@ void EncodeNonSortingUvarint(std::string* buf, uint64_t value);
 void EncodeNonSortingVarint(std::string* buf, int64_t value);
 bool DecodeNonSortingUvarint(const std::string& data, size_t& offset, uint64_t* value);
 bool DecodeNonSortingVarint(const std::string& data, size_t& offset, int64_t* value);
+
 void EncodeUint64Ascending(std::string* buf, uint64_t value);
 bool DecodeUint64Ascending(const std::string& data, size_t& offset, uint64_t* value);
 

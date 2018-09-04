@@ -19,6 +19,8 @@ const (
 	RANGE_OFFLINE_RANGE        = "/range/offlineRange"
 	RANGE_REBUILD_RANGE        = "/range/rebuildRange"
 	RANGE_REPLACE_RANGE        = "/range/replaceRange"
+	RANGE_FORCE_SPLIT          = "/range/forceSplitRange"
+	RANGE_FORCE_COMPACT        = "/range/forceCompactRange"
 	RANGE_DELETE_RANGE         = "/range/delete"
 	RANGE_GET_TOPOLOGY         = "/range/getRangeTopoByRange"
 	RANGE_BATCH_RECOVER_RANGE  = "/range/batchRecoverRange"
@@ -627,4 +629,74 @@ func (ctrl *RangeOpsTopN) Execute(c *gin.Context) (interface{}, error) {
 	}
 
 	return service.NewService().GetRangeOpsTopN(cId, tN)
+}
+
+type RangeForceSplit struct {
+}
+
+func NewRangeForceSplit() *RangeForceSplit {
+	return &RangeForceSplit{}
+}
+
+func (ctrl *RangeForceSplit) Execute(c *gin.Context) (interface{}, error) {
+	clusterId := c.PostForm("clusterId")
+	dbName := c.PostForm("dbName")
+	tableName := c.PostForm("tableName")
+	rangeId := c.PostForm("rangeId")
+	if "" == clusterId || "" == dbName || "" == tableName || "" == rangeId {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+
+	log.Debug("force split range: clusterId: %v, dbName: %v, tableName: %v, rangeId: %v", clusterId, dbName, tableName, rangeId)
+
+	cId, err := strconv.Atoi(clusterId)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	rngId, err := strconv.Atoi(rangeId)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	err = service.NewService().ForceSplitRange(cId, rngId, dbName, tableName)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+type RangeForceCompact struct {
+}
+
+func NewRangeForceCompact() *RangeForceCompact {
+	return &RangeForceCompact{}
+}
+
+func (ctrl *RangeForceCompact) Execute(c *gin.Context) (interface{}, error) {
+	clusterId := c.PostForm("clusterId")
+	dbName := c.PostForm("dbName")
+	tableName := c.PostForm("tableName")
+	rangeId := c.PostForm("rangeId")
+	if "" == clusterId || "" == dbName || "" == tableName || "" == rangeId {
+		return nil, common.PARSE_PARAM_ERROR
+	}
+
+	log.Debug("force compact range: clusterId: %v, dbName: %v, tableName: %v, rangeId: %v", clusterId, dbName, tableName, rangeId)
+
+	cId, err := strconv.Atoi(clusterId)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	rngId, err := strconv.Atoi(rangeId)
+	if err != nil {
+		return nil, common.PARAM_FORMAT_ERROR
+	}
+
+	resp, err := service.NewService().ForceCompactRange(cId, rngId, dbName, tableName)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

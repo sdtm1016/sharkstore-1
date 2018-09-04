@@ -1,11 +1,10 @@
 #include "session.h"
 
 #include <asio/read.hpp>
+#include <asio/write.hpp>
 #include <asio/read_until.hpp>
 
 #include "frame/sf_logger.h"
-
-#include "msg_handler.h"
 
 namespace sharkstore {
 namespace dataserver {
@@ -13,9 +12,9 @@ namespace net {
 
 std::atomic<uint64_t> Session::total_count_ = {0};
 
-Session::Session(const SessionOptions& opt, const MsgHandler& msg_handler,
+Session::Session(const SessionOptions& opt, const Handler & handler,
                  asio::ip::tcp::socket socket)
-    : opt_(opt), msg_handler_(msg_handler), socket_(std::move(socket)) {
+    : opt_(opt), handler_(handler), socket_(std::move(socket)) {
     ++total_count_;
 }
 
@@ -30,29 +29,29 @@ Session::~Session() {
 bool Session::init() {
     try {
         auto local_ep = socket_.local_endpoint();
-        msg_ctx_.local_addr =
+        session_ctx_.local_addr =
             local_ep.address().to_string() + ":" + std::to_string(local_ep.port());
 
         auto remote_ep = socket_.remote_endpoint();
-        msg_ctx_.remote_addr =
+        session_ctx_.remote_addr =
             remote_ep.address().to_string() + ":" + std::to_string(remote_ep.port());
     } catch (std::exception& e) {
         FLOG_ERROR("[S] get socket addr error: %s", e.what());
         return false;
     }
 
-    msg_ctx_.session = shared_from_this();
-    id_ = std::string("S[") + msg_ctx_.remote_addr + "]";
+    session_ctx_.session = shared_from_this();
+    id_ = std::string("S[") + session_ctx_.remote_addr + "]";
 
-    FLOG_INFO("%s establised %s->%s", id_.c_str(), msg_ctx_.remote_addr.c_str(),
-              msg_ctx_.local_addr.c_str());
+    FLOG_INFO("%s establised %s->%s", id_.c_str(), session_ctx_.remote_addr.c_str(),
+              session_ctx_.local_addr.c_str());
 
     return true;
 }
 
 void Session::Start() {
     if (init()) {
-        readPreface();
+        readHead();
     } else {
         doClose();
     }
@@ -68,105 +67,107 @@ void Session::doClose() {
     socket_.close(ec);
     (void)ec;
 
+    session_ctx_.session.reset();
+
     FLOG_INFO("%s closed. ", id_.c_str());
 }
 
-void Session::readPreface() {
+void Session::readHead() {
     auto self(shared_from_this());
-    asio::async_read(socket_, asio::buffer(preface_.data(), preface_.size()),
+    asio::async_read(socket_, asio::buffer(&head_, sizeof(head_)),
                      [this, self](std::error_code ec, std::size_t) {
                          if (!ec) {
-                             if (ValidRPCMagic(preface_)) {
-                                 readRPCHead();
+                             head_.Decode();
+                             auto ret = head_.Valid();
+                             if (ret.ok()) {
+                                 readBody();
                              } else {
-                                 parseCmdLine(0);
-                                 readCmdLine();
+                                 FLOG_ERROR("%s invalid rpc head: %s", id_.c_str(), ret.ToString().c_str());
+                                 doClose();
                              }
                          } else {
-                             FLOG_ERROR("%s read perface error: %s", id_.c_str(),
-                                        ec.message().c_str());
-                         }
-                     });
-}
-
-void Session::readRPCHead() {
-    void* buf = &rpc_head_;
-    size_t buf_size = sizeof(rpc_head_);
-    if (preface_remained_ > 0) {
-        buf = static_cast<char*>(buf) + preface_.size();
-        buf_size -= preface_.size();
-        preface_remained_ = 0;
-    }
-    auto self(shared_from_this());
-    asio::async_read(socket_, asio::buffer(buf, buf_size),
-                     [this, self](std::error_code ec, std::size_t) {
-                         if (!ec) {
-                             rpc_head_.Decode();
-                             if (rpc_head_.Valid()) {
-                                 readRPCBody();
+                             if (ec == asio::error::eof) {
+                                 FLOG_INFO("%s read rpc head error: %s", id_.c_str(),
+                                            ec.message().c_str());
                              } else {
-                                 FLOG_ERROR("%s invalid rpc head: %s", id_.c_str(),
-                                            rpc_head_.DebugString().c_str());
+                                 FLOG_ERROR("%s read rpc head error: %s", id_.c_str(),
+                                            ec.message().c_str());
                              }
-                         } else {
-                             FLOG_ERROR("%s read rpc head error: %s", id_.c_str(),
-                                        ec.message().c_str());
+                             doClose();
                          }
                      });
 }
 
-void Session::readRPCBody() {
-    rpc_body_.resize(rpc_head_.body_length);
-    auto self(shared_from_this());
-    asio::async_read(socket_, asio::buffer(rpc_body_.data(), rpc_body_.size()),
-                     [this, self](std::error_code ec, std::size_t) {
-                         if (!ec) {
-                             msg_handler_.rpc_handler(msg_ctx_, rpc_head_,
-                                                      std::move(rpc_body_));
-                             readRPCHead();
-                         } else {
-                             FLOG_ERROR("%s read rpc body error: %s", id_.c_str(),
-                                        ec.message().c_str());
-                         }
-                     });
-}
-
-void Session::parseCmdLine(std::size_t length) {
-    std::string cmdline;
-    // consume preface
-    if (preface_remained_ > 0) {
-        assert(preface_remained_ <= 4);
-        uint8_t ch = static_cast<uint8_t>('\n');
-        for (int i = 4 - preface_remained_; i < 4; ++i) {
-            if (preface_[i] == ch) {
-                preface_remained_ -= (cmdline.size() + 1);
-                msg_handler_.telnet_handler(msg_ctx_, std::move(cmdline));
-                cmdline.clear();
-            } else {
-                cmdline.push_back(static_cast<char>(preface_[i]));
-            }
+void Session::readBody() {
+    if (head_.body_length == 0) {
+        if (head_.func_id == kHeartbeatFuncID) { // response heartbeat
+            auto msg = NewMessage();
+            msg->head.SetResp(head_);
+            Write(msg);
         }
+        readHead();
+        return;
     }
-    if (length > 0) {
-        preface_remained_ = 0;
-        cmdline.append(asio::buffer_cast<const char*>(cmdline_buffer_.data()), length);
-        msg_handler_.telnet_handler(msg_ctx_, std::move(cmdline));
-        cmdline_buffer_.consume(length);
-    }
+
+    body_.resize(head_.body_length);
+    auto self(shared_from_this());
+    asio::async_read(socket_, asio::buffer(body_.data(), body_.size()),
+                     [this, self](std::error_code ec, std::size_t) {
+                         if (!ec) {
+                             auto msg = NewMessage();
+                             msg->head = head_;
+                             msg->body = std::move(body_);
+                             handler_(session_ctx_, msg);
+
+                             readHead();
+                         } else {
+                             if (ec == asio::error::eof) {
+                                 FLOG_INFO("%s read rpc body error: %s", id_.c_str(),
+                                            ec.message().c_str());
+                             } else {
+                                 FLOG_ERROR("%s read rpc body error: %s", id_.c_str(),
+                                            ec.message().c_str());
+                             }
+                             doClose();
+                         }
+                     });
 }
 
-void Session::readCmdLine() {
+void Session::doWrite() {
     auto self(shared_from_this());
-    asio::async_read_until(socket_, cmdline_buffer_, '\n',
-                           [this, self](std::error_code ec, std::size_t length) {
-                               if (!ec) {
-                                   parseCmdLine(length);
-                                   readCmdLine();
-                               } else {
-                                   FLOG_ERROR("%s read cmdline error: %s", id_.c_str(),
-                                              ec.message().c_str());
-                               }
-                           });
+
+    // prepare write buffer
+    auto msg = write_msgs_.front();
+    msg->head.body_length = static_cast<uint32_t>(msg->body.size());
+    msg->head.Encode();
+    std::vector<asio::const_buffer> buffers{
+        asio::buffer(&msg->head, sizeof(msg->head)),
+        asio::buffer(msg->body.data(), msg->body.size())
+    };
+
+    asio::async_write(socket_, buffers,
+                      [this, self](std::error_code ec, std::size_t /*length*/) {
+                          if (!ec) {
+                              write_msgs_.pop_front();
+                              if (!write_msgs_.empty()) {
+                                  doWrite();
+                              }
+                          } else {
+                              FLOG_ERROR("%s write message error: %s", id_.c_str(), ec.message().c_str());
+                              doClose();
+                          }
+                      });
+}
+
+void Session::Write(const MessagePtr& msg) {
+    auto self(shared_from_this());
+    asio::post(socket_.get_io_context(), [self, msg] {
+        bool write_in_progress = !self->write_msgs_.empty();
+        self->write_msgs_.push_back(msg);
+        if (!write_in_progress) {
+            self->doWrite();
+        }
+    });
 }
 
 } /* net */

@@ -491,17 +491,14 @@ void AddDescriptorsImpl() {
       "\n\021LONG_TIME_RUNNING\020\001*n\n\022NodeRangeAlarmT"
       "ype\022\026\n\022RANGE_NO_HEARTBEAT\020\000\022\025\n\021NODE_NO_H"
       "EARTBEAT\020\001\022\022\n\016NODE_DISK_SIZE\020\002\022\025\n\021NODE_L"
-      "EADER_COUNT\020\0032\243\002\n\005Alarm\022D\n\tTaskAlarm\022\031.a"
-      "larmpb.TaskAlarmRequest\032\032.alarmpb.TaskAl"
-      "armResponse\"\000\022S\n\016NodeRangeAlarm\022\036.alarmp"
-      "b.NodeRangeAlarmRequest\032\037.alarmpb.NodeRa"
-      "ngeAlarmResponse\"\000\022=\n\nAliveAlarm\022\025.alarm"
-      "pb.AliveRequest\032\026.alarmpb.AliveResponse\""
-      "\000\022@\n\013SimpleAlarm\022\026.alarmpb.SimpleRequest"
-      "\032\027.alarmpb.SimpleResponse\"\000b\006proto3"
+      "EADER_COUNT\020\0032\236\001\n\005Alarm\022S\n\016NodeRangeAlar"
+      "m\022\036.alarmpb.NodeRangeAlarmRequest\032\037.alar"
+      "mpb.NodeRangeAlarmResponse\"\000\022@\n\013SimpleAl"
+      "arm\022\026.alarmpb.SimpleRequest\032\027.alarmpb.Si"
+      "mpleResponse\"\000b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 2235);
+      descriptor, 2102);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "alarmpb.proto", &protobuf_RegisterTypes);
   ::taskpb::protobuf_taskpb_2eproto::AddDescriptors();

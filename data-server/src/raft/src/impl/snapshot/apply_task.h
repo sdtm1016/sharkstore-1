@@ -17,7 +17,7 @@ namespace impl {
 class ApplySnapTask : public SnapTask {
 public:
     struct Options {
-        size_t wait_data_timeout_secs = 0;
+        size_t wait_data_timeout_secs = 10;
     };
 
     ApplySnapTask(const SnapContext& context,
@@ -31,6 +31,8 @@ public:
 
     void Cancel() override;
     bool IsCanceled() const { return canceled_; }
+
+    std::string Description() const override;
 
 private:
     void run(SnapResult* result) override;
@@ -46,7 +48,7 @@ private:
     Options opt_;
 
     std::atomic<bool> canceled_ = {false};
-    int64_t prev_seq_ = 0;
+    std::atomic<int64_t> prev_seq_ = {0};
     MessagePtr next_data_;
     mutable std::mutex mu_;
     std::condition_variable cv_;

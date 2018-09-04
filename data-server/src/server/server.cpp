@@ -5,15 +5,15 @@
 
 #include "common/ds_config.h"
 #include "common/socket_session_impl.h"
-#include "frame/sf_logger.h"
 
-#include "version.h"
-#include "manager.h"
-#include "master/worker.h"
+#include "master/worker_impl.h"
+#include "admin/admin_server.h"
+
 #include "node_address.h"
 #include "raft_logger.h"
 #include "range_server.h"
 #include "run_status.h"
+#include "version.h"
 #include "worker.h"
 
 namespace sharkstore {
@@ -24,7 +24,6 @@ DataServer::DataServer() {
     context_ = new ContextServer;
 
     context_->worker = new Worker;
-    context_->manager = new Manager;
 
     context_->run_status = new RunStatus;
     context_->range_server = new RangeServer;
@@ -34,66 +33,45 @@ DataServer::DataServer() {
     std::vector<std::string> ms_addrs;
     for (int i = 0; i < ds_config.hb_config.master_num; i++) {
         if (ds_config.hb_config.master_host[i][0] != '\0') {
-            ms_addrs.push_back(ds_config.hb_config.master_host[i]);
+            ms_addrs.emplace_back(ds_config.hb_config.master_host[i]);
         }
     }
     context_->master_worker =
-        new master::Worker(ms_addrs, ds_config.hb_config.node_interval);
+        new master::WorkerImpl(ms_addrs, ds_config.hb_config.node_interval);
 }
 
 DataServer::~DataServer() {
-    if (context_->worker != nullptr) {
-        delete context_->worker;
-    }
-
-    if (context_->manager != nullptr) {
-        delete context_->manager;
-    }
-
-    if (context_->master_worker != nullptr) {
-        delete context_->master_worker;
-    }
-
-    if (context_->run_status != nullptr) {
-        delete context_->run_status;
-    }
-
-    if (context_->range_server != nullptr) {
-        delete context_->range_server;
-    }
-
-    if (context_->socket_session != nullptr) {
-        delete context_->socket_session;
-    }
-
-    if (context_->raft_server != nullptr) {
-        delete context_->raft_server;
-    }
-
+    delete context_->worker;
+    delete context_->master_worker;
+    delete context_->run_status;
+    delete context_->range_server;
+    delete context_->socket_session;
+    delete context_->raft_server;
     delete context_;
 }
 
 bool DataServer::startRaftServer() {
+    print_raft_config();
+
     raft::SetLogger(new RaftLogger());
 
     // 初始化 raft server
     raft::RaftServerOptions ops;
 
     ops.node_id = context_->node_id;
-    ops.consensus_threads_num = ds_config.raft_config.consensus_threads;
+    ops.consensus_threads_num =
+        static_cast<uint8_t>(ds_config.raft_config.consensus_threads);
     ops.consensus_queue_capacity = ds_config.raft_config.consensus_queue;
-    ops.apply_threads_num = ds_config.raft_config.apply_threads;
+    ops.apply_threads_num = static_cast<uint8_t>(ds_config.raft_config.apply_threads);
     ops.apply_queue_capacity = ds_config.raft_config.apply_queue;
-    ops.tick_interval =
-        std::chrono::milliseconds(ds_config.raft_config.tick_interval_ms);
+    ops.tick_interval = std::chrono::milliseconds(ds_config.raft_config.tick_interval_ms);
     ops.max_size_per_msg = ds_config.raft_config.max_msg_size;
 
-    ops.transport_options.listen_port = ds_config.raft_config.port;
-    ops.transport_options.send_io_threads =
-        ds_config.raft_config.transport_send_threads;
-    ops.transport_options.recv_io_threads =
-        ds_config.raft_config.transport_recv_threads;
-    ops.transport_options.resolver = std::make_shared<NodeAddress>();
+    ops.transport_options.listen_port = static_cast<uint16_t>(ds_config.raft_config.port);
+    ops.transport_options.send_io_threads = ds_config.raft_config.transport_send_threads;
+    ops.transport_options.recv_io_threads = ds_config.raft_config.transport_recv_threads;
+    ops.transport_options.resolver =
+        std::make_shared<NodeAddress>(context_->master_worker);
 
     auto rs = raft::CreateRaftServer(ops);
     context_->raft_server = rs.release();
@@ -114,10 +92,12 @@ int DataServer::Init() {
     // GetNodeId from master server
     bool clearup = false;
     uint64_t node_id = 0;
-    auto s = context_->master_worker->GetNodeId(
-        ds_config.raft_config.port, ds_config.worker_config.port,
-        ds_config.manager_config.port, version, &node_id, &clearup);
-
+    mspb::GetNodeIdRequest req;
+    req.set_server_port(static_cast<uint32_t>(ds_config.worker_config.port));
+    req.set_raft_port(static_cast<uint32_t>(ds_config.raft_config.port));
+    req.set_admin_port(static_cast<uint32_t>(ds_config.manager_config.port));
+    req.set_version(version);
+    auto s = context_->master_worker->GetNodeId(req, &node_id, &clearup);
     if (!s.ok()) {
         FLOG_ERROR("GetNodeId failed. %s", s.ToString().c_str());
         return -1;
@@ -140,13 +120,11 @@ int DataServer::Init() {
         return -1;
     }
 
-    if (context_->manager->Init(context_) != 0) {
-        return -1;
-    }
-
     if (context_->run_status->Init(context_) != 0) {
         return -1;
     }
+
+    admin_server_.reset(new admin::AdminServer(context_));
 
     return 0;
 }
@@ -160,7 +138,9 @@ int DataServer::Start() {
         return -1;
     }
 
-    if (context_->manager->Start() != 0) {
+    auto ret = admin_server_->Start(ds_config.manager_config.port);
+    if (!ret.ok()) {
+        FLOG_ERROR("start admin server failed: %s", ret.ToString().c_str());
         return -1;
     }
 
@@ -187,11 +167,12 @@ int DataServer::Start() {
 }
 
 void DataServer::Stop() {
+    if (admin_server_) {
+        admin_server_->Stop();
+    }
+
     if (context_->worker != nullptr) {
         context_->worker->Stop();
-    }
-    if (context_->manager != nullptr) {
-        context_->manager->Stop();
     }
     if (context_->range_server != nullptr) {
         context_->range_server->Stop();

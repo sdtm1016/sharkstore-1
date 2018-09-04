@@ -41,6 +41,13 @@ else()
 endif()
 MESSAGE(STATUS CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
 
+OPTION(BLOB_EXTEND_OPTIONS "Enable blob extend options" OFF)
+MESSAGE(STATUS BLOB_EXTEND_OPTIONS=${BLOB_EXTEND_OPTIONS})
+if(BLOB_EXTEND_OPTIONS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBLOB_EXTEND_OPTIONS")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBLOB_EXTEND_OPTIONS")
+endif()
+
 # use gcov
 OPTION (ENABLE_COVERAGE "Use gcov" OFF)
 MESSAGE(STATUS ENABLE_COVERAGE=${ENABLE_COVERAGE})
@@ -67,7 +74,6 @@ endif()
 
 message(STATUS "CMAKE_C_FLAGS: " ${CMAKE_C_FLAGS})
 message(STATUS "CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
-
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/raft/include)
@@ -140,14 +146,15 @@ set(SOURCES
     src/server/callback.cpp
     src/server/server.cpp
     src/server/worker.cpp
-    src/server/manager.cpp
     src/server/node_address.cpp
     src/server/raft_logger.cpp
     src/server/run_status.cpp
+    src/server/range_context_impl.cpp
     src/server/range_server.cpp
     src/server/version.cpp
     src/range/range.cpp
     src/range/lock.cpp
+    src/range/meta_keeper.cpp
     src/range/raw_get.cpp
     src/range/raw_put.cpp
     src/range/raw_delete.cpp
@@ -155,9 +162,13 @@ set(SOURCES
     src/range/insert.cpp
     src/range/delete.cpp
     src/range/split.cpp
+    src/range/split_policy.cpp
     src/range/peer.cpp
     src/range/snapshot.cpp
     src/range/kv_funcs.cpp
+	src/range/watch.cpp
+	src/range/watch_funcs.cpp
+    src/range/submit.cpp
     src/storage/aggregate_calc.cpp
     src/storage/field_value.cpp
     src/storage/iterator.cpp
@@ -166,14 +177,25 @@ set(SOURCES
     src/storage/row_decoder.cpp
     src/storage/row_fetcher.cpp
     src/storage/store.cpp
+    src/storage/store_watch.cpp
     src/master/client.cpp
     src/master/connection.cpp
     src/master/rpc_types.cpp
-    src/master/worker.cpp
+    src/master/worker_impl.cpp
     src/monitor/isystemstatus.cpp
     src/monitor/datacacl.cpp
     src/monitor/encodedata.cpp
+    src/monitor/histogram.cpp
     src/monitor/rangedata.cpp
+	src/watch/watcher.cpp
+	src/watch/watcher_set.cpp
+	src/watch/watch_server.cpp
+	src/watch/watch_event_buffer.cpp
+    src/monitor/statistics.cpp
+    src/admin/admin_server.cpp
+    src/admin/get_config.cpp
+    src/admin/get_info.cpp
+    src/admin/set_config.cpp
 )
 
 if (APPLE)
@@ -191,21 +213,16 @@ add_subdirectory(src/common)
 add_subdirectory(src/frame)
 add_subdirectory(src/proto)
 add_subdirectory(src/raft)
-add_subdirectory(src/tool)
-
-OPTION (BUILD_NET "build sharkstore net" OFF)
-MESSAGE(STATUS BUILD_NET=${BUILD_NET})
-if (BUILD_NET)
-    add_subdirectory(src/net)
-endif()
+add_subdirectory(src/net)
 
 set (depend_LIBRARYS
-    sharkstore-base
-    sharkstore-proto 
+    sharkstore-proto
     sharkstore-raft
+    sharkstore-net
     sharkstore-common
     sharkstore-frame
     sharkstore-lkqueue
+    sharkstore-base
     ${PROTOBUF_LIBRARY}
     ${GRPC_LIB}
     ${GRPC_CPP_LIB}
@@ -226,7 +243,7 @@ foreach(f IN LISTS SOURCES)
         COMPILE_DEFINITIONS "__FNAME__=\"${fname}\"") 
 endforeach() 
 
-add_executable(data-server ${SOURCES})
+add_executable(data-server ${SOURCES} src/watch/watch_event_buffer.cpp)
 target_link_libraries(data-server ${depend_LIBRARYS})
 
 add_custom_target(
@@ -247,4 +264,11 @@ if (BUILD_TEST)
     include_directories(${GTEST_INCLUDE_DIRS})
     add_library(sharkstore-ds-shared SHARED ${SOURCES})
     add_subdirectory(test)
+endif()
+
+
+OPTION(BUILD_TOOL "build sharstore tools" OFF)
+MESSAGE(STATUS BUILD_TOOL=${BUILD_TOOL})
+if (BUILD_TOOL)
+    add_subdirectory(tools)
 endif()
