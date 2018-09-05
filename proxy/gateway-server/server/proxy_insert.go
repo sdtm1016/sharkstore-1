@@ -102,7 +102,9 @@ func (p *Proxy) HandleInsert(db string, stmt *sqlparser.Insert, args []interface
 			row = append(row, []byte(fmt.Sprintf("%v", ids[i])))
 			rows[i] = row
 		}
-		lasInsertId = uint64(ids[len(rows)-1])
+		//insert multiple rows, returns the value generated for the first inserted row only
+		//see http://dev.mysql.com/doc/refman/5.6/en/information-functions.html#function_last-insert-id
+		lasInsertId = uint64(ids[0])
 	}
 
 	//parseTime = time.Now()

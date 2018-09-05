@@ -300,6 +300,7 @@ int RangeServer::OpenDB() {
         bops.min_blob_size = static_cast<uint64_t>(ds_config.rocksdb_config.min_blob_size);
         bops.enable_garbage_collection = ds_config.rocksdb_config.enable_garbage_collection;
         bops.blob_file_size = ds_config.rocksdb_config.blob_file_size;
+        bops.ttl_range_secs = ds_config.rocksdb_config.blob_ttl_range;
         // compress
         auto compress_type =
                 static_cast<rocksdb::CompressionType>(ds_config.rocksdb_config.blob_compression);
@@ -317,10 +318,13 @@ int RangeServer::OpenDB() {
                 (void)bops.compression;
         }
 
-
 #ifdef BLOB_EXTEND_OPTIONS
         bops.gc_file_expired_percent = ds_config.rocksdb_config.blob_gc_percent;
+        if (ds_config.rocksdb_config.blob_cache_size > 0) {
+            bops.blob_cache = rocksdb::NewLRUCache(ds_config.rocksdb_config.blob_cache_size);
+        }
 #endif
+
         rocksdb::blob_db::BlobDB *bdb = nullptr;
         auto ret = rocksdb::blob_db::BlobDB::Open(ops, bops, db_path, &bdb);
         if (!ret.ok()){

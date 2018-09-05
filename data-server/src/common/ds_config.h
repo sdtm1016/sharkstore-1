@@ -41,6 +41,8 @@ typedef struct ds_config_s {
         bool enable_garbage_collection;
         int blob_gc_percent;
         int blob_compression;
+        size_t blob_cache_size;
+        uint64_t blob_ttl_range; // in seconds
         int ttl;
         bool enable_stats;
         bool enable_debug_log;

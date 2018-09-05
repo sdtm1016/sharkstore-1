@@ -60,6 +60,8 @@ static const ConfigGeterMap cfg_getters = {
         ADD_CFG_GETTER(rocksdb, enable_garbage_collection),
         ADD_CFG_GETTER(rocksdb, blob_gc_percent),
         ADD_CFG_GETTER(rocksdb, blob_compression),
+        ADD_CFG_GETTER(rocksdb, blob_ttl_range),
+        ADD_CFG_GETTER(rocksdb, blob_cache_size),
         ADD_CFG_GETTER(rocksdb, ttl),
         ADD_CFG_GETTER(rocksdb, enable_stats),
         ADD_CFG_GETTER(rocksdb, enable_debug_log),
