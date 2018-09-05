@@ -257,6 +257,7 @@ func testProxyInsert(t *testing.T, p *Proxy, expectedAffected uint64, sql string
 		time.Sleep(time.Second)
 		t.Fatalf("insert failed. unexpectecd affected rows: %v, expected: %v", res.AffectedRows, expectedAffected)
 	}
+	t.Logf("insert lastInsert id: %v", res.InsertId)
 }
 
 func testProxyDelete(t *testing.T, p *Proxy, expectAffected uint64, sql string) {

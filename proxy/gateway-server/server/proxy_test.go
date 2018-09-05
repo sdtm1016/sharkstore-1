@@ -12,6 +12,8 @@ import (
 	"util/log"
 	"util/deepcopy"
 	"model/pkg/metapb"
+	"database/sql"
+	"util/assert"
 )
 
 //
@@ -1821,5 +1823,39 @@ func TestAllDeleteRoutChange(t *testing.T) {
 	expected = [][]string{
 	}
 	testProxySelect(t, p, expected, "select * from "+testTableName)
+}
 
+func TestSqlDriver_Insert(t *testing.T) {
+	s, err := mockGwServer()
+	if err != nil {
+		t.Fatalf("init server failed, err[%v]", err)
+	}
+	go s.Run()
+
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8", s.cfg.User, s.cfg.Password,
+		"192.168.108.111", s.cfg.SqlPort, "test"))
+	if err != nil {
+		t.Fatalf("Fail to initialize mysql")
+	}
+
+	res, err := db.Exec("insert into test(id, name, balance) values (1, 'maggie', 10.1)")
+	if err != nil {
+		t.Fatalf("db exec is failed. err:[%v]", err)
+	}
+	lastId, err := res.LastInsertId()
+	if err != nil {
+		t.Fatalf("insert error: %v", err)
+	}
+	assert.Equal(t, lastId, int64(0), "no auto_increment")
+
+	res, err = db.Exec("insert into test2(name, balance) values ('maggie', 10.33)")
+	if err != nil {
+		t.Fatalf("db exec is failed. err:[%v]", err)
+	}
+	lastId, err = res.LastInsertId()
+	if err != nil {
+		t.Fatalf("insert error: %v", err)
+	}
+	assert.NotEqual(t, lastId, int64(0), "auto_increment")
+	t.Logf("%v", lastId)
 }
