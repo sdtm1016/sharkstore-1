@@ -375,7 +375,7 @@ app.controller('myClusterNodeInfo', function ($rootScope, $scope, $http, $timeou
                         "<button id=\"deleteNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"删除\" onclick=\"deleteNode(" + row.id + ");\">删除</button>&nbsp;&nbsp;",
                         "<button id=\"updateNodeLogLevel\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改日志级别\" onclick=\"updateNodeLogLevel('" + row.id + "');\">设置日志级别</button>&nbsp;&nbsp;",
                         "<button id=\"getRangeTopoOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"查看range\" onclick=\"getRangeTopoOfNode('" + row.id + "');\">查看range</button>&nbsp;&nbsp;",
-                        "<button id=\"updateIsolationLabel\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改隔离标识\" onclick=\"updateIsolationLabel('"+row.id+"');\">修改隔离标识/button>&nbsp;&nbsp;",
+                        "<button id=\"updateIsolationLabel\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"修改隔离标识\" onclick=\"updateIsolationLabel('"+row.id+"');\">修改隔离标识</button>&nbsp;&nbsp;",
                         "<button id=\"getConfigOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"查看config\" onclick=\"getConfigOfNode('" + row.id + "');\">查看config</button>&nbsp;&nbsp;",
                         "<button id=\"setConfigOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"设置config\" onclick=\"setConfigOfNode('" + row.id + "');\">设置config</button>&nbsp;&nbsp;",
                         "<button id=\"getDsInfoOfNode\" class=\"btn btn-primary btn-rounded\" type=\"button\" value==\"DS运行信息\" onclick=\"getDsInfoOfNode('" + row.id + "');\">DS运行信息</button>&nbsp;&nbsp;",
@@ -685,25 +685,31 @@ function updateIsolationLabel(nodeId) {
             closeOnConfirm: false
         },
         function (inputValue) {
+            if (inputValue === false) return;
             var clusterId = $('#clusterId').val();
             var isolationLabel = inputValue;
-            if (isolationLabel == "" || isolationLabel == null) {
+            if (inputValue === "") {
+                //swal.showInputError("请输入");
+                //return
                 swal({
                         title: "Node隔离标志",
                         text: "为空则代表公共Node，是否继续？",
+                        type: "warning",
                         showCancelButton: true,
+                        cancelButtonText: "返回修改",
                         confirmButtonColor: "#DD6B55",
-                        confirmButtonText: "继续修改",
+                        confirmButtonText: "确认为空并继续",
                         closeOnConfirm: false
                     },
-                    goAndUpdateNodeIsolationLabel(clusterId, nodeId, isolationLabel)
-                );
+                    function () {
+                        goAndUpdateNodeIsolationLabel(clusterId, nodeId, isolationLabel)
+                    });
 
-            } else {
-                goAndUpdateNodeIsolationLabel(clusterId, nodeId, isolationLabel)
+                return;
             }
-        }
-    );
+
+            goAndUpdateNodeIsolationLabel(clusterId, nodeId, isolationLabel)
+        });
 }
 
 function getConfigOfNode(nodeId) {
@@ -1086,8 +1092,31 @@ function getMonitorUrl(dashboardName, panelId, clusterId, startTime, endTime, ty
 }
 
 function goAndUpdateNodeIsolationLabel(clusterId, nodeId, isolationLabel) {
-    window.location.href = "/node/updateIsolationLabel?clusterId=" + clusterId + "&nodeId=" + nodeId + "&isolationLabel=" + isolationLabel;
-    window.location.reload();
+    $.ajax({
+        url: "/node/updateIsolationLabel",
+        type: "post",
+        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        dataType: "json",
+        data: {
+            "nodeId": nodeId,
+            "clusterId": clusterId,
+            "isolationLabel": isolationLabel
+        },
+        success: function (data) {
+            if (data.code === 0) {
+                swal({title: "Success! ", text: "设置成功!", type: "success"},
+                    function () {
+                        location.reload();
+                    }
+                );
+            } else {
+                swal("设置失败！", data.msg, "error");
+            }
+        },
+        error: function (res) {
+            swal("设置失败！", res, "error");
+        }
+    });
 }
 
 

@@ -373,7 +373,7 @@ func (ctrl *EditTablePolicy) Execute(c *gin.Context) (interface{}, error) {
 		return nil, common.PARSE_PARAM_ERROR
 	}
 	log.Debug("-----------EditTablePolicy dbname:[%v]", dbName)
-	tableName := c.PostForm("name")
+	tableName := c.PostForm("tableName")
 	if tableName == "" {
 		return nil, common.PARSE_PARAM_ERROR
 	}

@@ -47,13 +47,13 @@
         <tr class="jsgrid-header-row">
             <th style="width: 20%;">表名</th>
             <th style="width: 20%;">隔离标识</th>
-            <th style="width: 60%;">预分裂key</th>
+            <th style="width: 45%;">预分裂key</th>
             <th style="width: 15%;">读写策略</th>
         </tr>
         <tr class="jsgrid-filter-row">
             <td style="width: 20%;"><input type="text" id="name" value=""></td>
-            <td style="width: 20%;"><input type="text" id="isolationLabel" value="" placeholder="为空则选全部node"></td>
-            <td style="width: 60%;"><input type="text" id="rangeKeys" value="" placeholder="输入预分裂key以逗号(,)分割"></td>
+            <td style="width: 20%;"><input type="text" id="isolationLabel" value="" placeholder="可以为空"></td>
+            <td style="width: 45%;"><input type="text" id="rangeKeys" value="" placeholder="输入预分裂key以逗号(,)分割"></td>
             <td style="width: 15%;">
                 <select id="policy">
                     <option value="0">仅master读</option>

@@ -287,31 +287,31 @@ func (p *KvProxy) do(bo *Backoffer, req *Request, key []byte) (resp *Response, l
 	var reqHeader *kvrpcpb.RequestHeader
 	//var pErr *errorpb.Error
 
+	l, err = p.RangeCache.LocateKey(bo, key)
+	if err != nil {
+		log.Error("locate key=%v failed, err=%v", key, err)
+		return
+	}
 
-		l, err = p.RangeCache.LocateKey(bo, key)
-
-		readNodeId := l.NodeId
-		if req.Type == Type_Select && req.SelectReq.Req.ReadPoint == metapb.ReadFromNode_ReadFromFollower {
-			foundRange := p.RangeCache.getRegionByIDFromCache(l.Region.Id)
-			for _, _p := range foundRange.meta.Peers {
-				if  _p.NodeId != l.NodeId {
-					readNodeId = _p.NodeId
-					for _, peer_status := range foundRange.peerStatus {
-						if _p.Id == peer_status.Peer.Id {
-							// todo the period of updating peer index
-							req.SelectReq.Req.PeerStatus = peer_status
-							break
-						}
+	readNodeId := l.NodeId
+	if req.Type == Type_Select && req.SelectReq.Req.ReadPoint == metapb.ReadFromNode_ReadFromFollower {
+		foundRange := p.RangeCache.getRegionByIDFromCache(l.Region.Id)
+		for _, _p := range foundRange.meta.Peers {
+			if _p.NodeId != l.NodeId {
+				readNodeId = _p.NodeId
+				for _, peer_status := range foundRange.peerStatus {
+					if _p.Id == peer_status.Peer.Id {
+						// todo the period of updating peer index
+						req.SelectReq.Req.PeerStatus = peer_status
+						break
 					}
-					break
 				}
+				break
 			}
 		}
-		if err != nil {
-			log.Error("locate key=%v failed, err=%v", key, err)
-			return
-		}
-		addr, err = p.RangeCache.GetNodeAddr(bo, readNodeId)
+	}
+
+	addr, err = p.RangeCache.GetNodeAddr(bo, readNodeId)
 	if err != nil {
 		log.Error("locate node=%d failed, err=%v", readNodeId, err)
 		return

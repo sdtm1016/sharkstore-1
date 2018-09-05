@@ -175,9 +175,10 @@ app.controller('mytables', function($rootScope, $scope, $http, $timeout) {
 		});
 	};
     //设置表读写策略
-    $scope.rwPolicys = function(table) {
-    	var policyObject = {};
-    	policyObject.policy = parseInt(table.RwPolicy.policy);
+    $scope.rwPolicys = function (table) {
+        //var policyObject = {};
+        //policyObject.policy = parseInt(table.RwPolicy.policy);
+        var policy = parseInt(table.RwPolicy.policy);
         swal({
                 title: "确定修改Table读取策略?",
                 type: "warning",
@@ -186,30 +187,34 @@ app.controller('mytables', function($rootScope, $scope, $http, $timeout) {
                 confirmButtonText: "修改",
                 closeOnConfirm: false
             },
-			function() {
-                $.ajax({
-                    url:"/metadata/tableRwPolicy",
-                    type:"post",
-                    contentType:"application/x-www-form-urlencoded; charset=UTF-8",
-                    dataType:"json",
-                    data:{
-                        "option":"set",
-                        "clusterId":clusterId,
-                        "dbName":table.db_name,
-                        "tableName":table.name,
-                        "policy":JSON.stringify(policyObject)
-                    },
-                    success: function(data){
-                        if(data.attach.code === 0){
-                            swal("设置成功!", data.attach.message, "success");
-                        }else {
-                            swal("设置失败", data.attach.message, "error");
+            function (isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        url: "/metadata/tableRwPolicy",
+                        type: "post",
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        dataType: "json",
+                        data: {
+                            "option": "set",
+                            "clusterId": clusterId,
+                            "dbName": table.db_name,
+                            "tableName": table.name,
+                            "policy": policy
+                        },
+                        success: function (data) {
+                            if (data.code === 0) {
+                                swal("设置成功!", data.message, "success");
+                            } else {
+                                swal("设置失败", data.message, "error");
+                            }
+                        },
+                        error: function (res) {
+                            swal("设置失败", res, "error");
                         }
-                    },
-                    error: function(res){
-                        swal("设置失败", res, "error");
-                    }
-                });
+                    });
+                } else {
+                    location.reload();
+                }
             });
     };
 });

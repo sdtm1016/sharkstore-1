@@ -1193,7 +1193,7 @@ func (service *Server) handleNodeUpdateIsolationLabel(w http.ResponseWriter, r *
 
 	isolationLabel := r.FormValue(HTTP_ISOLATION_LABEL)
 	if isolationLabel == "" {
-		log.Warn("updating node isolation label to empty: nodeId=%s", nodeId)
+		log.Warn("updating node isolation label to empty: nodeId=%d", nodeId)
 		//reply.Code = HTTP_ERROR_INVALID_PARAM
 		//reply.Message = http_error_invalid_parameter
 		//return
@@ -2034,7 +2034,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 		return
 	}
 	parseColumn(fbase_sql_apply)
-	_, err = cluster.CreateTable(fbase, "fbase_sql_apply", fbase_sql_apply, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_sql_apply", isolationLabel, 0, fbase_sql_apply,nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_sql_apply", err)
 		reply.Code = HTTP_ERROR
@@ -2052,7 +2052,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 	}
 	//configure namespace
 	parseColumn(fbase_configure_nsp)
-	_, err = cluster.CreateTable(fbase, "fbase_configure_nsp", fbase_configure_nsp, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_configure_nsp", isolationLabel, 0, fbase_configure_nsp, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_configure_nsp", err)
 		reply.Code = HTTP_ERROR
@@ -2236,16 +2236,19 @@ func (service *Server) handleTableEditPolicy(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	table.Table.ReadFromNode = cluster.int2ReadFromNode(int32(policy))
-	err := cluster.storeTable(table.Table)
+	//table.Table.ReadFromNode = cluster.int2ReadFromNode(int32(policy))
+	newTable := deepcopy.Iface(table.Table).(*metapb.Table)
+	newTable.ReadFromNode = cluster.int2ReadFromNode(int32(policy))
+	err := cluster.storeTable(newTable)
 	if err != nil {
 		reply.Code = HTTP_ERROR
 		reply.Message = err.Error()
 		log.Error("store table failed, err[%v]", err)
 		return
 	}
+	table.Table = newTable
 
-	log.Info("edit table policy[%s:%s] success", dbName, tName)
+	log.Info("edit db:table[%s:%s] to policy[%v] success", dbName, tName, table.Table.ReadFromNode)
 }
 
 func (service *Server) handleNodeDelete(w http.ResponseWriter, r *http.Request) {

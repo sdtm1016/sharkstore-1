@@ -816,7 +816,7 @@ func (r *Router) StartRouter() *gin.Engine {
 		router.GET(controllers.NODE_GET_RANGE_TOPOLOGY, func(c *gin.Context) {
 			handleAction(c, controllers.NewNodeRangeTopo())
 		})
-		router.GET(controllers.NODE_UPDATE_ISOLATION_LABEL, func(c *gin.Context) {
+		router.POST(controllers.NODE_UPDATE_ISOLATION_LABEL, func(c *gin.Context) {
 			handleAction(c, controllers.NewUpdateIsolationLabel())
 		})
 		router.POST(controllers.NODE_GET_CONFIG, func(c *gin.Context) {

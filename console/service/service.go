@@ -443,7 +443,7 @@ func (s *Service) EditTable(cId int, dbName, tableName, rangeKeys string, column
 	return nil
 }
 
-func (s *Service) EditTablePolicy(cId int, dbName, tableName string, readPolicy int32) error {
+func (s *Service) EditTablePolicy(cId int, dbName, tableName string, readPolicy int) error {
 	info, err := s.selectClusterById(cId)
 	if err != nil {
 		return err
@@ -460,7 +460,7 @@ func (s *Service) EditTablePolicy(cId int, dbName, tableName string, readPolicy 
 	reqParams["s"] = sign
 	reqParams["dbName"] = dbName
 	reqParams["tableName"] = tableName
-	reqParams["readPolicy"] = readPolicy
+	reqParams["policy"] = readPolicy
 
 	var editTablePolicyResp = struct {
 		Code int         `json:"code"`
@@ -2567,7 +2567,7 @@ func (s *Service) AuditLockNsp(ids []string, status int, auditor string) error {
 				return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: fmt.Sprintf("exist table %v in cluster %v", info.TableName, info.ClusterId)}
 			}
 
-			tableInfo, err := s.CreateTable(info.ClusterId, info.DbName, info.TableName, "", "", Columns, nil)
+			tableInfo, err := s.CreateTable(info.ClusterId, info.DbName, info.TableName, "", "", "", Columns, nil)
 			if err != nil {
 				log.Warn("create lock  table %v on cluster %v failed, err: %v", info.TableName, info.ClusterId, err)
 				return err
@@ -2958,7 +2958,7 @@ func (s *Service) AuditConfigureNsp(ids []string, status int, auditor string) er
 				return &common.FbaseError{Code: common.INTERNAL_ERROR.Code, Msg: fmt.Sprintf("exist table %v in cluster %v", info.TableName, info.ClusterId)}
 			}
 
-			tableInfo, err := s.CreateTable(info.ClusterId, info.DbName, info.TableName, "", "", Columns, nil)
+			tableInfo, err := s.CreateTable(info.ClusterId, info.DbName, info.TableName, "", "", "", Columns, nil)
 			if err != nil {
 				log.Warn("create configure  table %v on cluster %v failed, err: %v", info.TableName, info.ClusterId, err)
 				return err

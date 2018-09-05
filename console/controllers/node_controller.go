@@ -193,9 +193,9 @@ func NewUpdateIsolationLabel() *UpdateIsolationLabel {
 }
 
 func (ctrl *UpdateIsolationLabel) Execute(c *gin.Context) (interface{}, error) {
-	cIdStr := c.Query("clusterId")
-	nIdStr := c.Query("nodeId")
-	isolationLabel := c.Query("isolationLabel")
+	cIdStr := c.PostForm("clusterId")
+	nIdStr := c.PostForm("nodeId")
+	isolationLabel := c.PostForm("isolationLabel")
 	if len(cIdStr) == 0 || len(nIdStr) == 0 {
 		return nil, common.PARSE_PARAM_ERROR
 	}

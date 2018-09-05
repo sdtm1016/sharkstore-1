@@ -379,6 +379,7 @@ func (c *Cluster) int2ReadFromNode(v int32) metapb.ReadFromNode {
 // step 1. create table
 // step 2. create range in remote
 // step 3. add range in cache and disk
+//todo too many args
 func (c *Cluster) CreateTable(dbName, tableName, isolationLabel string, readPoint int32, columns, regxs []*metapb.Column, pkDupCheck bool, sliceKeys [][]byte) (*Table, error) {
 	readFromNode := c.int2ReadFromNode(readPoint)
 	for _, col := range columns {
@@ -1385,7 +1386,8 @@ func (c *Cluster) selectBestNodesForAddPeer(rng *Range) []*Node {
 			tableIsolationLabel = table.Table.IsolationLabel
 		}
 
-		if tableIsolationLabel != "" && node.IsolationLabel != "" && tableIsolationLabel != node.IsolationLabel {
+		// select node with a same label
+		if len(tableIsolationLabel) != 0 && tableIsolationLabel != node.IsolationLabel {
 			continue
 		}
 		flag := true
@@ -1401,9 +1403,18 @@ func (c *Cluster) selectBestNodesForAddPeer(rng *Range) []*Node {
 		}
 	}
 
-	// none of the nodes selected (e.g. wrong isolation label)
+	// none of the nodes selected (try to select node with empty label)
 	if len(nodes) == 0 {
 		for _, node := range c.GetAllNode() {
+			var tableIsolationLabel string
+			table, found := c.FindTableById(rng.Range.TableId)
+			if found {
+				tableIsolationLabel = table.Table.IsolationLabel
+			}
+
+			if len(tableIsolationLabel) != 0 && len(node.IsolationLabel) != 0 {
+				continue
+			}
 			flag := true
 			for _, selector := range newSelectors {
 				if !selector.CanSelect(node) {

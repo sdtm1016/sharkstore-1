@@ -29,7 +29,7 @@
             <th class="regionCode" style="text-align: center; vertical-align: middle;width: 7%">数据库</th>
             <th class="regionCode" style="text-align: center; vertical-align: middle;width: 10%">表名</th>
             <th class="status" style="text-align: center; vertical-align: middle;width: 10%">状态</th>
-            <th class="isolationLabel" style="text-align: center; vertical-align: middle;width: 10%">隔离标识</th>
+            <th class="isolationLabel" style="text-align: center; vertical-align: middle;width: 10%">初始隔离标识</th>
             <th class="regionCode" style="text-align: center; vertical-align: middle;width: 10%">创建时间</th>
            <!-- <th class="isAutoextend"  style="text-align: center; vertical-align: middle;width: 5%">自动扩容</th>-->
            <!-- <th class="isAutoextend"  style="text-align: center; vertical-align: middle;width: 5%">自动failover</th>-->
@@ -62,12 +62,12 @@
                 </div>
             </td>-->
             <td style="vertical-align:middle; text-align:center;">
-                <div>{{table.read_from_node}}}</div>
                 <div>
-                    <select id="rwPolicy" ng-change="rwPolicys(table)" ng-model="table.RwPolicy.policy">
-                        <option value="1" ng-selected="table.RwPolicy.policy==1">读写分离</option>
-                        <option value="2" ng-selected="table.RwPolicy.policy==2">混合读</option>
-                        <option value="3" ng-selected="table.RwPolicy.policy==3">仅master读</option>
+                    <select id="rwPolicy" ng-change="rwPolicys(table)" ng-model="table.RwPolicy.policy"
+                            ng-init="table.RwPolicy.policy = 0">
+                        <option value="0" ng-selected="{{table.read_from_node}}==0">仅master读</option>
+                        <option value="1" ng-selected="{{table.read_from_node}}==1">读写分离</option>
+                        <option value="2" ng-selected="{{table.read_from_node}}==2">混合读</option>
                     </select>
                 </div>
             </td>
