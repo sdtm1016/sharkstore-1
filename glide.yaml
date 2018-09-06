@@ -46,6 +46,8 @@ import:
   - reflection
 - package: github.com/kidstuff/mongostore
   version: 256d65ac5b0e35e7c5ebb3f175c0bed1e5c2b253
+- package: github.com/chzyer/readline
+  version: ^v1.4
 testImport:
 - package: github.com/CodisLabs/codis
   subpackages:

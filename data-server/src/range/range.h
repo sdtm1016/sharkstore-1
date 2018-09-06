@@ -248,6 +248,7 @@ public:
 
 private:
     bool VerifyLeader(errorpb::Error *&err);
+    bool VerifyReadable(uint64_t read_index, errorpb::Error *&err);
     bool CheckWriteable();
     bool KeyInRange(const std::string &key);
     bool KeyInRange(const std::string &key, errorpb::Error *&err);
@@ -264,6 +265,7 @@ private:
     errorpb::Error *NotLeaderError(metapb::Peer &&peer);
     errorpb::Error *KeyNotInRange(const std::string &key);
     errorpb::Error *StaleEpochError(const metapb::RangeEpoch &epoch);
+    errorpb::Error *StaleReadIndexError(uint64_t read_index, uint64_t current_index);
 
 private:
     friend class ::sharkstore::test::helper::RangeTestFixture;

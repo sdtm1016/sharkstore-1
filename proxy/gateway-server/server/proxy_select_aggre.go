@@ -14,6 +14,7 @@ import (
 	"util/log"
 	"util"
 	"context"
+	"fmt"
 )
 
 func (p *Proxy) selectAggre(t *Table, kvproxy *dskv.KvProxy, req *kvrpcpb.SelectRequest) ([][]*kvrpcpb.Row, error) {
@@ -40,7 +41,10 @@ func (p *Proxy) selectAggre(t *Table, kvproxy *dskv.KvProxy, req *kvrpcpb.Select
 			key = start
 		} else {
 			bo := dskv.NewBackoffer(dskv.MsMaxBackoff, context.Background())
-			route, _ := kvproxy.RangeCache.LocateKey(bo, key)
+			route, err := kvproxy.RangeCache.LocateKey(bo, key)
+			if err != nil {
+				return nil, fmt.Errorf("locate route failed: %v", err)
+			}
 			key = route.EndKey
 
 			if bytes.Compare(key, start) < 0 || bytes.Compare(key, limit) >= 0 {

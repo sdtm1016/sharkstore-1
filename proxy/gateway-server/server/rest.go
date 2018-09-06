@@ -115,7 +115,7 @@ func (q *Query) parseRowValues(buffer bufalloc.Buffer) ([]InsertRowValue, error)
 	}
 
 	var err error
-	indexes := make([]int, 0, len(q.Command.Values)*len(q.Command.Field))
+	indexes := make([]int, 0, len(q.Command.Values) * len(q.Command.Field))
 	for _, vs := range q.Command.Values {
 		if len(vs) != len(q.Command.Field) {
 			return nil, errors.New(fmt.Sprintf("len(values) != len(field) %v,%v", vs, q.Command.Field))
@@ -175,7 +175,7 @@ func (q *Query) parseMatchs(ands []*And) ([]Match, error) {
 	matchs := make([]Match, 0)
 
 	var (
-		column_    string
+		column_ string
 		sqlValue_  []byte
 		matchType_ MatchType
 	)
@@ -295,7 +295,7 @@ func (q *Query) parseScope() *Scope {
 	return q.Command.Filter.Scope
 }
 
-func (q *Query) parseSelectCols(t *Table) []*SelColumn{
+func (q *Query) parseSelectCols(t *Table) []*SelColumn {
 	var columns []*SelColumn
 	for _, c := range q.parseColumnNames() {
 		columns = append(columns, &SelColumn{col: c})

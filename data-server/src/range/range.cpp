@@ -340,6 +340,8 @@ Status Range::ApplySnapshotStart(const std::string &context) {
         return Status(Status::kInvalid, "range is invalid", "");
     }
 
+    apply_index_ = 0;
+
     auto s = store_->Truncate();
     if (!s.ok()) {
         return s;
@@ -458,6 +460,31 @@ bool Range::VerifyLeader(errorpb::Error *&err) {
         err = NotLeaderError(std::move(peer));
     }
     return false;
+}
+
+bool Range::VerifyReadable(uint64_t read_index, errorpb::Error *&err) {
+    uint64_t leader, term;
+    raft_->GetLeaderTerm(&leader, &term);
+    // we are leader
+    if (leader == node_id_) {
+        return true;
+    } else if (read_index != 0) {
+        auto current_index = apply_index_;
+        if (read_index > current_index) {
+            err = StaleReadIndexError(read_index, current_index);
+            return false;
+        } else {
+            return true;
+        }
+    } else {
+        metapb::Peer peer;
+        if (leader == 0 || !meta_.FindPeerByNodeID(leader, &peer)) {
+            err = NoLeaderError();
+        } else {
+            err = NotLeaderError(std::move(peer));
+        }
+        return false;
+    }
 }
 
 bool Range::CheckWriteable() {
@@ -582,6 +609,13 @@ errorpb::Error *Range::StaleEpochError(const metapb::RangeEpoch &epoch) {
         }
     }
 
+    return err;
+}
+
+errorpb::Error *Range::StaleReadIndexError(uint64_t read_index, uint64_t current_index) {
+    errorpb::Error *err = new errorpb::Error;
+    err->mutable_stale_read_index()->set_read_index(read_index);
+    err->mutable_stale_read_index()->set_replica_index(current_index);
     return err;
 }
 

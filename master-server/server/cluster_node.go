@@ -270,7 +270,7 @@ func (c *Cluster) setConfigRemote(nodeId uint64, configs []*ds_adminpb.ConfigIte
 	}
 	err := c.adminCli.SetConfig(node.GetAdminAddr(), configs)
 	if err != nil {
-		log.Warn("set config[%v] of node[%s] failed, error[%v]", nil, node.GetServerAddr(), err)
+		log.Warn("set config[%v] of node[%s] failed, error[%v]", nil, node.GetAdminAddr(), err)
 		return err
 	}
 	return nil
@@ -283,7 +283,7 @@ func (c *Cluster) getConfigRemote(nodeId uint64, keys []*ds_adminpb.ConfigKey) (
 	}
 	resp, err := c.adminCli.GetConfig(node.GetAdminAddr(), keys)
 	if err != nil {
-		log.Warn("get config of node[%s] failed, error[%v]", node.GetServerAddr(), err)
+		log.Warn("get config of node[%s] failed, error[%v]", node.GetAdminAddr(), err)
 		return nil, err
 	}
 	return resp, nil
@@ -296,7 +296,7 @@ func (c *Cluster) getDsInfoRemote(nodeId uint64, path string) (*ds_adminpb.GetIn
 	}
 	resp, err := c.adminCli.GetInfo(node.GetAdminAddr(), path)
 	if err != nil {
-		log.Warn("get ds_info of node[%s] failed, error[%v]", node.GetServerAddr(), err)
+		log.Warn("get ds_info of node[%s] failed, error[%v]", node.GetAdminAddr(), err)
 		return nil, err
 	}
 	return resp, nil
@@ -309,7 +309,7 @@ func (c *Cluster) clearQueueRemote(nodeId uint64, queueType ds_adminpb.ClearQueu
 	}
 	resp, err := c.adminCli.ClearQueue(node.GetAdminAddr(), queueType)
 	if err != nil {
-		log.Warn("clear queueType[%v] of node[%s] failed, error[%v]", queueType, node.GetServerAddr(), err)
+		log.Warn("clear queueType[%v] of node[%s] failed, error[%v]", queueType, node.GetAdminAddr(), err)
 		return nil, err
 	}
 	return resp, nil
@@ -322,7 +322,7 @@ func (c *Cluster) getPendingQueuesRemote(nodeId uint64, pendingType ds_adminpb.G
 	}
 	resp, err := c.adminCli.GetPendingQueues(node.GetAdminAddr(), pendingType, count)
 	if err != nil {
-		log.Warn("get pending[type=%d] queues of node[%s] failed, error[%v]", pendingType, node.GetServerAddr(), err)
+		log.Warn("get pending[type=%v, count=%d] queues of node[%s] failed, error[%v]", pendingType, count, node.GetAdminAddr(), err)
 		return nil, err
 	}
 	return resp, nil
@@ -335,7 +335,7 @@ func (c *Cluster) flushDBRemote(nodeId uint64, wait bool) error {
 	}
 	err := c.adminCli.FlushDB(node.GetAdminAddr(), wait)
 	if err != nil {
-		log.Warn("flush db[wait=%t] of node[%s] failed, error[%v]", wait, node.GetServerAddr(), err)
+		log.Warn("flush db[wait=%t] of node[%s] failed, error[%v]", wait, node.GetAdminAddr(), err)
 		return err
 	}
 	return nil

@@ -132,8 +132,17 @@ void RunStatus::printDBMetric() {
                   stat->getAndResetTickerCount(rocksdb::BLOCK_CACHE_HIT),
                   stat->getAndResetTickerCount(rocksdb::BLOCK_CACHE_MISS));
 
+#ifdef BLOB_EXTEND_OPTIONS
+        if (ds_config.rocksdb_config.blob_cache_size > 0) {
+            FLOG_INFO("rocksdb blobdb-cache stats: hit=%" PRIu64 ", miss=%" PRIu64,
+                      stat->getAndResetTickerCount(rocksdb::BLOB_DB_CACHE_HIT),
+                      stat->getAndResetTickerCount(rocksdb::BLOB_DB_CACHE_MISS));
+        }
+#endif
+
         FLOG_INFO("rockdb get histograms: %s", stat->getHistogramString(rocksdb::DB_GET).c_str());
         FLOG_INFO("rockdb write histograms: %s", stat->getHistogramString(rocksdb::DB_WRITE).c_str());
+
         stat->Reset();
     }
 }

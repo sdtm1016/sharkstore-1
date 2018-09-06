@@ -691,6 +691,12 @@ class RequestHeader : public ::google::protobuf::Message /* @@protoc_insertion_p
   ::google::protobuf::uint64 range_id() const;
   void set_range_id(::google::protobuf::uint64 value);
 
+  // uint64 read_index = 6;
+  void clear_read_index();
+  static const int kReadIndexFieldNumber = 6;
+  ::google::protobuf::uint64 read_index() const;
+  void set_read_index(::google::protobuf::uint64 value);
+
   // @@protoc_insertion_point(class_scope:kvrpcpb.RequestHeader)
  private:
 
@@ -700,6 +706,7 @@ class RequestHeader : public ::google::protobuf::Message /* @@protoc_insertion_p
   ::google::protobuf::uint64 cluster_id_;
   ::google::protobuf::uint64 trace_id_;
   ::google::protobuf::uint64 range_id_;
+  ::google::protobuf::uint64 read_index_;
   mutable int _cached_size_;
   friend struct protobuf_kvrpcpb_2eproto::TableStruct;
 };
@@ -825,6 +832,12 @@ class ResponseHeader : public ::google::protobuf::Message /* @@protoc_insertion_
   ::google::protobuf::uint64 trace_id() const;
   void set_trace_id(::google::protobuf::uint64 value);
 
+  // uint64 apply_index = 6;
+  void clear_apply_index();
+  static const int kApplyIndexFieldNumber = 6;
+  ::google::protobuf::uint64 apply_index() const;
+  void set_apply_index(::google::protobuf::uint64 value);
+
   // @@protoc_insertion_point(class_scope:kvrpcpb.ResponseHeader)
  private:
 
@@ -834,6 +847,7 @@ class ResponseHeader : public ::google::protobuf::Message /* @@protoc_insertion_
   ::errorpb::Error* error_;
   ::google::protobuf::uint64 cluster_id_;
   ::google::protobuf::uint64 trace_id_;
+  ::google::protobuf::uint64 apply_index_;
   mutable int _cached_size_;
   friend struct protobuf_kvrpcpb_2eproto::TableStruct;
 };
@@ -3910,11 +3924,11 @@ class KeyValue : public ::google::protobuf::Message /* @@protoc_insertion_point(
   ::std::string* release_value();
   void set_allocated_value(::std::string* value);
 
-  // int64 ExpireAt = 3;
-  void clear_expireat();
-  static const int kExpireAtFieldNumber = 3;
-  ::google::protobuf::int64 expireat() const;
-  void set_expireat(::google::protobuf::int64 value);
+  // uint64 TTL = 3;
+  void clear_ttl();
+  static const int kTTLFieldNumber = 3;
+  ::google::protobuf::uint64 ttl() const;
+  void set_ttl(::google::protobuf::uint64 value);
 
   // @@protoc_insertion_point(class_scope:kvrpcpb.KeyValue)
  private:
@@ -3922,7 +3936,7 @@ class KeyValue : public ::google::protobuf::Message /* @@protoc_insertion_point(
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::internal::ArenaStringPtr key_;
   ::google::protobuf::internal::ArenaStringPtr value_;
-  ::google::protobuf::int64 expireat_;
+  ::google::protobuf::uint64 ttl_;
   mutable int _cached_size_;
   friend struct protobuf_kvrpcpb_2eproto::TableStruct;
 };
@@ -11585,6 +11599,20 @@ inline void RequestHeader::set_allocated_range_epoch(::metapb::RangeEpoch* range
   // @@protoc_insertion_point(field_set_allocated:kvrpcpb.RequestHeader.range_epoch)
 }
 
+// uint64 read_index = 6;
+inline void RequestHeader::clear_read_index() {
+  read_index_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 RequestHeader::read_index() const {
+  // @@protoc_insertion_point(field_get:kvrpcpb.RequestHeader.read_index)
+  return read_index_;
+}
+inline void RequestHeader::set_read_index(::google::protobuf::uint64 value) {
+  
+  read_index_ = value;
+  // @@protoc_insertion_point(field_set:kvrpcpb.RequestHeader.read_index)
+}
+
 // -------------------------------------------------------------------
 
 // ResponseHeader
@@ -11735,6 +11763,20 @@ inline void ResponseHeader::set_allocated_error(::errorpb::Error* error) {
     
   }
   // @@protoc_insertion_point(field_set_allocated:kvrpcpb.ResponseHeader.error)
+}
+
+// uint64 apply_index = 6;
+inline void ResponseHeader::clear_apply_index() {
+  apply_index_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 ResponseHeader::apply_index() const {
+  // @@protoc_insertion_point(field_get:kvrpcpb.ResponseHeader.apply_index)
+  return apply_index_;
+}
+inline void ResponseHeader::set_apply_index(::google::protobuf::uint64 value) {
+  
+  apply_index_ = value;
+  // @@protoc_insertion_point(field_set:kvrpcpb.ResponseHeader.apply_index)
 }
 
 // -------------------------------------------------------------------
@@ -13961,18 +14003,18 @@ inline void KeyValue::set_allocated_value(::std::string* value) {
   // @@protoc_insertion_point(field_set_allocated:kvrpcpb.KeyValue.Value)
 }
 
-// int64 ExpireAt = 3;
-inline void KeyValue::clear_expireat() {
-  expireat_ = GOOGLE_LONGLONG(0);
+// uint64 TTL = 3;
+inline void KeyValue::clear_ttl() {
+  ttl_ = GOOGLE_ULONGLONG(0);
 }
-inline ::google::protobuf::int64 KeyValue::expireat() const {
-  // @@protoc_insertion_point(field_get:kvrpcpb.KeyValue.ExpireAt)
-  return expireat_;
+inline ::google::protobuf::uint64 KeyValue::ttl() const {
+  // @@protoc_insertion_point(field_get:kvrpcpb.KeyValue.TTL)
+  return ttl_;
 }
-inline void KeyValue::set_expireat(::google::protobuf::int64 value) {
+inline void KeyValue::set_ttl(::google::protobuf::uint64 value) {
   
-  expireat_ = value;
-  // @@protoc_insertion_point(field_set:kvrpcpb.KeyValue.ExpireAt)
+  ttl_ = value;
+  // @@protoc_insertion_point(field_set:kvrpcpb.KeyValue.TTL)
 }
 
 // -------------------------------------------------------------------

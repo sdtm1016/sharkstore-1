@@ -25,6 +25,7 @@ message RequestHeader {
     uint64 trace_id                = 3;
     uint64 range_id                = 4;
     metapb.RangeEpoch range_epoch  = 5;
+    uint64 read_index              = 6;
 }
 
 message ResponseHeader {
@@ -38,6 +39,7 @@ message ResponseHeader {
     // which can be used by the receiver to update its local HLC.
     timestamp.Timestamp now        = 4;
     errorpb.Error     error        = 5;
+    uint64 apply_index             = 6;
 }
 
 message DsKvRawGetRequest {
@@ -208,7 +210,7 @@ message DsSelectResponse {
 message KeyValue {
     bytes Key       = 1; // 编码后的主键
     bytes Value     = 2; // 编码后的列值（所有非主键列）
-    int64 ExpireAt  = 3; // 过期时间（绝对时间，纳秒值）
+    uint64 TTL      = 3; // 相对时间（时间，秒）
 }
 
 message DsInsertRequest {

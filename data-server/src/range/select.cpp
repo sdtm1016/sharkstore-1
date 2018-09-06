@@ -49,7 +49,7 @@ void Range::Select(common::ProtoMessage *msg, kvrpcpb::DsSelectRequest &req) {
     RANGE_LOG_DEBUG("Select begin");
 
     do {
-        if (!VerifyLeader(err)) {
+        if (!VerifyReadable(req.header().read_index(), err)) {
             break;
         }
 
@@ -117,6 +117,7 @@ void Range::Select(common::ProtoMessage *msg, kvrpcpb::DsSelectRequest &req) {
             (ds_resp->has_resp() ? ds_resp->resp().code() : 0),
             (ds_resp->has_resp() ? ds_resp->resp().rows_size() : 0));
 
+    ds_resp->mutable_header()->set_apply_index(apply_index_);
     common::SetResponseHeader(req.header(), header, err);
     context_->SocketSession()->Send(msg, ds_resp);
 }

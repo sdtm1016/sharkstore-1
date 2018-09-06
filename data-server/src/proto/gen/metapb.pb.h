@@ -53,6 +53,9 @@ extern NodeLabelDefaultTypeInternal _NodeLabel_default_instance_;
 class Peer;
 class PeerDefaultTypeInternal;
 extern PeerDefaultTypeInternal _Peer_default_instance_;
+class PeerStatus;
+class PeerStatusDefaultTypeInternal;
+extern PeerStatusDefaultTypeInternal _PeerStatus_default_instance_;
 class Primary;
 class PrimaryDefaultTypeInternal;
 extern PrimaryDefaultTypeInternal _Primary_default_instance_;
@@ -738,6 +741,134 @@ class Peer : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
 };
 // -------------------------------------------------------------------
 
+class PeerStatus : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:metapb.PeerStatus) */ {
+ public:
+  PeerStatus();
+  virtual ~PeerStatus();
+
+  PeerStatus(const PeerStatus& from);
+
+  inline PeerStatus& operator=(const PeerStatus& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  PeerStatus(PeerStatus&& from) noexcept
+    : PeerStatus() {
+    *this = ::std::move(from);
+  }
+
+  inline PeerStatus& operator=(PeerStatus&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const PeerStatus& default_instance();
+
+  static inline const PeerStatus* internal_default_instance() {
+    return reinterpret_cast<const PeerStatus*>(
+               &_PeerStatus_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    4;
+
+  void Swap(PeerStatus* other);
+  friend void swap(PeerStatus& a, PeerStatus& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline PeerStatus* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  PeerStatus* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const PeerStatus& from);
+  void MergeFrom(const PeerStatus& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(PeerStatus* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // .metapb.Peer peer = 1;
+  bool has_peer() const;
+  void clear_peer();
+  static const int kPeerFieldNumber = 1;
+  const ::metapb::Peer& peer() const;
+  ::metapb::Peer* mutable_peer();
+  ::metapb::Peer* release_peer();
+  void set_allocated_peer(::metapb::Peer* peer);
+
+  // uint64 index = 2;
+  void clear_index();
+  static const int kIndexFieldNumber = 2;
+  ::google::protobuf::uint64 index() const;
+  void set_index(::google::protobuf::uint64 value);
+
+  // uint64 commit = 3;
+  void clear_commit();
+  static const int kCommitFieldNumber = 3;
+  ::google::protobuf::uint64 commit() const;
+  void set_commit(::google::protobuf::uint64 value);
+
+  // uint64 down_seconds = 4;
+  void clear_down_seconds();
+  static const int kDownSecondsFieldNumber = 4;
+  ::google::protobuf::uint64 down_seconds() const;
+  void set_down_seconds(::google::protobuf::uint64 value);
+
+  // bool snapshotting = 5;
+  void clear_snapshotting();
+  static const int kSnapshottingFieldNumber = 5;
+  bool snapshotting() const;
+  void set_snapshotting(bool value);
+
+  // @@protoc_insertion_point(class_scope:metapb.PeerStatus)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::metapb::Peer* peer_;
+  ::google::protobuf::uint64 index_;
+  ::google::protobuf::uint64 commit_;
+  ::google::protobuf::uint64 down_seconds_;
+  bool snapshotting_;
+  mutable int _cached_size_;
+  friend struct protobuf_metapb_2eproto::TableStruct;
+};
+// -------------------------------------------------------------------
+
 class Replica : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:metapb.Replica) */ {
  public:
   Replica();
@@ -772,7 +903,7 @@ class Replica : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_Replica_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    4;
+    5;
 
   void Swap(Replica* other);
   friend void swap(Replica& a, Replica& b) {
@@ -909,7 +1040,7 @@ class RangeEpoch : public ::google::protobuf::Message /* @@protoc_insertion_poin
                &_RangeEpoch_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    5;
+    6;
 
   void Swap(RangeEpoch* other);
   friend void swap(RangeEpoch& a, RangeEpoch& b) {
@@ -1013,7 +1144,7 @@ class Range : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
                &_Range_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    6;
+    7;
 
   void Swap(Range* other);
   friend void swap(Range& a, Range& b) {
@@ -1183,7 +1314,7 @@ class Leader : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
                &_Leader_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    7;
+    8;
 
   void Swap(Leader* other);
   friend void swap(Leader& a, Leader& b) {
@@ -1302,7 +1433,7 @@ class Route : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
                &_Route_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    8;
+    9;
 
   void Swap(Route* other);
   friend void swap(Route& a, Route& b) {
@@ -1412,7 +1543,7 @@ class DataBase : public ::google::protobuf::Message /* @@protoc_insertion_point(
                &_DataBase_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    9;
+    10;
 
   void Swap(DataBase* other);
   friend void swap(DataBase& a, DataBase& b) {
@@ -1553,7 +1684,7 @@ class Column : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
                &_Column_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    10;
+    11;
 
   void Swap(Column* other);
   friend void swap(Column& a, Column& b) {
@@ -1758,7 +1889,7 @@ class Primary : public ::google::protobuf::Message /* @@protoc_insertion_point(c
                &_Primary_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    11;
+    12;
 
   void Swap(Primary* other);
   friend void swap(Primary& a, Primary& b) {
@@ -1873,7 +2004,7 @@ class TableEpoch : public ::google::protobuf::Message /* @@protoc_insertion_poin
                &_TableEpoch_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    12;
+    13;
 
   void Swap(TableEpoch* other);
   friend void swap(TableEpoch& a, TableEpoch& b) {
@@ -1977,7 +2108,7 @@ class Table : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
                &_Table_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    13;
+    14;
 
   void Swap(Table* other);
   friend void swap(Table& a, Table& b) {
@@ -2630,6 +2761,106 @@ inline void Peer::set_type(::metapb::PeerType value) {
   
   type_ = value;
   // @@protoc_insertion_point(field_set:metapb.Peer.type)
+}
+
+// -------------------------------------------------------------------
+
+// PeerStatus
+
+// .metapb.Peer peer = 1;
+inline bool PeerStatus::has_peer() const {
+  return this != internal_default_instance() && peer_ != NULL;
+}
+inline void PeerStatus::clear_peer() {
+  if (GetArenaNoVirtual() == NULL && peer_ != NULL) delete peer_;
+  peer_ = NULL;
+}
+inline const ::metapb::Peer& PeerStatus::peer() const {
+  const ::metapb::Peer* p = peer_;
+  // @@protoc_insertion_point(field_get:metapb.PeerStatus.peer)
+  return p != NULL ? *p : *reinterpret_cast<const ::metapb::Peer*>(
+      &::metapb::_Peer_default_instance_);
+}
+inline ::metapb::Peer* PeerStatus::mutable_peer() {
+  
+  if (peer_ == NULL) {
+    peer_ = new ::metapb::Peer;
+  }
+  // @@protoc_insertion_point(field_mutable:metapb.PeerStatus.peer)
+  return peer_;
+}
+inline ::metapb::Peer* PeerStatus::release_peer() {
+  // @@protoc_insertion_point(field_release:metapb.PeerStatus.peer)
+  
+  ::metapb::Peer* temp = peer_;
+  peer_ = NULL;
+  return temp;
+}
+inline void PeerStatus::set_allocated_peer(::metapb::Peer* peer) {
+  delete peer_;
+  peer_ = peer;
+  if (peer) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:metapb.PeerStatus.peer)
+}
+
+// uint64 index = 2;
+inline void PeerStatus::clear_index() {
+  index_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 PeerStatus::index() const {
+  // @@protoc_insertion_point(field_get:metapb.PeerStatus.index)
+  return index_;
+}
+inline void PeerStatus::set_index(::google::protobuf::uint64 value) {
+  
+  index_ = value;
+  // @@protoc_insertion_point(field_set:metapb.PeerStatus.index)
+}
+
+// uint64 commit = 3;
+inline void PeerStatus::clear_commit() {
+  commit_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 PeerStatus::commit() const {
+  // @@protoc_insertion_point(field_get:metapb.PeerStatus.commit)
+  return commit_;
+}
+inline void PeerStatus::set_commit(::google::protobuf::uint64 value) {
+  
+  commit_ = value;
+  // @@protoc_insertion_point(field_set:metapb.PeerStatus.commit)
+}
+
+// uint64 down_seconds = 4;
+inline void PeerStatus::clear_down_seconds() {
+  down_seconds_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 PeerStatus::down_seconds() const {
+  // @@protoc_insertion_point(field_get:metapb.PeerStatus.down_seconds)
+  return down_seconds_;
+}
+inline void PeerStatus::set_down_seconds(::google::protobuf::uint64 value) {
+  
+  down_seconds_ = value;
+  // @@protoc_insertion_point(field_set:metapb.PeerStatus.down_seconds)
+}
+
+// bool snapshotting = 5;
+inline void PeerStatus::clear_snapshotting() {
+  snapshotting_ = false;
+}
+inline bool PeerStatus::snapshotting() const {
+  // @@protoc_insertion_point(field_get:metapb.PeerStatus.snapshotting)
+  return snapshotting_;
+}
+inline void PeerStatus::set_snapshotting(bool value) {
+  
+  snapshotting_ = value;
+  // @@protoc_insertion_point(field_set:metapb.PeerStatus.snapshotting)
 }
 
 // -------------------------------------------------------------------
@@ -4209,6 +4440,8 @@ inline void Table::set_allocated_expand(::std::string* expand) {
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

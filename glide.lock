@@ -1,83 +1,97 @@
-hash: 71021f55293cadf5abd85b448b15e7bb026b84b6b4b3934ff5e69657559463f4
-updated: 2018-05-23T14:08:49.081869+08:00
+hash: 2544192e9822c88f9ba8bb2008c17f9d5a7df399bc38984dd315b4f5ba616dbd
+updated: 2018-09-04T16:57:40.546255+08:00
 imports:
-- name: github.com/boj/redistore
-  version: 4562487a4bee9a7c272b72bfaeda4917d0a47ab9
 - name: github.com/boltdb/bolt
-  version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
-- name: github.com/bradfitz/gomemcache
-  version: 1952afaa557dc08e8e0d89eafab110fb501c1a2b
-  subpackages:
-  - memcache
-- name: github.com/bradleypeabody/gorilla-sessions-memcache
-  version: 75ee37df8664a47cd5d9eb84d41e1f2b08086893
+  version: fd01fc79c553a8e99d512a07e8e0c63d4a3ccfc5
 - name: github.com/BurntSushi/toml
-  version: b26d9c308763d68093482582cea63d69be07a0f0
+  version: 3012a1dbe2e4bd1391d42b32f0577cb7bbc7f005
+- name: github.com/chzyer/readline
+  version: 62c6fe6193755f722b8b8788aa7357be55a50ff1
+- name: github.com/client9/misspell
+  version: c0b55c8239520f6b5aa15a0207ca8b28027ba49e
+  subpackages:
+  - cmd/misspell
 - name: github.com/docopt/docopt-go
   version: ee0de3bc6815ee19d4a46c7eb90f829db0e014b1
 - name: github.com/dustin/go-humanize
-  version: 02af3965c54e8cacf948b97fef38925c4120652c
-- name: github.com/garyburd/redigo
-  version: 569eae59ada904ea8db7a225c2b47165af08735a
-  subpackages:
-  - internal
-  - redis
+  version: 9f541cc9db5d55bce703bd99987c9d5cb8eea45e
 - name: github.com/gin-contrib/sessions
-  version: fda3be6efa2da56e31a1a72bffd65279191e8009
+  version: 58cbcf30135cc04c55e4499757142265d58e62d6
 - name: github.com/gin-contrib/sse
   version: 22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae
 - name: github.com/gin-gonic/gin
-  version: d459835d2b077e44f7c9b453505ee29881d5d12d
+  version: 500ebd9ea866c57427aeaddc31f374adedd4084b
   subpackages:
   - binding
+  - internal/json
   - render
-- name: github.com/go-ole/go-ole
-  version: a1ec82a652ebc7e784d7df887cfb31061aeabbcc
-  subpackages:
-  - oleutil
 - name: github.com/go-sql-driver/mysql
-  version: a0583e0143b1624142adab07e0e97fe106d99561
+  version: 99ff426eb706cffe92ff3d058e168b278cabf7c7
 - name: github.com/gogo/protobuf
-  version: 1adfc126b41513cc696b209667c8656ea7aac67c
+  version: 5669497fd64452f28d142899eeb1bfd7e8b26ac8
   subpackages:
   - gogoproto
   - proto
   - protoc-gen-gogo/descriptor
+- name: github.com/golang/lint
+  version: 06c8688daad7faa9da5a0c2f163a3d14aac986ca
+  subpackages:
+  - golint
 - name: github.com/golang/protobuf
-  version: b4deda0973fb4c70b50d226b1af49f3da59f5265
+  version: b27b920f9e71b439b873b17bf99f56467623814a
   subpackages:
   - proto
+  - protoc-gen-go
   - protoc-gen-go/descriptor
+  - protoc-gen-go/generator
+  - protoc-gen-go/generator/internal/remap
+  - protoc-gen-go/grpc
+  - protoc-gen-go/plugin
   - ptypes
   - ptypes/any
   - ptypes/duration
   - ptypes/timestamp
 - name: github.com/golang/snappy
   version: 2e65f85255dbc3072edf28d6b5b8efc472979f5a
+- name: github.com/gomodule/redigo
+  version: 2cd21d9966bf7ff9ae091419744f0b3fb0fecace
+  subpackages:
+  - internal
+  - redis
 - name: github.com/google/btree
-  version: e89373fe6b4a7413d7acd6da1725b83ef713e6e4
+  version: 4030bb1f1f0c35b30ca7009e9ebd06849dd45306
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/securecookie
-  version: e59506cc896acb7f7bf732d4fdf5e25f7ccd8983
+  version: 3a8eb0de07814569f0bdadffc60dda1668de90bd
 - name: github.com/gorilla/sessions
-  version: ba78acc856fe7c79891d516131b3d903cc8d9367
+  version: 81547393f870a35be888759a606ba7bf71dbe5c7
+- name: github.com/json-iterator/go
+  version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/juju/errors
-  version: c7d06af17c68cd34c835053720b21f6549d9b0ee
+  version: 22422dad46e14561a0854ad42497a75af9b61909
 - name: github.com/kidstuff/mongostore
   version: 256d65ac5b0e35e7c5ebb3f175c0bed1e5c2b253
+- name: github.com/kisielk/gotool
+  version: 80517062f582ea3340cd4baf70e86d539ae7d84d
+  subpackages:
+  - internal/load
 - name: github.com/mailru/easyjson
-  version: 8b799c424f57fa123fc63a99d6383bc6e4c02578
+  version: 60711f1a8329503b04e1c88535f419d0bb440bff
   subpackages:
   - buffer
   - jlexer
   - jwriter
 - name: github.com/mattn/go-isatty
-  version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
+  version: 3fb116b820352b7f0c281308a4d6250c22d94e27
+- name: github.com/modern-go/concurrent
+  version: bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94
+- name: github.com/modern-go/reflect2
+  version: 94122c33edd36123c84d5368cfb2b69df93a0ec8
 - name: github.com/muesli/cache2go
   version: 5a1839810579c34bbb4f8232e6554a5b61daeb74
 - name: github.com/olivere/elastic
-  version: 44bae82109267d22e07c6eb6937806ebb0cd9699
+  version: e6cae211ee802eab70248a68fe2cb03b616744c9
   subpackages:
   - config
   - uritemplates
@@ -86,24 +100,23 @@ imports:
   subpackages:
   - llrb
 - name: github.com/pkg/errors
-  version: 645ef00459ed84a119197bfb8d8205042c6df63d
+  version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/robfig/config
   version: 0f78529c8c7e3e9a25f15876532ecbc07c7d99e6
+- name: github.com/satori/go.uuid
+  version: 36e9d2ebbde5e3f13ab2e25625fd453271d6522e
 - name: github.com/shirou/gopsutil
-  version: c95755e4bcd7a62bb8bd33f3a597a7c7f35e2cf3
+  version: eb1f1ab16f2ef35f23024e10888dfdb5c17fcb92
   subpackages:
   - cpu
   - disk
-  - internal/common
   - load
   - mem
   - net
 - name: github.com/spinlock/jemalloc-go
-  version: 8b985c7ab89f3f0388caf49bbbaa6a156a9175b5
-- name: github.com/StackExchange/wmi
-  version: cdffdb33acae0e14efff2628f9bae377b597840e
+  version: 2e84521acd411768e7b5a9e996d3853b3a53b644
 - name: github.com/syndtr/goleveldb
-  version: 5d6fca44a948d2be89a9702de7717f0168403d3d
+  version: ae2bd5eed72d46b28834ec3f60db3a3ebedd8dbd
   subpackages:
   - leveldb
   - leveldb/cache
@@ -118,11 +131,13 @@ imports:
   - leveldb/table
   - leveldb/util
 - name: github.com/ugorji/go
-  version: f3cacc17c85ecb7f1b6a9e373ee85d1480919868
+  version: e253f1f20942cb6dc505e504e8bbba4b7f434cb2
   subpackages:
   - codec
+- name: golang.org/x/lint
+  version: 06c8688daad7faa9da5a0c2f163a3d14aac986ca
 - name: golang.org/x/net
-  version: 9ef9f5bb98a1fdc41f8cf6c250a4404b4085e389
+  version: 8a410e7b638dca158bf9e766925842f6651ff828
   subpackages:
   - context
   - http/httpguts
@@ -133,36 +148,55 @@ imports:
   - netutil
   - trace
 - name: golang.org/x/sys
-  version: 88eb85aaee56831ad49eaf7aa80d73de9814cde2
+  version: 2b024373dcd9800f0cae693839fac6ede8d64a8c
   subpackages:
   - unix
-  - windows
 - name: golang.org/x/text
-  version: 5c1cf69b5978e5a34c5f9ba09a83e56acc4b7877
+  version: 6e3c4e7365ddcc329f090f96e4348398f6310088
   subpackages:
   - secure/bidirule
   - transform
   - unicode/bidi
   - unicode/norm
+- name: golang.org/x/tools
+  version: 7ca132754999accbaa5c1735eda29e7ce0f3bf03
+  subpackages:
+  - cmd/goimports
+  - go/ast/astutil
+  - go/buildutil
+  - go/gcexportdata
+  - go/internal/cgo
+  - go/internal/gcimporter
+  - go/loader
+  - go/types/typeutil
+  - imports
+  - internal/fastwalk
+- name: google.golang.org/appengine
+  version: 03cac3b07182cfb08c0d0c0b6ee72a1ceb151c92
+  subpackages:
+  - cloudsql
 - name: google.golang.org/genproto
-  version: 11a468237815f3a3ddf9f7c6e8b6b3b382a24d15
+  version: 11092d34479b07829b72e10713b159248caf5dad
   subpackages:
   - googleapis/rpc/status
 - name: google.golang.org/grpc
-  version: 41344da2231b913fa3d983840a57a6b1b7b631a1
+  version: ce4f3c8a89229d9db3e0c30d28a9f905435ad365
   subpackages:
   - balancer
   - balancer/base
   - balancer/roundrobin
-  - channelz
   - codes
   - connectivity
   - credentials
   - encoding
   - encoding/proto
-  - grpclb/grpc_lb_v1/messages
   - grpclog
   - internal
+  - internal/backoff
+  - internal/channelz
+  - internal/envconfig
+  - internal/grpcrand
+  - internal/transport
   - keepalive
   - metadata
   - naming
@@ -175,40 +209,53 @@ imports:
   - stats
   - status
   - tap
-  - transport
 - name: gopkg.in/go-playground/validator.v8
   version: 5f1438d3fca68893a817e4a66806cea46a9e4ebf
-- name: gopkg.in/mgo.v2
-  version: 3f83fa5005286a7fe593b055f0d7771a7dce4655
-  subpackages:
-  - bson
-  - internal/json
-  - internal/sasl
-  - internal/scram
 - name: gopkg.in/yaml.v2
   version: 5420a8b6744d3b0345ab293f6fcba19c978f1183
+- name: honnef.co/go/tools
+  version: 88497007e8588ea5b6baee991f74a1607e809487
+  subpackages:
+  - callgraph
+  - callgraph/static
+  - cmd/staticcheck
+  - deprecated
+  - functions
+  - internal/sharedcheck
+  - lint
+  - lint/lintdsl
+  - lint/lintutil
+  - ssa
+  - ssa/ssautil
+  - staticcheck
+  - staticcheck/vrp
+  - version
 testImports:
 - name: github.com/CodisLabs/codis
-  version: 9fde2809cca131e3da1a7e0920ea151029301fb4
+  version: 7191a280026cefd50a09db6ba82fe180249d78b0
   subpackages:
   - pkg/utils/assert
   - pkg/utils/errors
   - pkg/utils/log
   - pkg/utils/trace
 - name: github.com/davecgh/go-spew
-  version: 8991bc29aa16c548c550c7ff78260e27b9ab7c73
+  version: d8f796af33cc11cb798c1aaeb27a4ebc5099927d
   subpackages:
   - spew
 - name: github.com/ghemawat/stream
   version: 696b145b53b9611fe9c9f189122f990171e391a0
 - name: github.com/gopherjs/gopherjs
-  version: 8dffc02ea1cb8398bb73f30424697c60fcf8d4c5
+  version: 0210a2f0f73c96103378b0b935f39868e5731809
   subpackages:
   - js
 - name: github.com/jtolds/gls
   version: 77f18212c9c7edc9bd6a33d383a7b545ce62f064
+- name: github.com/kr/pretty
+  version: 73f6ac0b30a98e433b289500d779f50c1a6f0712
+- name: github.com/kr/text
+  version: e2ffdb16a802fe2bb95e2e35ff34f0e53aeef34f
 - name: github.com/lib/pq
-  version: 0677bdde3e15a69060c33fac24fd53044b4694b8
+  version: 4ded0e9383f75c197b3a2aaa6d590ac52df6fd79
   subpackages:
   - oid
 - name: github.com/mohae/customjson
@@ -218,19 +265,19 @@ testImports:
   subpackages:
   - difflib
 - name: github.com/smartystreets/assertions
-  version: 7678a5452ebea5b7090a6b163f844c133f523da2
+  version: 7c9eb446e3cf06e83049467a5f25c38730ce7034
   subpackages:
   - internal/go-render/render
   - internal/oglematchers
 - name: github.com/smartystreets/goconvey
-  version: 9e8dc3f972df6c8fcc0375ef492c24d0bb204857
+  version: ef6db91d284a0e7badaa1f0c404c30aa7dee3aed
   subpackages:
   - convey
   - convey/gotest
   - convey/reporting
 - name: github.com/stretchr/testify
-  version: 12b6f73e6084dad08a7c6e575284b177ecafbc71
+  version: f35b8ab0b5a2cef36673838d662e249dd9c94686
   subpackages:
   - assert
 - name: gopkg.in/check.v1
-  version: 20d25e2804050c1cd24a7eea1e7a6447dd0e74ec
+  version: 788fd78401277ebd861206a03c884797c6ec5541

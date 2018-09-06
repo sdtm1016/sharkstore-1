@@ -3,18 +3,18 @@ package server
 import (
 	"bytes"
 	"fmt"
-	"strconv"
-	"time"
-	"proxy/gateway-server/mysql"
-	"proxy/gateway-server/sqlparser"
 	"model/pkg/kvrpcpb"
 	"model/pkg/timestamp"
 	"pkg-go/ds_client"
+	"proxy/gateway-server/mysql"
+	"proxy/gateway-server/sqlparser"
+	"proxy/store/dskv"
+	"sort"
+	"strconv"
+	"time"
 	"util"
 	"util/hack"
 	"util/log"
-	"proxy/store/dskv"
-	"sort"
 )
 
 func (p *Proxy) HandleInsert(db string, stmt *sqlparser.Insert, args []interface{}) (*mysql.Result, error) {
@@ -85,6 +85,7 @@ func (p *Proxy) HandleInsert(db string, stmt *sqlparser.Insert, args []interface
 		log.Error("[insert] table %s.%s missing column(%v)", db, tableName, err)
 		return nil, err
 	}
+	lasInsertId := uint64(0)
 	//填充自增id值
 	if len(pkName) > 0 {
 		colMap[pkName] = len(colMap)
@@ -101,6 +102,9 @@ func (p *Proxy) HandleInsert(db string, stmt *sqlparser.Insert, args []interface
 			row = append(row, []byte(fmt.Sprintf("%v", ids[i])))
 			rows[i] = row
 		}
+		//insert multiple rows, returns the value generated for the first inserted row only
+		//see http://dev.mysql.com/doc/refman/5.6/en/information-functions.html#function_last-insert-id
+		lasInsertId = uint64(ids[0])
 	}
 
 	//parseTime = time.Now()
@@ -124,6 +128,7 @@ func (p *Proxy) HandleInsert(db string, stmt *sqlparser.Insert, args []interface
 		return nil, resErr
 	}
 	res.AffectedRows = affected
+	res.InsertId = lasInsertId
 	res.Status = 0
 	return res, nil
 }
@@ -228,26 +233,7 @@ func (p *Proxy) EncodeRow(t *Table, colMap map[string]int, rowValue InsertRowVal
 		}
 	}
 
-	// 编码列值
-	/**
-	for _, col := range t.table.Columns {
-		// TODO: 不需要编码主键列
-		// if col.PrimaryKey == 1 { // 跳过主键列
-		// 	continue
-		// }
-		i, ok := colMap[col.Name]
-		if !ok {
-			return nil, fmt.Errorf("column(%s) is missing", col.Name)
-		}
-		if i >= len(rowValue) {
-			return nil, fmt.Errorf("invalid column(%s)", col.Name)
-		}
-		value, err = util.EncodeColumnValue(value, col, rowValue[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	*/
+	// 编码非主键列
 	for colName, colIndex := range colMap {
 		col := t.FindColumn(colName)
 		if col == nil {
@@ -265,15 +251,15 @@ func (p *Proxy) EncodeRow(t *Table, colMap map[string]int, rowValue InsertRowVal
 		}
 	}
 
-	expireAt, err := findRowExpire(colMap, rowValue)
+	ttl, err := findTTL(colMap, rowValue)
 	if err != nil {
 		return nil, fmt.Errorf("find row ttl error(%s)", err)
 	}
 
 	return &kvrpcpb.KeyValue{
-		Key:      key,
-		Value:    value,
-		ExpireAt: expireAt,
+		Key:   key,
+		Value: value,
+		TTL:   ttl,
 	}, nil
 }
 
@@ -367,7 +353,7 @@ func (p *Proxy) batchInsert(context *dskv.ReqContext, t *Table, kvPairs []*kvrpc
 		affected += task.rest.GetAffected()
 		PutInsertTask(task)
 	}
-	context.GetBackOff().CombineTime(int(time.Since(startTime).Nanoseconds()/1000000))
+	context.GetBackOff().CombineTime(int(time.Since(startTime).Nanoseconds() / 1000000))
 	log.Debug("%s execute batch task finish", context)
 	return
 }
@@ -388,7 +374,7 @@ func (p *Proxy) insertRows(t *Table, colMap map[string]int, rows []InsertRowValu
 	var duplicateKeyTp []byte
 	var errTp error
 
-	context  := dskv.NewPRConext(dskv.InsertMaxBackoff)
+	context := dskv.NewPRConext(dskv.InsertMaxBackoff)
 	var errForRetry error
 	for metricLoop := 0; ; metricLoop++ {
 		if kvPairs == nil || len(kvPairs) == 0 {
@@ -495,7 +481,7 @@ func (p KvParisSlice) Less(i int, j int) bool {
 	return bytes.Compare(p[i].GetKey(), p[j].GetKey()) < 0
 }
 
-func findRowExpire(colMap map[string]int, rowValue InsertRowValue) (int64, error) {
+func findTTL(colMap map[string]int, rowValue InsertRowValue) (uint64, error) {
 	idx, ok := colMap[util.TTL_COL_NAME]
 	if !ok {
 		return 0, nil
@@ -503,10 +489,9 @@ func findRowExpire(colMap map[string]int, rowValue InsertRowValue) (int64, error
 	if idx >= len(rowValue) {
 		return 0, fmt.Errorf("invalid column(%s) pos", util.TTL_COL_NAME)
 	}
-	ttl, err := strconv.ParseInt(hack.String(rowValue[idx]), 10, 64)
+	ttl, err := strconv.ParseUint(hack.String(rowValue[idx]), 10, 64)
 	if err != nil {
 		return 0, err
 	}
-	// ms to nano seconds
-	return ttl * 1000000, nil
+	return ttl, nil
 }

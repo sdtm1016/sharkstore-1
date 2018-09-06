@@ -33,11 +33,6 @@ public:
  ::google::protobuf::internal::ExplicitlyConstructed<GetMSLeaderResponse>
      _instance;
 } _GetMSLeaderResponse_default_instance_;
-class PeerStatusDefaultTypeInternal {
-public:
- ::google::protobuf::internal::ExplicitlyConstructed<PeerStatus>
-     _instance;
-} _PeerStatus_default_instance_;
 class RangeStatsDefaultTypeInternal {
 public:
  ::google::protobuf::internal::ExplicitlyConstructed<RangeStats>
@@ -269,7 +264,7 @@ namespace protobuf_mspb_2eproto {
 
 namespace {
 
-::google::protobuf::Metadata file_level_metadata[49];
+::google::protobuf::Metadata file_level_metadata[48];
 
 }  // namespace
 
@@ -284,7 +279,6 @@ PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::AuxillaryParseTableField
 };
 PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::ParseTable const
     TableStruct::schema[] GOOGLE_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-  { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
   { NULL, NULL, 0, -1, -1, -1, -1, NULL, false },
@@ -357,16 +351,6 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetMSLeaderResponse, header_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetMSLeaderResponse, leader_),
-  ~0u,  // no _has_bits_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PeerStatus, _internal_metadata_),
-  ~0u,  // no _extensions_
-  ~0u,  // no _oneof_case_
-  ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PeerStatus, peer_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PeerStatus, index_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PeerStatus, commit_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PeerStatus, down_seconds_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PeerStatus, snapshotting_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RangeStats, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -731,59 +715,57 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_ATTR
   { 0, -1, sizeof(MSLeader)},
   { 8, -1, sizeof(GetMSLeaderRequest)},
   { 14, -1, sizeof(GetMSLeaderResponse)},
-  { 21, -1, sizeof(PeerStatus)},
-  { 31, -1, sizeof(RangeStats)},
-  { 41, -1, sizeof(RangeHeartbeatRequest)},
-  { 52, -1, sizeof(RangeHeartbeatResponse)},
-  { 62, -1, sizeof(NodeStats)},
-  { 82, -1, sizeof(NodeHeartbeatRequest)},
-  { 91, -1, sizeof(NodeHeartbeatResponse)},
-  { 99, -1, sizeof(AskSplitRequest)},
-  { 108, -1, sizeof(AskSplitResponse)},
-  { 118, -1, sizeof(ReportSplitRequest)},
-  { 126, -1, sizeof(ReportSplitResponse)},
-  { 132, -1, sizeof(NodeLoginRequest)},
-  { 139, -1, sizeof(NodeLoginResponse)},
-  { 145, -1, sizeof(GetNodeIdRequest)},
-  { 155, -1, sizeof(GetNodeIdResponse)},
-  { 163, -1, sizeof(GetRouteRequest)},
-  { 172, -1, sizeof(GetRouteResponse)},
-  { 179, -1, sizeof(GetNodeRequest)},
-  { 186, -1, sizeof(GetNodeResponse)},
-  { 193, -1, sizeof(GetDBRequest)},
-  { 200, -1, sizeof(GetDBResponse)},
-  { 207, -1, sizeof(GetTableRequest)},
-  { 215, -1, sizeof(GetTableByIdRequest)},
-  { 223, -1, sizeof(GetTableResponse)},
-  { 230, -1, sizeof(GetTableByIdResponse)},
-  { 237, -1, sizeof(GetColumnsRequest)},
-  { 245, -1, sizeof(GetColumnsResponse)},
-  { 252, -1, sizeof(GetColumnByNameRequest)},
-  { 261, -1, sizeof(GetColumnByNameResponse)},
-  { 268, -1, sizeof(GetColumnByIdRequest)},
-  { 277, -1, sizeof(GetColumnByIdResponse)},
-  { 284, -1, sizeof(AddColumnRequest)},
-  { 293, -1, sizeof(AddColumnResponse)},
-  { 300, -1, sizeof(TruncateTableRequest)},
-  { 308, -1, sizeof(TruncateTableResponse)},
-  { 314, -1, sizeof(CreateDatabaseRequest)},
-  { 321, -1, sizeof(CreateDatabaseResponse)},
-  { 327, -1, sizeof(CreateTableRequest)},
-  { 336, -1, sizeof(CreateTableResponse)},
-  { 342, -1, sizeof(GetAutoIncIdRequest)},
-  { 351, -1, sizeof(GetAutoIncIdResponse)},
-  { 358, -1, sizeof(RequestHeader)},
-  { 364, -1, sizeof(ResponseHeader)},
-  { 371, -1, sizeof(LeaderHint)},
-  { 378, -1, sizeof(NoLeader)},
-  { 383, -1, sizeof(Error)},
+  { 21, -1, sizeof(RangeStats)},
+  { 31, -1, sizeof(RangeHeartbeatRequest)},
+  { 42, -1, sizeof(RangeHeartbeatResponse)},
+  { 52, -1, sizeof(NodeStats)},
+  { 72, -1, sizeof(NodeHeartbeatRequest)},
+  { 81, -1, sizeof(NodeHeartbeatResponse)},
+  { 89, -1, sizeof(AskSplitRequest)},
+  { 98, -1, sizeof(AskSplitResponse)},
+  { 108, -1, sizeof(ReportSplitRequest)},
+  { 116, -1, sizeof(ReportSplitResponse)},
+  { 122, -1, sizeof(NodeLoginRequest)},
+  { 129, -1, sizeof(NodeLoginResponse)},
+  { 135, -1, sizeof(GetNodeIdRequest)},
+  { 145, -1, sizeof(GetNodeIdResponse)},
+  { 153, -1, sizeof(GetRouteRequest)},
+  { 162, -1, sizeof(GetRouteResponse)},
+  { 169, -1, sizeof(GetNodeRequest)},
+  { 176, -1, sizeof(GetNodeResponse)},
+  { 183, -1, sizeof(GetDBRequest)},
+  { 190, -1, sizeof(GetDBResponse)},
+  { 197, -1, sizeof(GetTableRequest)},
+  { 205, -1, sizeof(GetTableByIdRequest)},
+  { 213, -1, sizeof(GetTableResponse)},
+  { 220, -1, sizeof(GetTableByIdResponse)},
+  { 227, -1, sizeof(GetColumnsRequest)},
+  { 235, -1, sizeof(GetColumnsResponse)},
+  { 242, -1, sizeof(GetColumnByNameRequest)},
+  { 251, -1, sizeof(GetColumnByNameResponse)},
+  { 258, -1, sizeof(GetColumnByIdRequest)},
+  { 267, -1, sizeof(GetColumnByIdResponse)},
+  { 274, -1, sizeof(AddColumnRequest)},
+  { 283, -1, sizeof(AddColumnResponse)},
+  { 290, -1, sizeof(TruncateTableRequest)},
+  { 298, -1, sizeof(TruncateTableResponse)},
+  { 304, -1, sizeof(CreateDatabaseRequest)},
+  { 311, -1, sizeof(CreateDatabaseResponse)},
+  { 317, -1, sizeof(CreateTableRequest)},
+  { 326, -1, sizeof(CreateTableResponse)},
+  { 332, -1, sizeof(GetAutoIncIdRequest)},
+  { 341, -1, sizeof(GetAutoIncIdResponse)},
+  { 348, -1, sizeof(RequestHeader)},
+  { 354, -1, sizeof(ResponseHeader)},
+  { 361, -1, sizeof(LeaderHint)},
+  { 368, -1, sizeof(NoLeader)},
+  { 373, -1, sizeof(Error)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::google::protobuf::Message*>(&_MSLeader_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_GetMSLeaderRequest_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_GetMSLeaderResponse_default_instance_),
-  reinterpret_cast<const ::google::protobuf::Message*>(&_PeerStatus_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_RangeStats_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_RangeHeartbeatRequest_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&_RangeHeartbeatResponse_default_instance_),
@@ -849,7 +831,7 @@ void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) GOOGLE_ATTRIBUTE_COLD;
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 49);
+  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 48);
 }
 
 }  // namespace
@@ -865,9 +847,7 @@ void TableStruct::InitDefaultsImpl() {
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_GetMSLeaderRequest_default_instance_);_GetMSLeaderResponse_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
-      &_GetMSLeaderResponse_default_instance_);_PeerStatus_default_instance_._instance.DefaultConstruct();
-  ::google::protobuf::internal::OnShutdownDestroyMessage(
-      &_PeerStatus_default_instance_);_RangeStats_default_instance_._instance.DefaultConstruct();
+      &_GetMSLeaderResponse_default_instance_);_RangeStats_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
       &_RangeStats_default_instance_);_RangeHeartbeatRequest_default_instance_._instance.DefaultConstruct();
   ::google::protobuf::internal::OnShutdownDestroyMessage(
@@ -963,8 +943,6 @@ void TableStruct::InitDefaultsImpl() {
       ::mspb::ResponseHeader::internal_default_instance());
   _GetMSLeaderResponse_default_instance_._instance.get_mutable()->leader_ = const_cast< ::mspb::MSLeader*>(
       ::mspb::MSLeader::internal_default_instance());
-  _PeerStatus_default_instance_._instance.get_mutable()->peer_ = const_cast< ::metapb::Peer*>(
-      ::metapb::Peer::internal_default_instance());
   _RangeHeartbeatRequest_default_instance_._instance.get_mutable()->header_ = const_cast< ::mspb::RequestHeader*>(
       ::mspb::RequestHeader::internal_default_instance());
   _RangeHeartbeatRequest_default_instance_._instance.get_mutable()->range_ = const_cast< ::metapb::Range*>(
@@ -1097,160 +1075,157 @@ void AddDescriptorsImpl() {
       "est\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHeader"
       "\"[\n\023GetMSLeaderResponse\022$\n\006header\030\001 \001(\0132"
       "\024.mspb.ResponseHeader\022\036\n\006leader\030\002 \001(\0132\016."
-      "mspb.MSLeader\"s\n\nPeerStatus\022\032\n\004peer\030\001 \001("
-      "\0132\014.metapb.Peer\022\r\n\005index\030\002 \001(\004\022\016\n\006commit"
-      "\030\003 \001(\004\022\024\n\014down_seconds\030\004 \001(\004\022\024\n\014snapshot"
-      "ting\030\005 \001(\010\"z\n\nRangeStats\022\025\n\rbytes_writte"
-      "n\030\001 \001(\004\022\022\n\nbytes_read\030\002 \001(\004\022\024\n\014keys_writ"
-      "ten\030\003 \001(\004\022\021\n\tkeys_read\030\004 \001(\004\022\030\n\020approxim"
-      "ate_size\030\005 \001(\004\"\317\001\n\025RangeHeartbeatRequest"
-      "\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHeader\022\034\n"
-      "\005range\030\002 \001(\0132\r.metapb.Range\022\034\n\006leader\030\003 "
-      "\001(\0132\014.metapb.Peer\022\037\n\005stats\030\006 \001(\0132\020.mspb."
-      "RangeStats\022\014\n\004term\030\007 \001(\004\022&\n\014peers_status"
-      "\030\010 \003(\0132\020.mspb.PeerStatus\"\262\001\n\026RangeHeartb"
-      "eatResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Respo"
-      "nseHeader\022\020\n\010range_id\030\002 \001(\004\022!\n\005epoch\030\003 \001"
-      "(\0132\022.metapb.RangeEpoch\022!\n\013target_peer\030\004 "
-      "\001(\0132\014.metapb.Peer\022\032\n\004task\030\005 \001(\0132\014.taskpb"
-      ".Task\"\332\002\n\tNodeStats\022\023\n\013range_count\030\001 \001(\r"
-      "\022\031\n\021range_split_count\030\002 \001(\r\022\032\n\022sending_s"
-      "nap_count\030\003 \001(\r\022\034\n\024receiving_snap_count\030"
-      "\004 \001(\r\022\033\n\023applying_snap_count\030\005 \001(\r\022\032\n\022ra"
-      "nge_leader_count\030\006 \001(\r\022\020\n\010capacity\030\007 \001(\004"
-      "\022\021\n\tused_size\030\010 \001(\004\022\021\n\tavailable\030\t \001(\004\022\025"
-      "\n\rbytes_written\030\n \001(\004\022\024\n\014keys_written\030\013 "
-      "\001(\004\022\022\n\nbytes_read\030\014 \001(\004\022\021\n\tkeys_read\030\r \001"
-      "(\004\022\017\n\007is_busy\030\016 \001(\010\022\r\n\005start\030\017 \001(\r\"\207\001\n\024N"
-      "odeHeartbeatRequest\022#\n\006header\030\001 \001(\0132\023.ms"
-      "pb.RequestHeader\022\017\n\007node_id\030\002 \001(\004\022\036\n\005sta"
-      "ts\030\003 \001(\0132\017.mspb.NodeStats\022\031\n\021isolated_re"
-      "plicas\030\004 \003(\004\"g\n\025NodeHeartbeatResponse\022$\n"
-      "\006header\030\001 \001(\0132\024.mspb.ResponseHeader\022\017\n\007n"
-      "ode_id\030\002 \001(\004\022\027\n\017delete_replicas\030\003 \003(\004\"v\n"
-      "\017AskSplitRequest\022#\n\006header\030\001 \001(\0132\023.mspb."
-      "RequestHeader\022\034\n\005range\030\002 \001(\0132\r.metapb.Ra"
-      "nge\022\021\n\tsplit_key\030\003 \001(\014\022\r\n\005force\030\004 \001(\010\"\225\001"
-      "\n\020AskSplitResponse\022$\n\006header\030\001 \001(\0132\024.msp"
-      "b.ResponseHeader\022\034\n\005range\030\002 \001(\0132\r.metapb"
-      ".Range\022\024\n\014new_range_id\030\003 \001(\004\022\024\n\014new_peer"
-      "_ids\030\004 \003(\004\022\021\n\tsplit_key\030\005 \001(\014\"t\n\022ReportS"
-      "plitRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Reque"
-      "stHeader\022\033\n\004left\030\002 \001(\0132\r.metapb.Range\022\034\n"
-      "\005right\030\003 \001(\0132\r.metapb.Range\";\n\023ReportSpl"
-      "itResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Respon"
-      "seHeader\"H\n\020NodeLoginRequest\022#\n\006header\030\001"
-      " \001(\0132\023.mspb.RequestHeader\022\017\n\007node_id\030\002 \001"
-      "(\004\"9\n\021NodeLoginResponse\022$\n\006header\030\001 \001(\0132"
-      "\024.mspb.ResponseHeader\"\204\001\n\020GetNodeIdReque"
-      "st\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHeader\022"
-      "\023\n\013server_port\030\002 \001(\r\022\021\n\traft_port\030\003 \001(\r\022"
-      "\022\n\nadmin_port\030\004 \001(\r\022\017\n\007version\030\005 \001(\t\"[\n\021"
-      "GetNodeIdResponse\022$\n\006header\030\001 \001(\0132\024.mspb"
-      ".ResponseHeader\022\017\n\007node_id\030\002 \001(\004\022\017\n\007clea"
-      "rup\030\003 \001(\010\"d\n\017GetRouteRequest\022#\n\006header\030\001"
-      " \001(\0132\023.mspb.RequestHeader\022\r\n\005db_id\030\002 \001(\004"
-      "\022\020\n\010table_id\030\003 \001(\004\022\013\n\003key\030\004 \001(\014\"W\n\020GetRo"
-      "uteResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Respo"
-      "nseHeader\022\035\n\006routes\030\002 \003(\0132\r.metapb.Route"
-      "\"A\n\016GetNodeRequest\022#\n\006header\030\001 \001(\0132\023.msp"
-      "b.RequestHeader\022\n\n\002id\030\002 \001(\004\"S\n\017GetNodeRe"
-      "sponse\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHe"
-      "ader\022\032\n\004node\030\002 \001(\0132\014.metapb.Node\"A\n\014GetD"
-      "BRequest\022#\n\006header\030\001 \001(\0132\023.mspb.RequestH"
-      "eader\022\014\n\004name\030\002 \001(\t\"S\n\rGetDBResponse\022$\n\006"
-      "header\030\001 \001(\0132\024.mspb.ResponseHeader\022\034\n\002db"
-      "\030\002 \001(\0132\020.metapb.DataBase\"[\n\017GetTableRequ"
+      "mspb.MSLeader\"z\n\nRangeStats\022\025\n\rbytes_wri"
+      "tten\030\001 \001(\004\022\022\n\nbytes_read\030\002 \001(\004\022\024\n\014keys_w"
+      "ritten\030\003 \001(\004\022\021\n\tkeys_read\030\004 \001(\004\022\030\n\020appro"
+      "ximate_size\030\005 \001(\004\"\321\001\n\025RangeHeartbeatRequ"
       "est\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHeader"
-      "\022\017\n\007db_name\030\002 \001(\t\022\022\n\ntable_name\030\003 \001(\t\"[\n"
-      "\023GetTableByIdRequest\022#\n\006header\030\001 \001(\0132\023.m"
-      "spb.RequestHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n\010tabl"
-      "e_id\030\003 \001(\004\"V\n\020GetTableResponse\022$\n\006header"
-      "\030\001 \001(\0132\024.mspb.ResponseHeader\022\034\n\005table\030\002 "
-      "\001(\0132\r.metapb.Table\"Z\n\024GetTableByIdRespon"
+      "\022\034\n\005range\030\002 \001(\0132\r.metapb.Range\022\034\n\006leader"
+      "\030\003 \001(\0132\014.metapb.Peer\022\037\n\005stats\030\006 \001(\0132\020.ms"
+      "pb.RangeStats\022\014\n\004term\030\007 \001(\004\022(\n\014peers_sta"
+      "tus\030\010 \003(\0132\022.metapb.PeerStatus\"\262\001\n\026RangeH"
+      "eartbeatResponse\022$\n\006header\030\001 \001(\0132\024.mspb."
+      "ResponseHeader\022\020\n\010range_id\030\002 \001(\004\022!\n\005epoc"
+      "h\030\003 \001(\0132\022.metapb.RangeEpoch\022!\n\013target_pe"
+      "er\030\004 \001(\0132\014.metapb.Peer\022\032\n\004task\030\005 \001(\0132\014.t"
+      "askpb.Task\"\332\002\n\tNodeStats\022\023\n\013range_count\030"
+      "\001 \001(\r\022\031\n\021range_split_count\030\002 \001(\r\022\032\n\022send"
+      "ing_snap_count\030\003 \001(\r\022\034\n\024receiving_snap_c"
+      "ount\030\004 \001(\r\022\033\n\023applying_snap_count\030\005 \001(\r\022"
+      "\032\n\022range_leader_count\030\006 \001(\r\022\020\n\010capacity\030"
+      "\007 \001(\004\022\021\n\tused_size\030\010 \001(\004\022\021\n\tavailable\030\t "
+      "\001(\004\022\025\n\rbytes_written\030\n \001(\004\022\024\n\014keys_writt"
+      "en\030\013 \001(\004\022\022\n\nbytes_read\030\014 \001(\004\022\021\n\tkeys_rea"
+      "d\030\r \001(\004\022\017\n\007is_busy\030\016 \001(\010\022\r\n\005start\030\017 \001(\r\""
+      "\207\001\n\024NodeHeartbeatRequest\022#\n\006header\030\001 \001(\013"
+      "2\023.mspb.RequestHeader\022\017\n\007node_id\030\002 \001(\004\022\036"
+      "\n\005stats\030\003 \001(\0132\017.mspb.NodeStats\022\031\n\021isolat"
+      "ed_replicas\030\004 \003(\004\"g\n\025NodeHeartbeatRespon"
       "se\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHeader"
-      "\022\034\n\005table\030\002 \001(\0132\r.metapb.Table\"Y\n\021GetCol"
-      "umnsRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Reque"
-      "stHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003 \001("
-      "\004\"[\n\022GetColumnsResponse\022$\n\006header\030\001 \001(\0132"
-      "\024.mspb.ResponseHeader\022\037\n\007columns\030\002 \003(\0132\016"
-      ".metapb.Column\"p\n\026GetColumnByNameRequest"
-      "\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHeader\022\r\n"
-      "\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003 \001(\004\022\020\n\010col_na"
-      "me\030\004 \001(\t\"_\n\027GetColumnByNameResponse\022$\n\006h"
-      "eader\030\001 \001(\0132\024.mspb.ResponseHeader\022\036\n\006col"
-      "umn\030\002 \001(\0132\016.metapb.Column\"l\n\024GetColumnBy"
-      "IdRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Request"
-      "Header\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003 \001(\004\022"
-      "\016\n\006col_id\030\004 \001(\004\"]\n\025GetColumnByIdResponse"
-      "\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHeader\022\036"
-      "\n\006column\030\002 \001(\0132\016.metapb.Column\"y\n\020AddCol"
-      "umnRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Reques"
-      "tHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003 \001(\004"
-      "\022\037\n\007columns\030\004 \003(\0132\016.metapb.Column\"Z\n\021Add"
-      "ColumnResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Re"
-      "sponseHeader\022\037\n\007columns\030\002 \003(\0132\016.metapb.C"
-      "olumn\"\\\n\024TruncateTableRequest\022#\n\006header\030"
-      "\001 \001(\0132\023.mspb.RequestHeader\022\r\n\005db_id\030\002 \001("
-      "\004\022\020\n\010table_id\030\003 \001(\004\"=\n\025TruncateTableResp"
-      "onse\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHead"
-      "er\"M\n\025CreateDatabaseRequest\022#\n\006header\030\001 "
-      "\001(\0132\023.mspb.RequestHeader\022\017\n\007db_name\030\002 \001("
-      "\t\">\n\026CreateDatabaseResponse\022$\n\006header\030\001 "
-      "\001(\0132\024.mspb.ResponseHeader\"r\n\022CreateTable"
+      "\022\017\n\007node_id\030\002 \001(\004\022\027\n\017delete_replicas\030\003 \003"
+      "(\004\"v\n\017AskSplitRequest\022#\n\006header\030\001 \001(\0132\023."
+      "mspb.RequestHeader\022\034\n\005range\030\002 \001(\0132\r.meta"
+      "pb.Range\022\021\n\tsplit_key\030\003 \001(\014\022\r\n\005force\030\004 \001"
+      "(\010\"\225\001\n\020AskSplitResponse\022$\n\006header\030\001 \001(\0132"
+      "\024.mspb.ResponseHeader\022\034\n\005range\030\002 \001(\0132\r.m"
+      "etapb.Range\022\024\n\014new_range_id\030\003 \001(\004\022\024\n\014new"
+      "_peer_ids\030\004 \003(\004\022\021\n\tsplit_key\030\005 \001(\014\"t\n\022Re"
+      "portSplitRequest\022#\n\006header\030\001 \001(\0132\023.mspb."
+      "RequestHeader\022\033\n\004left\030\002 \001(\0132\r.metapb.Ran"
+      "ge\022\034\n\005right\030\003 \001(\0132\r.metapb.Range\";\n\023Repo"
+      "rtSplitResponse\022$\n\006header\030\001 \001(\0132\024.mspb.R"
+      "esponseHeader\"H\n\020NodeLoginRequest\022#\n\006hea"
+      "der\030\001 \001(\0132\023.mspb.RequestHeader\022\017\n\007node_i"
+      "d\030\002 \001(\004\"9\n\021NodeLoginResponse\022$\n\006header\030\001"
+      " \001(\0132\024.mspb.ResponseHeader\"\204\001\n\020GetNodeId"
       "Request\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHe"
-      "ader\022\017\n\007db_name\030\002 \001(\t\022\022\n\ntable_name\030\003 \001("
-      "\t\022\022\n\nproperties\030\004 \001(\t\";\n\023CreateTableResp"
-      "onse\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHead"
-      "er\"i\n\023GetAutoIncIdRequest\022#\n\006header\030\001 \001("
+      "ader\022\023\n\013server_port\030\002 \001(\r\022\021\n\traft_port\030\003"
+      " \001(\r\022\022\n\nadmin_port\030\004 \001(\r\022\017\n\007version\030\005 \001("
+      "\t\"[\n\021GetNodeIdResponse\022$\n\006header\030\001 \001(\0132\024"
+      ".mspb.ResponseHeader\022\017\n\007node_id\030\002 \001(\004\022\017\n"
+      "\007clearup\030\003 \001(\010\"d\n\017GetRouteRequest\022#\n\006hea"
+      "der\030\001 \001(\0132\023.mspb.RequestHeader\022\r\n\005db_id\030"
+      "\002 \001(\004\022\020\n\010table_id\030\003 \001(\004\022\013\n\003key\030\004 \001(\014\"W\n\020"
+      "GetRouteResponse\022$\n\006header\030\001 \001(\0132\024.mspb."
+      "ResponseHeader\022\035\n\006routes\030\002 \003(\0132\r.metapb."
+      "Route\"A\n\016GetNodeRequest\022#\n\006header\030\001 \001(\0132"
+      "\023.mspb.RequestHeader\022\n\n\002id\030\002 \001(\004\"S\n\017GetN"
+      "odeResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Respo"
+      "nseHeader\022\032\n\004node\030\002 \001(\0132\014.metapb.Node\"A\n"
+      "\014GetDBRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Req"
+      "uestHeader\022\014\n\004name\030\002 \001(\t\"S\n\rGetDBRespons"
+      "e\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHeader\022"
+      "\034\n\002db\030\002 \001(\0132\020.metapb.DataBase\"[\n\017GetTabl"
+      "eRequest\022#\n\006header\030\001 \001(\0132\023.mspb.RequestH"
+      "eader\022\017\n\007db_name\030\002 \001(\t\022\022\n\ntable_name\030\003 \001"
+      "(\t\"[\n\023GetTableByIdRequest\022#\n\006header\030\001 \001("
       "\0132\023.mspb.RequestHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n"
-      "\010table_id\030\003 \001(\004\022\014\n\004size\030\004 \001(\r\"I\n\024GetAuto"
-      "IncIdResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Res"
-      "ponseHeader\022\013\n\003ids\030\002 \003(\004\"#\n\rRequestHeade"
-      "r\022\022\n\ncluster_id\030\001 \001(\004\"@\n\016ResponseHeader\022"
-      "\022\n\ncluster_id\030\001 \001(\004\022\032\n\005error\030\002 \001(\0132\013.msp"
-      "b.Error\"+\n\nLeaderHint\022\017\n\007address\030\001 \001(\t\022\014"
-      "\n\004term\030\002 \001(\004\"\n\n\010NoLeader\"P\n\005Error\022$\n\nnew"
-      "_leader\030\002 \001(\0132\020.mspb.LeaderHint\022!\n\tno_le"
-      "ader\030\003 \001(\0132\016.mspb.NoLeader2\352\n\n\010MsServer\022"
-      "J\n\rNodeHeartbeat\022\032.mspb.NodeHeartbeatReq"
-      "uest\032\033.mspb.NodeHeartbeatResponse\"\000\022M\n\016R"
-      "angeHeartbeat\022\033.mspb.RangeHeartbeatReque"
-      "st\032\034.mspb.RangeHeartbeatResponse\"\000\022;\n\010As"
-      "kSplit\022\025.mspb.AskSplitRequest\032\026.mspb.Ask"
-      "SplitResponse\"\000\022D\n\013ReportSplit\022\030.mspb.Re"
-      "portSplitRequest\032\031.mspb.ReportSplitRespo"
-      "nse\"\000\022>\n\tNodeLogin\022\026.mspb.NodeLoginReque"
-      "st\032\027.mspb.NodeLoginResponse\"\000\022>\n\tGetNode"
-      "Id\022\026.mspb.GetNodeIdRequest\032\027.mspb.GetNod"
-      "eIdResponse\"\000\022D\n\013GetMSLeader\022\030.mspb.GetM"
-      "SLeaderRequest\032\031.mspb.GetMSLeaderRespons"
-      "e\"\000\022;\n\010GetRoute\022\025.mspb.GetRouteRequest\032\026"
-      ".mspb.GetRouteResponse\"\000\0228\n\007GetNode\022\024.ms"
-      "pb.GetNodeRequest\032\025.mspb.GetNodeResponse"
-      "\"\000\0222\n\005GetDB\022\022.mspb.GetDBRequest\032\023.mspb.G"
-      "etDBResponse\"\000\022;\n\010GetTable\022\025.mspb.GetTab"
-      "leRequest\032\026.mspb.GetTableResponse\"\000\022G\n\014G"
-      "etTableById\022\031.mspb.GetTableByIdRequest\032\032"
-      ".mspb.GetTableByIdResponse\"\000\022A\n\nGetColum"
-      "ns\022\027.mspb.GetColumnsRequest\032\030.mspb.GetCo"
-      "lumnsResponse\"\000\022P\n\017GetColumnByName\022\034.msp"
-      "b.GetColumnByNameRequest\032\035.mspb.GetColum"
-      "nByNameResponse\"\000\022J\n\rGetColumnById\022\032.msp"
-      "b.GetColumnByIdRequest\032\033.mspb.GetColumnB"
-      "yIdResponse\"\000\022J\n\rTruncateTable\022\032.mspb.Tr"
-      "uncateTableRequest\032\033.mspb.TruncateTableR"
-      "esponse\"\000\022>\n\tAddColumn\022\026.mspb.AddColumnR"
-      "equest\032\027.mspb.AddColumnResponse\"\000\022M\n\016Cre"
-      "ateDatabase\022\033.mspb.CreateDatabaseRequest"
-      "\032\034.mspb.CreateDatabaseResponse\"\000\022D\n\013Crea"
-      "teTable\022\030.mspb.CreateTableRequest\032\031.mspb"
-      ".CreateTableResponse\"\000\022G\n\014GetAutoIncId\022\031"
-      ".mspb.GetAutoIncIdRequest\032\032.mspb.GetAuto"
-      "IncIdResponse\"\000b\006proto3"
+      "\010table_id\030\003 \001(\004\"V\n\020GetTableResponse\022$\n\006h"
+      "eader\030\001 \001(\0132\024.mspb.ResponseHeader\022\034\n\005tab"
+      "le\030\002 \001(\0132\r.metapb.Table\"Z\n\024GetTableByIdR"
+      "esponse\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseH"
+      "eader\022\034\n\005table\030\002 \001(\0132\r.metapb.Table\"Y\n\021G"
+      "etColumnsRequest\022#\n\006header\030\001 \001(\0132\023.mspb."
+      "RequestHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id"
+      "\030\003 \001(\004\"[\n\022GetColumnsResponse\022$\n\006header\030\001"
+      " \001(\0132\024.mspb.ResponseHeader\022\037\n\007columns\030\002 "
+      "\003(\0132\016.metapb.Column\"p\n\026GetColumnByNameRe"
+      "quest\022#\n\006header\030\001 \001(\0132\023.mspb.RequestHead"
+      "er\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003 \001(\004\022\020\n\010c"
+      "ol_name\030\004 \001(\t\"_\n\027GetColumnByNameResponse"
+      "\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHeader\022\036"
+      "\n\006column\030\002 \001(\0132\016.metapb.Column\"l\n\024GetCol"
+      "umnByIdRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Re"
+      "questHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id\030\003"
+      " \001(\004\022\016\n\006col_id\030\004 \001(\004\"]\n\025GetColumnByIdRes"
+      "ponse\022$\n\006header\030\001 \001(\0132\024.mspb.ResponseHea"
+      "der\022\036\n\006column\030\002 \001(\0132\016.metapb.Column\"y\n\020A"
+      "ddColumnRequest\022#\n\006header\030\001 \001(\0132\023.mspb.R"
+      "equestHeader\022\r\n\005db_id\030\002 \001(\004\022\020\n\010table_id\030"
+      "\003 \001(\004\022\037\n\007columns\030\004 \003(\0132\016.metapb.Column\"Z"
+      "\n\021AddColumnResponse\022$\n\006header\030\001 \001(\0132\024.ms"
+      "pb.ResponseHeader\022\037\n\007columns\030\002 \003(\0132\016.met"
+      "apb.Column\"\\\n\024TruncateTableRequest\022#\n\006he"
+      "ader\030\001 \001(\0132\023.mspb.RequestHeader\022\r\n\005db_id"
+      "\030\002 \001(\004\022\020\n\010table_id\030\003 \001(\004\"=\n\025TruncateTabl"
+      "eResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Respons"
+      "eHeader\"M\n\025CreateDatabaseRequest\022#\n\006head"
+      "er\030\001 \001(\0132\023.mspb.RequestHeader\022\017\n\007db_name"
+      "\030\002 \001(\t\">\n\026CreateDatabaseResponse\022$\n\006head"
+      "er\030\001 \001(\0132\024.mspb.ResponseHeader\"r\n\022Create"
+      "TableRequest\022#\n\006header\030\001 \001(\0132\023.mspb.Requ"
+      "estHeader\022\017\n\007db_name\030\002 \001(\t\022\022\n\ntable_name"
+      "\030\003 \001(\t\022\022\n\nproperties\030\004 \001(\t\";\n\023CreateTabl"
+      "eResponse\022$\n\006header\030\001 \001(\0132\024.mspb.Respons"
+      "eHeader\"i\n\023GetAutoIncIdRequest\022#\n\006header"
+      "\030\001 \001(\0132\023.mspb.RequestHeader\022\r\n\005db_id\030\002 \001"
+      "(\004\022\020\n\010table_id\030\003 \001(\004\022\014\n\004size\030\004 \001(\r\"I\n\024Ge"
+      "tAutoIncIdResponse\022$\n\006header\030\001 \001(\0132\024.msp"
+      "b.ResponseHeader\022\013\n\003ids\030\002 \003(\004\"#\n\rRequest"
+      "Header\022\022\n\ncluster_id\030\001 \001(\004\"@\n\016ResponseHe"
+      "ader\022\022\n\ncluster_id\030\001 \001(\004\022\032\n\005error\030\002 \001(\0132"
+      "\013.mspb.Error\"+\n\nLeaderHint\022\017\n\007address\030\001 "
+      "\001(\t\022\014\n\004term\030\002 \001(\004\"\n\n\010NoLeader\"P\n\005Error\022$"
+      "\n\nnew_leader\030\002 \001(\0132\020.mspb.LeaderHint\022!\n\t"
+      "no_leader\030\003 \001(\0132\016.mspb.NoLeader2\352\n\n\010MsSe"
+      "rver\022J\n\rNodeHeartbeat\022\032.mspb.NodeHeartbe"
+      "atRequest\032\033.mspb.NodeHeartbeatResponse\"\000"
+      "\022M\n\016RangeHeartbeat\022\033.mspb.RangeHeartbeat"
+      "Request\032\034.mspb.RangeHeartbeatResponse\"\000\022"
+      ";\n\010AskSplit\022\025.mspb.AskSplitRequest\032\026.msp"
+      "b.AskSplitResponse\"\000\022D\n\013ReportSplit\022\030.ms"
+      "pb.ReportSplitRequest\032\031.mspb.ReportSplit"
+      "Response\"\000\022>\n\tNodeLogin\022\026.mspb.NodeLogin"
+      "Request\032\027.mspb.NodeLoginResponse\"\000\022>\n\tGe"
+      "tNodeId\022\026.mspb.GetNodeIdRequest\032\027.mspb.G"
+      "etNodeIdResponse\"\000\022D\n\013GetMSLeader\022\030.mspb"
+      ".GetMSLeaderRequest\032\031.mspb.GetMSLeaderRe"
+      "sponse\"\000\022;\n\010GetRoute\022\025.mspb.GetRouteRequ"
+      "est\032\026.mspb.GetRouteResponse\"\000\0228\n\007GetNode"
+      "\022\024.mspb.GetNodeRequest\032\025.mspb.GetNodeRes"
+      "ponse\"\000\0222\n\005GetDB\022\022.mspb.GetDBRequest\032\023.m"
+      "spb.GetDBResponse\"\000\022;\n\010GetTable\022\025.mspb.G"
+      "etTableRequest\032\026.mspb.GetTableResponse\"\000"
+      "\022G\n\014GetTableById\022\031.mspb.GetTableByIdRequ"
+      "est\032\032.mspb.GetTableByIdResponse\"\000\022A\n\nGet"
+      "Columns\022\027.mspb.GetColumnsRequest\032\030.mspb."
+      "GetColumnsResponse\"\000\022P\n\017GetColumnByName\022"
+      "\034.mspb.GetColumnByNameRequest\032\035.mspb.Get"
+      "ColumnByNameResponse\"\000\022J\n\rGetColumnById\022"
+      "\032.mspb.GetColumnByIdRequest\032\033.mspb.GetCo"
+      "lumnByIdResponse\"\000\022J\n\rTruncateTable\022\032.ms"
+      "pb.TruncateTableRequest\032\033.mspb.TruncateT"
+      "ableResponse\"\000\022>\n\tAddColumn\022\026.mspb.AddCo"
+      "lumnRequest\032\027.mspb.AddColumnResponse\"\000\022M"
+      "\n\016CreateDatabase\022\033.mspb.CreateDatabaseRe"
+      "quest\032\034.mspb.CreateDatabaseResponse\"\000\022D\n"
+      "\013CreateTable\022\030.mspb.CreateTableRequest\032\031"
+      ".mspb.CreateTableResponse\"\000\022G\n\014GetAutoIn"
+      "cId\022\031.mspb.GetAutoIncIdRequest\032\032.mspb.Ge"
+      "tAutoIncIdResponse\"\000b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 6263);
+      descriptor, 6148);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "mspb.proto", &protobuf_RegisterTypes);
   ::metapb::protobuf_metapb_2eproto::AddDescriptors();
@@ -2362,501 +2337,6 @@ void GetMSLeaderResponse::set_allocated_leader(::mspb::MSLeader* leader) {
 // ===================================================================
 
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int PeerStatus::kPeerFieldNumber;
-const int PeerStatus::kIndexFieldNumber;
-const int PeerStatus::kCommitFieldNumber;
-const int PeerStatus::kDownSecondsFieldNumber;
-const int PeerStatus::kSnapshottingFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
-
-PeerStatus::PeerStatus()
-  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
-    protobuf_mspb_2eproto::InitDefaults();
-  }
-  SharedCtor();
-  // @@protoc_insertion_point(constructor:mspb.PeerStatus)
-}
-PeerStatus::PeerStatus(const PeerStatus& from)
-  : ::google::protobuf::Message(),
-      _internal_metadata_(NULL),
-      _cached_size_(0) {
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
-  if (from.has_peer()) {
-    peer_ = new ::metapb::Peer(*from.peer_);
-  } else {
-    peer_ = NULL;
-  }
-  ::memcpy(&index_, &from.index_,
-    static_cast<size_t>(reinterpret_cast<char*>(&snapshotting_) -
-    reinterpret_cast<char*>(&index_)) + sizeof(snapshotting_));
-  // @@protoc_insertion_point(copy_constructor:mspb.PeerStatus)
-}
-
-void PeerStatus::SharedCtor() {
-  ::memset(&peer_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&snapshotting_) -
-      reinterpret_cast<char*>(&peer_)) + sizeof(snapshotting_));
-  _cached_size_ = 0;
-}
-
-PeerStatus::~PeerStatus() {
-  // @@protoc_insertion_point(destructor:mspb.PeerStatus)
-  SharedDtor();
-}
-
-void PeerStatus::SharedDtor() {
-  if (this != internal_default_instance()) delete peer_;
-}
-
-void PeerStatus::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-}
-const ::google::protobuf::Descriptor* PeerStatus::descriptor() {
-  protobuf_mspb_2eproto::protobuf_AssignDescriptorsOnce();
-  return protobuf_mspb_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
-}
-
-const PeerStatus& PeerStatus::default_instance() {
-  protobuf_mspb_2eproto::InitDefaults();
-  return *internal_default_instance();
-}
-
-PeerStatus* PeerStatus::New(::google::protobuf::Arena* arena) const {
-  PeerStatus* n = new PeerStatus;
-  if (arena != NULL) {
-    arena->Own(n);
-  }
-  return n;
-}
-
-void PeerStatus::Clear() {
-// @@protoc_insertion_point(message_clear_start:mspb.PeerStatus)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  if (GetArenaNoVirtual() == NULL && peer_ != NULL) {
-    delete peer_;
-  }
-  peer_ = NULL;
-  ::memset(&index_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&snapshotting_) -
-      reinterpret_cast<char*>(&index_)) + sizeof(snapshotting_));
-  _internal_metadata_.Clear();
-}
-
-bool PeerStatus::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:mspb.PeerStatus)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // .metapb.Peer peer = 1;
-      case 1: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-               input, mutable_peer()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // uint64 index = 2;
-      case 2: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
-
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 input, &index_)));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // uint64 commit = 3;
-      case 3: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(24u /* 24 & 0xFF */)) {
-
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 input, &commit_)));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // uint64 down_seconds = 4;
-      case 4: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(32u /* 32 & 0xFF */)) {
-
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 input, &down_seconds_)));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // bool snapshotting = 5;
-      case 5: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(40u /* 40 & 0xFF */)) {
-
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
-                 input, &snapshotting_)));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::google::protobuf::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:mspb.PeerStatus)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:mspb.PeerStatus)
-  return false;
-#undef DO_
-}
-
-void PeerStatus::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:mspb.PeerStatus)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // .metapb.Peer peer = 1;
-  if (this->has_peer()) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      1, *this->peer_, output);
-  }
-
-  // uint64 index = 2;
-  if (this->index() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->index(), output);
-  }
-
-  // uint64 commit = 3;
-  if (this->commit() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(3, this->commit(), output);
-  }
-
-  // uint64 down_seconds = 4;
-  if (this->down_seconds() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(4, this->down_seconds(), output);
-  }
-
-  // bool snapshotting = 5;
-  if (this->snapshotting() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteBool(5, this->snapshotting(), output);
-  }
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
-  }
-  // @@protoc_insertion_point(serialize_end:mspb.PeerStatus)
-}
-
-::google::protobuf::uint8* PeerStatus::InternalSerializeWithCachedSizesToArray(
-    bool deterministic, ::google::protobuf::uint8* target) const {
-  (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:mspb.PeerStatus)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // .metapb.Peer peer = 1;
-  if (this->has_peer()) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      InternalWriteMessageNoVirtualToArray(
-        1, *this->peer_, deterministic, target);
-  }
-
-  // uint64 index = 2;
-  if (this->index() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->index(), target);
-  }
-
-  // uint64 commit = 3;
-  if (this->commit() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(3, this->commit(), target);
-  }
-
-  // uint64 down_seconds = 4;
-  if (this->down_seconds() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(4, this->down_seconds(), target);
-  }
-
-  // bool snapshotting = 5;
-  if (this->snapshotting() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(5, this->snapshotting(), target);
-  }
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:mspb.PeerStatus)
-  return target;
-}
-
-size_t PeerStatus::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:mspb.PeerStatus)
-  size_t total_size = 0;
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    total_size +=
-      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
-  }
-  // .metapb.Peer peer = 1;
-  if (this->has_peer()) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-        *this->peer_);
-  }
-
-  // uint64 index = 2;
-  if (this->index() != 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::UInt64Size(
-        this->index());
-  }
-
-  // uint64 commit = 3;
-  if (this->commit() != 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::UInt64Size(
-        this->commit());
-  }
-
-  // uint64 down_seconds = 4;
-  if (this->down_seconds() != 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::UInt64Size(
-        this->down_seconds());
-  }
-
-  // bool snapshotting = 5;
-  if (this->snapshotting() != 0) {
-    total_size += 1 + 1;
-  }
-
-  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = cached_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-  return total_size;
-}
-
-void PeerStatus::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:mspb.PeerStatus)
-  GOOGLE_DCHECK_NE(&from, this);
-  const PeerStatus* source =
-      ::google::protobuf::internal::DynamicCastToGenerated<const PeerStatus>(
-          &from);
-  if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:mspb.PeerStatus)
-    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
-  } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:mspb.PeerStatus)
-    MergeFrom(*source);
-  }
-}
-
-void PeerStatus::MergeFrom(const PeerStatus& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:mspb.PeerStatus)
-  GOOGLE_DCHECK_NE(&from, this);
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if (from.has_peer()) {
-    mutable_peer()->::metapb::Peer::MergeFrom(from.peer());
-  }
-  if (from.index() != 0) {
-    set_index(from.index());
-  }
-  if (from.commit() != 0) {
-    set_commit(from.commit());
-  }
-  if (from.down_seconds() != 0) {
-    set_down_seconds(from.down_seconds());
-  }
-  if (from.snapshotting() != 0) {
-    set_snapshotting(from.snapshotting());
-  }
-}
-
-void PeerStatus::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:mspb.PeerStatus)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-void PeerStatus::CopyFrom(const PeerStatus& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:mspb.PeerStatus)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool PeerStatus::IsInitialized() const {
-  return true;
-}
-
-void PeerStatus::Swap(PeerStatus* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
-void PeerStatus::InternalSwap(PeerStatus* other) {
-  using std::swap;
-  swap(peer_, other->peer_);
-  swap(index_, other->index_);
-  swap(commit_, other->commit_);
-  swap(down_seconds_, other->down_seconds_);
-  swap(snapshotting_, other->snapshotting_);
-  _internal_metadata_.Swap(&other->_internal_metadata_);
-  swap(_cached_size_, other->_cached_size_);
-}
-
-::google::protobuf::Metadata PeerStatus::GetMetadata() const {
-  protobuf_mspb_2eproto::protobuf_AssignDescriptorsOnce();
-  return protobuf_mspb_2eproto::file_level_metadata[kIndexInFileMessages];
-}
-
-#if PROTOBUF_INLINE_NOT_IN_HEADERS
-// PeerStatus
-
-// .metapb.Peer peer = 1;
-bool PeerStatus::has_peer() const {
-  return this != internal_default_instance() && peer_ != NULL;
-}
-void PeerStatus::clear_peer() {
-  if (GetArenaNoVirtual() == NULL && peer_ != NULL) delete peer_;
-  peer_ = NULL;
-}
-const ::metapb::Peer& PeerStatus::peer() const {
-  const ::metapb::Peer* p = peer_;
-  // @@protoc_insertion_point(field_get:mspb.PeerStatus.peer)
-  return p != NULL ? *p : *reinterpret_cast<const ::metapb::Peer*>(
-      &::metapb::_Peer_default_instance_);
-}
-::metapb::Peer* PeerStatus::mutable_peer() {
-  
-  if (peer_ == NULL) {
-    peer_ = new ::metapb::Peer;
-  }
-  // @@protoc_insertion_point(field_mutable:mspb.PeerStatus.peer)
-  return peer_;
-}
-::metapb::Peer* PeerStatus::release_peer() {
-  // @@protoc_insertion_point(field_release:mspb.PeerStatus.peer)
-  
-  ::metapb::Peer* temp = peer_;
-  peer_ = NULL;
-  return temp;
-}
-void PeerStatus::set_allocated_peer(::metapb::Peer* peer) {
-  delete peer_;
-  peer_ = peer;
-  if (peer) {
-    
-  } else {
-    
-  }
-  // @@protoc_insertion_point(field_set_allocated:mspb.PeerStatus.peer)
-}
-
-// uint64 index = 2;
-void PeerStatus::clear_index() {
-  index_ = GOOGLE_ULONGLONG(0);
-}
-::google::protobuf::uint64 PeerStatus::index() const {
-  // @@protoc_insertion_point(field_get:mspb.PeerStatus.index)
-  return index_;
-}
-void PeerStatus::set_index(::google::protobuf::uint64 value) {
-  
-  index_ = value;
-  // @@protoc_insertion_point(field_set:mspb.PeerStatus.index)
-}
-
-// uint64 commit = 3;
-void PeerStatus::clear_commit() {
-  commit_ = GOOGLE_ULONGLONG(0);
-}
-::google::protobuf::uint64 PeerStatus::commit() const {
-  // @@protoc_insertion_point(field_get:mspb.PeerStatus.commit)
-  return commit_;
-}
-void PeerStatus::set_commit(::google::protobuf::uint64 value) {
-  
-  commit_ = value;
-  // @@protoc_insertion_point(field_set:mspb.PeerStatus.commit)
-}
-
-// uint64 down_seconds = 4;
-void PeerStatus::clear_down_seconds() {
-  down_seconds_ = GOOGLE_ULONGLONG(0);
-}
-::google::protobuf::uint64 PeerStatus::down_seconds() const {
-  // @@protoc_insertion_point(field_get:mspb.PeerStatus.down_seconds)
-  return down_seconds_;
-}
-void PeerStatus::set_down_seconds(::google::protobuf::uint64 value) {
-  
-  down_seconds_ = value;
-  // @@protoc_insertion_point(field_set:mspb.PeerStatus.down_seconds)
-}
-
-// bool snapshotting = 5;
-void PeerStatus::clear_snapshotting() {
-  snapshotting_ = false;
-}
-bool PeerStatus::snapshotting() const {
-  // @@protoc_insertion_point(field_get:mspb.PeerStatus.snapshotting)
-  return snapshotting_;
-}
-void PeerStatus::set_snapshotting(bool value) {
-  
-  snapshotting_ = value;
-  // @@protoc_insertion_point(field_set:mspb.PeerStatus.snapshotting)
-}
-
-#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
-
-// ===================================================================
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int RangeStats::kBytesWrittenFieldNumber;
 const int RangeStats::kBytesReadFieldNumber;
 const int RangeStats::kKeysWrittenFieldNumber;
@@ -3504,7 +2984,7 @@ bool RangeHeartbeatRequest::MergePartialFromCodedStream(
         break;
       }
 
-      // repeated .mspb.PeerStatus peers_status = 8;
+      // repeated .metapb.PeerStatus peers_status = 8;
       case 8: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(66u /* 66 & 0xFF */)) {
@@ -3571,7 +3051,7 @@ void RangeHeartbeatRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt64(7, this->term(), output);
   }
 
-  // repeated .mspb.PeerStatus peers_status = 8;
+  // repeated .metapb.PeerStatus peers_status = 8;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->peers_status_size()); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
@@ -3625,7 +3105,7 @@ void RangeHeartbeatRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(7, this->term(), target);
   }
 
-  // repeated .mspb.PeerStatus peers_status = 8;
+  // repeated .metapb.PeerStatus peers_status = 8;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->peers_status_size()); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
@@ -3650,7 +3130,7 @@ size_t RangeHeartbeatRequest::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  // repeated .mspb.PeerStatus peers_status = 8;
+  // repeated .metapb.PeerStatus peers_status = 8;
   {
     unsigned int count = static_cast<unsigned int>(this->peers_status_size());
     total_size += 1UL * count;
@@ -3959,31 +3439,31 @@ void RangeHeartbeatRequest::set_term(::google::protobuf::uint64 value) {
   // @@protoc_insertion_point(field_set:mspb.RangeHeartbeatRequest.term)
 }
 
-// repeated .mspb.PeerStatus peers_status = 8;
+// repeated .metapb.PeerStatus peers_status = 8;
 int RangeHeartbeatRequest::peers_status_size() const {
   return peers_status_.size();
 }
 void RangeHeartbeatRequest::clear_peers_status() {
   peers_status_.Clear();
 }
-const ::mspb::PeerStatus& RangeHeartbeatRequest::peers_status(int index) const {
+const ::metapb::PeerStatus& RangeHeartbeatRequest::peers_status(int index) const {
   // @@protoc_insertion_point(field_get:mspb.RangeHeartbeatRequest.peers_status)
   return peers_status_.Get(index);
 }
-::mspb::PeerStatus* RangeHeartbeatRequest::mutable_peers_status(int index) {
+::metapb::PeerStatus* RangeHeartbeatRequest::mutable_peers_status(int index) {
   // @@protoc_insertion_point(field_mutable:mspb.RangeHeartbeatRequest.peers_status)
   return peers_status_.Mutable(index);
 }
-::mspb::PeerStatus* RangeHeartbeatRequest::add_peers_status() {
+::metapb::PeerStatus* RangeHeartbeatRequest::add_peers_status() {
   // @@protoc_insertion_point(field_add:mspb.RangeHeartbeatRequest.peers_status)
   return peers_status_.Add();
 }
-::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >*
+::google::protobuf::RepeatedPtrField< ::metapb::PeerStatus >*
 RangeHeartbeatRequest::mutable_peers_status() {
   // @@protoc_insertion_point(field_mutable_list:mspb.RangeHeartbeatRequest.peers_status)
   return &peers_status_;
 }
-const ::google::protobuf::RepeatedPtrField< ::mspb::PeerStatus >&
+const ::google::protobuf::RepeatedPtrField< ::metapb::PeerStatus >&
 RangeHeartbeatRequest::peers_status() const {
   // @@protoc_insertion_point(field_list:mspb.RangeHeartbeatRequest.peers_status)
   return peers_status_;
