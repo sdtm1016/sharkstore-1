@@ -1378,14 +1378,17 @@ func (c *Cluster) selectBestNodesForAddPeer(rng *Range) []*Node {
 
 	log.Debug("select node for add Peer node size:%d", len(c.GetAllNode()))
 	nodes := make([]*Node, 0)
+
+	var tableIsolationLabel string
+	table, found := c.FindTableById(rng.Range.TableId)
+	if found {
+		tableIsolationLabel = table.Table.IsolationLabel
+	}
+
 	for _, node := range c.GetAllNode() {
-
-		var tableIsolationLabel string
-		table, found := c.FindTableById(rng.Range.TableId)
-		if found {
-			tableIsolationLabel = table.Table.IsolationLabel
+		if len(tableIsolationLabel) == 0 && len(node.IsolationLabel) != 0 {
+			continue
 		}
-
 		// select node with a same label
 		if len(tableIsolationLabel) != 0 && tableIsolationLabel != node.IsolationLabel {
 			continue
@@ -1400,32 +1403,6 @@ func (c *Cluster) selectBestNodesForAddPeer(rng *Range) []*Node {
 		}
 		if flag {
 			nodes = append(nodes, node)
-		}
-	}
-
-	// none of the nodes selected (try to select node with empty label)
-	if len(nodes) == 0 {
-		for _, node := range c.GetAllNode() {
-			var tableIsolationLabel string
-			table, found := c.FindTableById(rng.Range.TableId)
-			if found {
-				tableIsolationLabel = table.Table.IsolationLabel
-			}
-
-			if len(tableIsolationLabel) != 0 && len(node.IsolationLabel) != 0 {
-				continue
-			}
-			flag := true
-			for _, selector := range newSelectors {
-				if !selector.CanSelect(node) {
-					log.Debug("addPeer: node %v cannot select, because of %v", node.GetId(), selector.Name())
-					flag = false
-					break
-				}
-			}
-			if flag {
-				nodes = append(nodes, node)
-			}
 		}
 	}
 	log.Debug("selected node size:%d", len(nodes))
