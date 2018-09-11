@@ -86,7 +86,7 @@ message Peer {
 }
 
 message PeerStatus {
-    metapb.Peer peer    = 1;
+    Peer peer           = 1;
     uint64 index        = 2;
     uint64 commit       = 3;
     uint64 down_seconds = 4;

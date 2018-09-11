@@ -2,11 +2,12 @@ package dskv
 
 import (
 	"bytes"
+	"model/pkg/metapb"
 	"time"
 
+	"model/pkg/kvrpcpb"
 	"proxy/metric"
 	"util/log"
-	"model/pkg/kvrpcpb"
 )
 
 //func (p *KvProxy) SqlInsert(req *kvrpcpb.InsertRequest, scope *kvrpcpb.Scope) ([]*kvrpcpb.InsertResponse, error) {
@@ -89,7 +90,7 @@ func (p *KvProxy) Insert(rContext *ReqContext, req *kvrpcpb.InsertRequest, key [
 	return response, l, nil
 }
 
-func (p *KvProxy) SqlQuery(req *kvrpcpb.SelectRequest, key []byte) (*kvrpcpb.SelectResponse, *KeyLocation, error) {
+func (p *KvProxy) SqlQuery(req *kvrpcpb.SelectRequest, key []byte, readFrom metapb.ReadFromNode) (*kvrpcpb.SelectResponse, *KeyLocation, error) {
 	log.Debug("select by route key: %v",key)
 	context := NewPRConext(GetMaxBackoff)
 	var retErr, errForRetry error
@@ -108,6 +109,10 @@ func (p *KvProxy) SqlQuery(req *kvrpcpb.SelectRequest, key []byte) (*kvrpcpb.Sel
 		in.SelectReq = &kvrpcpb.DsSelectRequest{
 			Header: &kvrpcpb.RequestHeader{},
 			Req:    req,
+		}
+		if readFrom == metapb.ReadFromNode_ReadFromFollower {
+			// just show it stands for ReadFromFollower
+			in.SelectReq.Header.ReadIndex = 1
 		}
 		resp, l, err := p.do(context.GetBackOff(), in, key)
 		delay := time.Now().Sub(startTime)

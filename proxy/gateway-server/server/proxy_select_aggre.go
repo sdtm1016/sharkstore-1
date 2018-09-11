@@ -52,7 +52,7 @@ func (p *Proxy) selectAggre(t *Table, kvproxy *dskv.KvProxy, req *kvrpcpb.Select
 			}
 		}
 
-		task := newAggreTask(p, kvproxy, key, req)
+		task := newAggreTask(p, kvproxy, key, req, t.Table.ReadFromNode)
 		err := p.Submit(task)
 		if err != nil {
 			log.Error("submit aggre task failed, err[%v]", err)

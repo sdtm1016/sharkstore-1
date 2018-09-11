@@ -357,7 +357,10 @@ func (item *llrbItem) Less(other llrb.Item) bool {
 // Region stores region's meta and its leader peer.
 type Range struct {
 	meta             *metapb.Range
+	// leader
 	peer             *metapb.Peer
+	// reader
+	reader           *metapb.Peer
 	peerStatus       []*metapb.PeerStatus
 	unreachableNodes []uint64
 }

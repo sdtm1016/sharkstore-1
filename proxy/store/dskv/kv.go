@@ -294,19 +294,30 @@ func (p *KvProxy) do(bo *Backoffer, req *Request, key []byte) (resp *Response, l
 	}
 
 	readNodeId := l.NodeId
-	if req.Type == Type_Select && req.SelectReq.Req.ReadPoint == metapb.ReadFromNode_ReadFromFollower {
-		foundRange := p.RangeCache.getRegionByIDFromCache(l.Region.Id)
-		for _, _p := range foundRange.meta.Peers {
-			if _p.NodeId != l.NodeId {
-				readNodeId = _p.NodeId
+	if req.Type == Type_Select {
+		//metapbTable, _ := p.RangeCache.msClient.GetTableById(p.RangeCache.dbId, p.RangeCache.tableId)
+		if req.SelectReq != nil && req.SelectReq.Header != nil && req.SelectReq.Header.ReadIndex > 0 {
+			foundRange := p.RangeCache.getRegionByIDFromCache(l.Region.Id)
+			if foundRange != nil {
+				if foundRange.reader != nil && foundRange.reader.NodeId > 0 {
+					readNodeId = foundRange.reader.NodeId
+				} else {
+					for _, _p := range foundRange.meta.Peers {
+						if _p.NodeId != l.NodeId {
+							foundRange.reader = _p
+							readNodeId = _p.NodeId
+							break
+						}
+					}
+				}
+
 				for _, peer_status := range foundRange.peerStatus {
-					if _p.Id == peer_status.Peer.Id {
+					if foundRange.reader.Id == peer_status.Peer.Id {
 						// todo the period of updating peer index
-						req.SelectReq.Req.PeerStatus = peer_status
+						req.SelectReq.Header.ReadIndex = peer_status.Applied
 						break
 					}
 				}
-				break
 			}
 		}
 	}
@@ -329,11 +340,11 @@ func (p *KvProxy) do(bo *Backoffer, req *Request, key []byte) (resp *Response, l
 	if sendDelay <= 50 {
 		// do nothing
 	} else if sendDelay <= 200 {
-		log.Info("request to %s type:%s execut time %d ms, msg:%d rangeId:%d", addr, req.GetType().String(), sendDelay, reqHeader.TraceId, l.Region.Id)
+		log.Info("request to %s type:%s execute time %d ms, msg:%d rangeId:%d", addr, req.GetType().String(), sendDelay, reqHeader.TraceId, l.Region.Id)
 	} else if sendDelay <= 500 {
-		log.Warn("request to %s type:%s execut time %d ms, msg:%d rangeId:%d", addr, req.GetType().String(), sendDelay,  reqHeader.TraceId, l.Region.Id)
+		log.Warn("request to %s type:%s execute time %d ms, msg:%d rangeId:%d", addr, req.GetType().String(), sendDelay,  reqHeader.TraceId, l.Region.Id)
 	} else {
-		log.Error("request to %s type:%s execut time %d ms, msg:%d rangeId:%d", addr, req.GetType().String(), sendDelay, reqHeader.TraceId, l.Region.Id)
+		log.Error("request to %s type:%s execute time %d ms, msg:%d rangeId:%d", addr, req.GetType().String(), sendDelay, reqHeader.TraceId, l.Region.Id)
 	}
 
 	if err != nil {
@@ -347,6 +358,7 @@ func (p *KvProxy) do(bo *Backoffer, req *Request, key []byte) (resp *Response, l
 func (p *KvProxy) sendReq(bo *Backoffer, ctx *Context, req *Request) (resp *Response, err error) {
 	var retry bool
 	var pErr *errorpb.Error
+	var staleIndexErrTimes = 0
 	for {
 		resp, retry, err = p.send(bo, ctx, req)
 		if err != nil {
@@ -363,8 +375,7 @@ func (p *KvProxy) sendReq(bo *Backoffer, ctx *Context, req *Request) (resp *Resp
 			return
 		}
 		if pErr != nil {
-			// todo handle error when reading from follower
-			retry, err = p.doRangeError(bo, pErr, ctx)
+			retry, err = p.doRangeError(bo, pErr, ctx, &staleIndexErrTimes)
 			if err != nil {
 				return
 			}
@@ -378,7 +389,7 @@ func (p *KvProxy) sendReq(bo *Backoffer, ctx *Context, req *Request) (resp *Resp
 	}
 }
 
-func (p *KvProxy) doRangeError(bo *Backoffer, rangeErr *errorpb.Error, ctx *Context) (retry bool, err error) {
+func (p *KvProxy) doRangeError(bo *Backoffer, rangeErr *errorpb.Error, ctx *Context, times *int) (retry bool, err error) {
 	if rangeErr.GetNotLeader() != nil {
 		notLeader := rangeErr.GetNotLeader()
 		log.Warn("range leader changed, ctx: %s, old leader[%s], new leader %v", ctx.RequestHeader.String(), ctx.NodeAddr, notLeader.GetLeader().GetNodeId())
@@ -444,6 +455,40 @@ func (p *KvProxy) doRangeError(bo *Backoffer, rangeErr *errorpb.Error, ctx *Cont
 	if rangeErr.GetEntryTooLarge() != nil {
 		log.Warn("ds reports `RaftEntryTooLarge`, ctx: %s %s", ctx.RequestHeader.String(), ctx.NodeAddr)
 		return false, errors.New(rangeErr.String())
+	}
+	if rangeErr.GetStaleReadIndex() != nil {
+		readIndex := rangeErr.GetStaleReadIndex().GetReadIndex()
+		replicaIndex := rangeErr.StaleReadIndex.GetReplicaIndex()
+		log.Warn("ds reports peer_read_index are stale[read_index=%d, replica_index=%d], ctx: %s %s",
+			readIndex, replicaIndex, ctx.RequestHeader.String(), ctx.NodeAddr)
+
+		if *times > 0 {
+			p.RangeCache.DropRegion(ctx.VID)
+			return false, errors.New(fmt.Sprintf("stale_read_index, read_index: %d replica_index: %d", readIndex, replicaIndex))
+		}
+
+		rng := p.RangeCache.getRegionByIDFromCache(ctx.RequestHeader.RangeId)
+		for _, peer := range rng.meta.Peers {
+			if peer.NodeId != rng.Leader().NodeId && peer.NodeId != rng.reader.NodeId {
+				rng.reader = peer
+				for _, peer_status := range rng.peerStatus {
+					if peer.Id == peer_status.Peer.Id {
+						ctx.RequestHeader.ReadIndex = peer_status.Applied
+						break
+					}
+				}
+				break
+			}
+		}
+		newNodeId:= rng.reader.NodeId
+		newAddr, err := p.RangeCache.GetNodeAddr(bo, newNodeId)
+		if err != nil {
+			log.Warn("get node[id=%d] addr err in rangeErr.GetStaleReadIndex", newNodeId)
+			return false, err
+		}
+		ctx.NodeAddr = newAddr
+		*times++
+		return true, nil
 	}
 	// For other errors, we only drop cache here.
 	// Because caller may need to re-split the request.

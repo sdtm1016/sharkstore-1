@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"model/pkg/metapb"
 	"runtime"
 	"time"
 
@@ -209,27 +210,29 @@ func (it *SelectTask) Reset() {
 	*it = SelectTask{done: make(chan error, 1)}
 }
 
-func newAggreTask(p *Proxy, kvproxy *dskv.KvProxy, key []byte, req *kvrpcpb.SelectRequest) *aggreTask {
+func newAggreTask(p *Proxy, kvproxy *dskv.KvProxy, key []byte, req *kvrpcpb.SelectRequest, readFrom metapb.ReadFromNode) *aggreTask {
 	return &aggreTask{
-		p:       p,
-		kvproxy: kvproxy,
-		key:     key,
-		req:     req,
-		done:    make(chan error, 1),
+		p:       	p,
+		kvproxy: 	kvproxy,
+		key:     	key,
+		req:     	req,
+		done:    	make(chan error, 1),
+		readFrom:	readFrom,
 	}
 }
 
 type aggreTask struct {
-	p       *Proxy
-	kvproxy *dskv.KvProxy
-	key     []byte
-	req     *kvrpcpb.SelectRequest
-	done    chan error
-	result  []*kvrpcpb.Row
+	p       	*Proxy
+	kvproxy 	*dskv.KvProxy
+	key     	[]byte
+	req     	*kvrpcpb.SelectRequest
+	done    	chan error
+	result  	[]*kvrpcpb.Row
+	readFrom	metapb.ReadFromNode
 }
 
 func (t *aggreTask) Do() {
-	resp, _, err := t.kvproxy.SqlQuery(t.req, t.key)
+	resp, _, err := t.kvproxy.SqlQuery(t.req, t.key, t.readFrom)
 	if err == nil && resp.GetCode() != 0 {
 		log.Error("select aggre: remote server return code: %v", resp.GetCode())
 		err = fmt.Errorf("remote server return code: %v", resp.GetCode())

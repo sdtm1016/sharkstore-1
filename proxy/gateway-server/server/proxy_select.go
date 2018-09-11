@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"model/pkg/metapb"
 
 	"bytes"
 	"model/pkg/kvrpcpb"
@@ -146,7 +147,6 @@ func (p *Proxy) doSelect(t *Table, fieldList []*kvrpcpb.SelectField, matches []M
 		WhereFilters: pbMatches,
 		Limit:        pbLimit,
 		Timestamp:    &timestamp.Timestamp{WallTime: now.WallTime, Logical: now.Logical},
-		ReadPoint:    t.ReadFromNode,
 	}
 	return p.selectRemote(t, sreq)
 }
@@ -160,13 +160,13 @@ func (p *Proxy) selectRemote(t *Table, req *kvrpcpb.SelectRequest) ([][]*Row, er
 	var err error
 	// single get
 	if len(req.Key) != 0 {
-		pbRows, err = p.singleSelectRemote(proxy, req, req.GetKey())
+		pbRows, err = p.singleSelectRemote(proxy, req, req.GetKey(), t.Table.ReadFromNode)
 	} else {
 		// 聚合函数，并行执行, 并且没有limit、offset逻辑
 		if len(req.FieldList) > 0 && req.FieldList[0].Typ == kvrpcpb.SelectField_AggreFunction {
 			pbRows, err = p.selectAggre(t, proxy, req)
 		} else { // 普通的范围查询
-			pbRows, err = p.rangeSelectRemote(proxy, req)
+			pbRows, err = p.rangeSelectRemote(proxy, req, t.Table.ReadFromNode)
 		}
 	}
 	if err != nil {
@@ -176,8 +176,8 @@ func (p *Proxy) selectRemote(t *Table, req *kvrpcpb.SelectRequest) ([][]*Row, er
 	return decodeRows(t, req.FieldList, pbRows)
 }
 
-func (p *Proxy) singleSelectRemote(kvproxy *dskv.KvProxy, req *kvrpcpb.SelectRequest, key []byte) ([][]*kvrpcpb.Row, error) {
-	resp, _, err := kvproxy.SqlQuery(req, key)
+func (p *Proxy) singleSelectRemote(kvproxy *dskv.KvProxy, req *kvrpcpb.SelectRequest, key []byte, readFrom metapb.ReadFromNode) ([][]*kvrpcpb.Row, error) {
+	resp, _, err := kvproxy.SqlQuery(req, key, readFrom)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func (p *Proxy) singleSelectRemote(kvproxy *dskv.KvProxy, req *kvrpcpb.SelectReq
 	return [][]*kvrpcpb.Row{rows}, nil
 }
 
-func (p *Proxy) rangeSelectRemote(kvproxy *dskv.KvProxy, sreq *kvrpcpb.SelectRequest) ([][]*kvrpcpb.Row, error) {
+func (p *Proxy) rangeSelectRemote(kvproxy *dskv.KvProxy, sreq *kvrpcpb.SelectRequest, readFrom metapb.ReadFromNode) ([][]*kvrpcpb.Row, error) {
 	var key, start, end []byte
 	var resp *kvrpcpb.SelectResponse
 	var route *dskv.KeyLocation
@@ -246,7 +246,7 @@ func (p *Proxy) rangeSelectRemote(kvproxy *dskv.KvProxy, sreq *kvrpcpb.SelectReq
 			Limit:        subLimit,
 			Timestamp:    &timestamp.Timestamp{WallTime: now.WallTime, Logical: now.Logical},
 		}
-		resp, route, err = kvproxy.SqlQuery(req, key)
+		resp, route, err = kvproxy.SqlQuery(req, key, readFrom)
 		if err != nil {
 			return nil, err
 		}

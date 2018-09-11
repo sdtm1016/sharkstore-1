@@ -182,8 +182,6 @@ message SelectRequest {
     Limit limit                         = 6;       // max range query num, 0 means no limit
 
     timestamp.Timestamp timestamp       = 7;       // // timestamp
-    metapb.ReadFromNode readPoint       = 8;       // read from which node(leader/follower)
-    metapb.PeerStatus peer_status       = 9;
 }
 
 message Row {
