@@ -1405,6 +1405,24 @@ func (c *Cluster) selectBestNodesForAddPeer(rng *Range) []*Node {
 			nodes = append(nodes, node)
 		}
 	}
+
+	// to avoid add-peer-task failing (in case node shutdown exceptionally and rng not working)
+	if len(nodes) == 0 {
+		for _, node := range c.GetAllNode() {
+			flag := true
+			for _, selector := range newSelectors {
+				if !selector.CanSelect(node) {
+					log.Debug("addPeer: range [%v] cannot select node %v, because of %v", rng.GetId(), node.GetId(), selector.Name())
+					flag = false
+					break
+				}
+			}
+			if flag {
+				nodes = append(nodes, node)
+			}
+		}
+	}
+
 	log.Debug("selected node size:%d", len(nodes))
 	return nodes
 
