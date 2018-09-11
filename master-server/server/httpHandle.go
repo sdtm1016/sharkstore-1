@@ -1050,9 +1050,7 @@ func (service *Server) handleRangeGetRangeTopo(w http.ResponseWriter, r *http.Re
 		},
 	}
 
-	var _routes []*Route
-	_routes = append(_routes, _route)
-	reply.Data = _routes
+	reply.Data = _route
 	log.Info("get peers of range[rangeId=%d] succeed", rangeId)
 }
 
@@ -1159,6 +1157,7 @@ func (service *Server) handleNodeGetRangeTopo(w http.ResponseWriter, r *http.Req
 			Peers:      peers,
 			State:      int32(r.State),
 			LastHbTime: r.LastHbTimeTS.Format("2006-01-02 15:04:05") + opsDescription,
+			TableId: r.GetTableId(),
 		}
 		if table != nil && tbFind {
 			_range.DbName = table.GetDbName()
