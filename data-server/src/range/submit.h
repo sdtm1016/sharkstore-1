@@ -26,6 +26,7 @@ public:
     SubmitContext& operator=(const SubmitContext&) = delete;
 
     common::ProtoMessage* Msg() const { return msg_; }
+    void ClearMsg() { msg_ = nullptr; }
     int64_t CreateTime() const { return create_time_; }
     raft_cmdpb::CmdType Type() const { return type_; }
 

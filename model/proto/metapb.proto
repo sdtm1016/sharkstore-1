@@ -91,6 +91,7 @@ message PeerStatus {
     uint64 commit       = 3;
     uint64 down_seconds = 4;
     bool snapshotting   = 5;
+    uint64 applied      = 6;
 }
 
 message Replica {

@@ -9,6 +9,7 @@ set (meta_dump_DEPS
     ${PROTOBUF_LIBRARY}
     ${ROCKSDB_LIB}
     pthread
+    z
 )
 target_link_libraries(meta_dump ${meta_dump_DEPS})
 
@@ -23,5 +24,6 @@ set (log_dump_DEPS
     sharkstore-base
     ${PROTOBUF_LIBRARY}
     pthread
+    z
 )
 target_link_libraries(log_dump ${log_dump_DEPS})

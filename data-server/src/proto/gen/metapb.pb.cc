@@ -177,6 +177,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PeerStatus, commit_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PeerStatus, down_seconds_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PeerStatus, snapshotting_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PeerStatus, applied_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Replica, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -286,16 +287,16 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_ATTR
   { 14, -1, sizeof(Node)},
   { 26, -1, sizeof(Peer)},
   { 34, -1, sizeof(PeerStatus)},
-  { 44, -1, sizeof(Replica)},
-  { 53, -1, sizeof(RangeEpoch)},
-  { 60, -1, sizeof(Range)},
-  { 72, -1, sizeof(Leader)},
-  { 80, -1, sizeof(Route)},
-  { 87, -1, sizeof(DataBase)},
-  { 97, -1, sizeof(Column)},
-  { 115, -1, sizeof(Primary)},
-  { 122, -1, sizeof(TableEpoch)},
-  { 129, -1, sizeof(Table)},
+  { 45, -1, sizeof(Replica)},
+  { 54, -1, sizeof(RangeEpoch)},
+  { 61, -1, sizeof(Range)},
+  { 73, -1, sizeof(Leader)},
+  { 81, -1, sizeof(Route)},
+  { 88, -1, sizeof(DataBase)},
+  { 98, -1, sizeof(Column)},
+  { 116, -1, sizeof(Primary)},
+  { 123, -1, sizeof(TableEpoch)},
+  { 130, -1, sizeof(Table)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -404,59 +405,59 @@ void AddDescriptorsImpl() {
       "\030\005 \001(\0162\021.metapb.NodeState\022\017\n\007version\030\006 \001"
       "(\t\022!\n\006labels\030\007 \003(\0132\021.metapb.NodeLabel\"C\n"
       "\004Peer\022\n\n\002id\030\001 \001(\004\022\017\n\007node_id\030\002 \001(\004\022\036\n\004ty"
-      "pe\030\003 \001(\0162\020.metapb.PeerType\"s\n\nPeerStatus"
-      "\022\032\n\004peer\030\001 \001(\0132\014.metapb.Peer\022\r\n\005index\030\002 "
-      "\001(\004\022\016\n\006commit\030\003 \001(\004\022\024\n\014down_seconds\030\004 \001("
-      "\004\022\024\n\014snapshotting\030\005 \001(\010\"[\n\007Replica\022\020\n\010ra"
-      "nge_id\030\001 \001(\004\022\032\n\004peer\030\002 \001(\0132\014.metapb.Peer"
-      "\022\021\n\tstart_key\030\003 \001(\014\022\017\n\007end_key\030\004 \001(\014\"/\n\n"
-      "RangeEpoch\022\020\n\010conf_ver\030\001 \001(\004\022\017\n\007version\030"
-      "\002 \001(\004\"\265\001\n\005Range\022\n\n\002id\030\001 \001(\004\022\021\n\tstart_key"
-      "\030\002 \001(\014\022\017\n\007end_key\030\003 \001(\014\022\'\n\013range_epoch\030\004"
-      " \001(\0132\022.metapb.RangeEpoch\022\033\n\005peers\030\005 \003(\0132"
-      "\014.metapb.Peer\022\020\n\010table_id\030\006 \001(\004\022$\n\014prima"
-      "ry_keys\030\007 \003(\0132\016.metapb.Column\">\n\006Leader\022"
-      "\020\n\010range_id\030\001 \001(\004\022\017\n\007node_id\030\002 \001(\004\022\021\n\tno"
-      "de_addr\030\003 \001(\t\"C\n\005Route\022\034\n\005range\030\001 \001(\0132\r."
-      "metapb.Range\022\034\n\006leader\030\002 \001(\0132\014.metapb.Pe"
-      "er\"^\n\010DataBase\022\014\n\004name\030\001 \001(\t\022\n\n\002id\030\002 \001(\004"
-      "\022\022\n\nproperties\030\003 \001(\t\022\017\n\007version\030\004 \001(\004\022\023\n"
-      "\013create_time\030\005 \001(\003\"\205\002\n\006Column\022\014\n\004name\030\001 "
-      "\001(\t\022\n\n\002id\030\002 \001(\004\022#\n\tdata_type\030\003 \001(\0162\020.met"
-      "apb.DataType\022\020\n\010unsigned\030\004 \001(\010\022\r\n\005scale\030"
-      "\005 \001(\005\022\021\n\tprecision\030\006 \001(\005\022\020\n\010nullable\030\007 \001"
-      "(\010\022\023\n\013primary_key\030\010 \001(\004\022\017\n\007ordinal\030\t \001(\005"
-      "\022\r\n\005index\030\n \001(\010\022\025\n\rdefault_value\030\013 \001(\014\022\022"
-      "\n\nproperties\030\014 \001(\t\022\026\n\016auto_increment\030\r \001"
-      "(\010\"=\n\007Primary\022\023\n\013column_name\030\001 \001(\t\022\035\n\004ne"
-      "xt\030\002 \001(\0132\017.metapb.Primary\"/\n\nTableEpoch\022"
-      "\020\n\010conf_ver\030\001 \001(\004\022\017\n\007version\030\002 \001(\004\"\230\002\n\005T"
-      "able\022\014\n\004name\030\001 \001(\t\022\017\n\007db_name\030\002 \001(\t\022\r\n\005d"
-      "b_id\030\003 \001(\004\022\n\n\002id\030\004 \001(\004\022\022\n\nproperties\030\005 \001"
-      "(\t\022\037\n\007columns\030\006 \003(\0132\016.metapb.Column\022!\n\005e"
-      "poch\030\007 \001(\0132\022.metapb.TableEpoch\022\035\n\005regxs\030"
-      "\010 \003(\0132\016.metapb.Column\022\023\n\013create_time\030\t \001"
-      "(\003\022\024\n\014pk_dup_check\030\n \001(\010\022#\n\006status\030\013 \001(\016"
-      "2\023.metapb.TableStatus\022\016\n\006expand\030\014 \001(\014*s\n"
-      "\tNodeState\022\r\n\tN_Invalid\020\000\022\013\n\007N_Login\020\001\022\014"
-      "\n\010N_Logout\020\002\022\r\n\tN_Offline\020\003\022\017\n\013N_Tombsto"
-      "ne\020\004\022\r\n\tN_Upgrade\020\005\022\r\n\tN_Initial\020\006*\214\001\n\nR"
-      "angeState\022\r\n\tR_Invalid\020\000\022\n\n\006R_Init\020\001\022\014\n\010"
-      "R_Normal\020\002\022\013\n\007R_Split\020\003\022\013\n\007R_Merge\020\004\022\014\n\010"
-      "R_Remove\020\005\022\016\n\nR_LoadSnap\020\006\022\016\n\nR_Abnormal"
-      "\020\007\022\r\n\tR_Offline\020\010*K\n\010PeerType\022\024\n\020PeerTyp"
-      "e_Invalid\020\000\022\023\n\017PeerType_Normal\020\001\022\024\n\020Peer"
-      "Type_Learner\020\002*\220\001\n\010DataType\022\013\n\007Invalid\020\000"
-      "\022\013\n\007Tinyint\020\001\022\014\n\010Smallint\020\002\022\007\n\003Int\020\003\022\n\n\006"
-      "BigInt\020\004\022\t\n\005Float\020\005\022\n\n\006Double\020\006\022\013\n\007Varch"
-      "ar\020\007\022\n\n\006Binary\020\010\022\010\n\004Date\020\t\022\r\n\tTimeStamp\020"
-      "\n*v\n\013TableStatus\022\020\n\014TableInvalid\020\000\022\r\n\tTa"
-      "bleInit\020\001\022\020\n\014TablePrepare\020\002\022\020\n\014TableRunn"
-      "ing\020\003\022\017\n\013TableDelete\020\004\022\021\n\rTableDeleting\020"
-      "\005b\006proto3"
+      "pe\030\003 \001(\0162\020.metapb.PeerType\"\204\001\n\nPeerStatu"
+      "s\022\032\n\004peer\030\001 \001(\0132\014.metapb.Peer\022\r\n\005index\030\002"
+      " \001(\004\022\016\n\006commit\030\003 \001(\004\022\024\n\014down_seconds\030\004 \001"
+      "(\004\022\024\n\014snapshotting\030\005 \001(\010\022\017\n\007applied\030\006 \001("
+      "\004\"[\n\007Replica\022\020\n\010range_id\030\001 \001(\004\022\032\n\004peer\030\002"
+      " \001(\0132\014.metapb.Peer\022\021\n\tstart_key\030\003 \001(\014\022\017\n"
+      "\007end_key\030\004 \001(\014\"/\n\nRangeEpoch\022\020\n\010conf_ver"
+      "\030\001 \001(\004\022\017\n\007version\030\002 \001(\004\"\265\001\n\005Range\022\n\n\002id\030"
+      "\001 \001(\004\022\021\n\tstart_key\030\002 \001(\014\022\017\n\007end_key\030\003 \001("
+      "\014\022\'\n\013range_epoch\030\004 \001(\0132\022.metapb.RangeEpo"
+      "ch\022\033\n\005peers\030\005 \003(\0132\014.metapb.Peer\022\020\n\010table"
+      "_id\030\006 \001(\004\022$\n\014primary_keys\030\007 \003(\0132\016.metapb"
+      ".Column\">\n\006Leader\022\020\n\010range_id\030\001 \001(\004\022\017\n\007n"
+      "ode_id\030\002 \001(\004\022\021\n\tnode_addr\030\003 \001(\t\"C\n\005Route"
+      "\022\034\n\005range\030\001 \001(\0132\r.metapb.Range\022\034\n\006leader"
+      "\030\002 \001(\0132\014.metapb.Peer\"^\n\010DataBase\022\014\n\004name"
+      "\030\001 \001(\t\022\n\n\002id\030\002 \001(\004\022\022\n\nproperties\030\003 \001(\t\022\017"
+      "\n\007version\030\004 \001(\004\022\023\n\013create_time\030\005 \001(\003\"\205\002\n"
+      "\006Column\022\014\n\004name\030\001 \001(\t\022\n\n\002id\030\002 \001(\004\022#\n\tdat"
+      "a_type\030\003 \001(\0162\020.metapb.DataType\022\020\n\010unsign"
+      "ed\030\004 \001(\010\022\r\n\005scale\030\005 \001(\005\022\021\n\tprecision\030\006 \001"
+      "(\005\022\020\n\010nullable\030\007 \001(\010\022\023\n\013primary_key\030\010 \001("
+      "\004\022\017\n\007ordinal\030\t \001(\005\022\r\n\005index\030\n \001(\010\022\025\n\rdef"
+      "ault_value\030\013 \001(\014\022\022\n\nproperties\030\014 \001(\t\022\026\n\016"
+      "auto_increment\030\r \001(\010\"=\n\007Primary\022\023\n\013colum"
+      "n_name\030\001 \001(\t\022\035\n\004next\030\002 \001(\0132\017.metapb.Prim"
+      "ary\"/\n\nTableEpoch\022\020\n\010conf_ver\030\001 \001(\004\022\017\n\007v"
+      "ersion\030\002 \001(\004\"\230\002\n\005Table\022\014\n\004name\030\001 \001(\t\022\017\n\007"
+      "db_name\030\002 \001(\t\022\r\n\005db_id\030\003 \001(\004\022\n\n\002id\030\004 \001(\004"
+      "\022\022\n\nproperties\030\005 \001(\t\022\037\n\007columns\030\006 \003(\0132\016."
+      "metapb.Column\022!\n\005epoch\030\007 \001(\0132\022.metapb.Ta"
+      "bleEpoch\022\035\n\005regxs\030\010 \003(\0132\016.metapb.Column\022"
+      "\023\n\013create_time\030\t \001(\003\022\024\n\014pk_dup_check\030\n \001"
+      "(\010\022#\n\006status\030\013 \001(\0162\023.metapb.TableStatus\022"
+      "\016\n\006expand\030\014 \001(\014*s\n\tNodeState\022\r\n\tN_Invali"
+      "d\020\000\022\013\n\007N_Login\020\001\022\014\n\010N_Logout\020\002\022\r\n\tN_Offl"
+      "ine\020\003\022\017\n\013N_Tombstone\020\004\022\r\n\tN_Upgrade\020\005\022\r\n"
+      "\tN_Initial\020\006*\214\001\n\nRangeState\022\r\n\tR_Invalid"
+      "\020\000\022\n\n\006R_Init\020\001\022\014\n\010R_Normal\020\002\022\013\n\007R_Split\020"
+      "\003\022\013\n\007R_Merge\020\004\022\014\n\010R_Remove\020\005\022\016\n\nR_LoadSn"
+      "ap\020\006\022\016\n\nR_Abnormal\020\007\022\r\n\tR_Offline\020\010*K\n\010P"
+      "eerType\022\024\n\020PeerType_Invalid\020\000\022\023\n\017PeerTyp"
+      "e_Normal\020\001\022\024\n\020PeerType_Learner\020\002*\220\001\n\010Dat"
+      "aType\022\013\n\007Invalid\020\000\022\013\n\007Tinyint\020\001\022\014\n\010Small"
+      "int\020\002\022\007\n\003Int\020\003\022\n\n\006BigInt\020\004\022\t\n\005Float\020\005\022\n\n"
+      "\006Double\020\006\022\013\n\007Varchar\020\007\022\n\n\006Binary\020\010\022\010\n\004Da"
+      "te\020\t\022\r\n\tTimeStamp\020\n*v\n\013TableStatus\022\020\n\014Ta"
+      "bleInvalid\020\000\022\r\n\tTableInit\020\001\022\020\n\014TablePrep"
+      "are\020\002\022\020\n\014TableRunning\020\003\022\017\n\013TableDelete\020\004"
+      "\022\021\n\rTableDeleting\020\005b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 2289);
+      descriptor, 2307);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "metapb.proto", &protobuf_RegisterTypes);
 }
@@ -2498,6 +2499,7 @@ const int PeerStatus::kIndexFieldNumber;
 const int PeerStatus::kCommitFieldNumber;
 const int PeerStatus::kDownSecondsFieldNumber;
 const int PeerStatus::kSnapshottingFieldNumber;
+const int PeerStatus::kAppliedFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 PeerStatus::PeerStatus()
@@ -2657,6 +2659,20 @@ bool PeerStatus::MergePartialFromCodedStream(
         break;
       }
 
+      // uint64 applied = 6;
+      case 6: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(48u /* 48 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &applied_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
       default: {
       handle_unusual:
         if (tag == 0) {
@@ -2709,6 +2725,11 @@ void PeerStatus::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteBool(5, this->snapshotting(), output);
   }
 
+  // uint64 applied = 6;
+  if (this->applied() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(6, this->applied(), output);
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
@@ -2748,6 +2769,11 @@ void PeerStatus::SerializeWithCachedSizes(
   // bool snapshotting = 5;
   if (this->snapshotting() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(5, this->snapshotting(), target);
+  }
+
+  // uint64 applied = 6;
+  if (this->applied() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(6, this->applied(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -2793,6 +2819,13 @@ size_t PeerStatus::ByteSizeLong() const {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::UInt64Size(
         this->down_seconds());
+  }
+
+  // uint64 applied = 6;
+  if (this->applied() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt64Size(
+        this->applied());
   }
 
   // bool snapshotting = 5;
@@ -2841,6 +2874,9 @@ void PeerStatus::MergeFrom(const PeerStatus& from) {
   if (from.down_seconds() != 0) {
     set_down_seconds(from.down_seconds());
   }
+  if (from.applied() != 0) {
+    set_applied(from.applied());
+  }
   if (from.snapshotting() != 0) {
     set_snapshotting(from.snapshotting());
   }
@@ -2874,6 +2910,7 @@ void PeerStatus::InternalSwap(PeerStatus* other) {
   swap(index_, other->index_);
   swap(commit_, other->commit_);
   swap(down_seconds_, other->down_seconds_);
+  swap(applied_, other->applied_);
   swap(snapshotting_, other->snapshotting_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_cached_size_, other->_cached_size_);
@@ -2981,6 +3018,20 @@ void PeerStatus::set_snapshotting(bool value) {
   
   snapshotting_ = value;
   // @@protoc_insertion_point(field_set:metapb.PeerStatus.snapshotting)
+}
+
+// uint64 applied = 6;
+void PeerStatus::clear_applied() {
+  applied_ = GOOGLE_ULONGLONG(0);
+}
+::google::protobuf::uint64 PeerStatus::applied() const {
+  // @@protoc_insertion_point(field_get:metapb.PeerStatus.applied)
+  return applied_;
+}
+void PeerStatus::set_applied(::google::protobuf::uint64 value) {
+  
+  applied_ = value;
+  // @@protoc_insertion_point(field_set:metapb.PeerStatus.applied)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

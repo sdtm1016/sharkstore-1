@@ -849,6 +849,12 @@ class PeerStatus : public ::google::protobuf::Message /* @@protoc_insertion_poin
   ::google::protobuf::uint64 down_seconds() const;
   void set_down_seconds(::google::protobuf::uint64 value);
 
+  // uint64 applied = 6;
+  void clear_applied();
+  static const int kAppliedFieldNumber = 6;
+  ::google::protobuf::uint64 applied() const;
+  void set_applied(::google::protobuf::uint64 value);
+
   // bool snapshotting = 5;
   void clear_snapshotting();
   static const int kSnapshottingFieldNumber = 5;
@@ -863,6 +869,7 @@ class PeerStatus : public ::google::protobuf::Message /* @@protoc_insertion_poin
   ::google::protobuf::uint64 index_;
   ::google::protobuf::uint64 commit_;
   ::google::protobuf::uint64 down_seconds_;
+  ::google::protobuf::uint64 applied_;
   bool snapshotting_;
   mutable int _cached_size_;
   friend struct protobuf_metapb_2eproto::TableStruct;
@@ -2861,6 +2868,20 @@ inline void PeerStatus::set_snapshotting(bool value) {
   
   snapshotting_ = value;
   // @@protoc_insertion_point(field_set:metapb.PeerStatus.snapshotting)
+}
+
+// uint64 applied = 6;
+inline void PeerStatus::clear_applied() {
+  applied_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 PeerStatus::applied() const {
+  // @@protoc_insertion_point(field_get:metapb.PeerStatus.applied)
+  return applied_;
+}
+inline void PeerStatus::set_applied(::google::protobuf::uint64 value) {
+  
+  applied_ = value;
+  // @@protoc_insertion_point(field_set:metapb.PeerStatus.applied)
 }
 
 // -------------------------------------------------------------------
