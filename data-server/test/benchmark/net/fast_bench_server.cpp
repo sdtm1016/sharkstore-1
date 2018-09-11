@@ -15,7 +15,6 @@ using namespace sharkstore::dataserver::common;
 sf_socket_thread_config_t config;
 sf_socket_status_t status = {0};
 
-SocketSession *socket_session = new SocketSessionImpl;
 SocketServer socket_server;
 
 static void print_version() {
@@ -86,5 +85,5 @@ int main(int argc, char *argv[]) {
     sf_regist_user_init_callback(user_init);
     sf_regist_user_destroy_callback(user_destroy);
 
-    sf_service_run(argc, argv, "test_server");
+    sf_service_run(argc, argv, "fast_test_server");
 }
