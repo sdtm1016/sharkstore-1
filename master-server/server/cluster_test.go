@@ -32,7 +32,7 @@ func TestCreateTable(t *testing.T) {
 		t.Fatalf("create db error: %v", err)
 	}
 
-	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", 0, TABLE_PK_INT, nil, false, nil)
+	table, err := cluster.CreateTableSimply(DB_NAME, TABLE_NAME, TABLE_PK_INT, nil, false, nil)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
 	}
@@ -88,7 +88,7 @@ func TestDeleteTableFast(t *testing.T) {
 		t.Fatalf("create db error: %v", err)
 	}
 
-	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", 0, TABLE_PK_INT, nil, false, nil)
+	table, err := cluster.CreateTableSimply(DB_NAME, TABLE_NAME, TABLE_PK_INT, nil, false, nil)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
 	}
@@ -128,7 +128,7 @@ func TestDeleteTableSlow(t *testing.T) {
 		t.Fatalf("create db error: %v", err)
 	}
 
-	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", 0, TABLE_PK_INT, nil, false, nil)
+	table, err := cluster.CreateTableSimply(DB_NAME, TABLE_NAME, TABLE_PK_INT, nil, false, nil)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
 	}
@@ -205,7 +205,7 @@ func TestCreateTableWithLetterRangeKeys(t *testing.T) {
 		t.Fatalf("create table error: %v", err)
 	}
 
-	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", 0, TABLE_PK_VARCHAR, nil, false, sliceKeys)
+	table, err := cluster.CreateTableSimply(DB_NAME, TABLE_NAME, TABLE_PK_VARCHAR, nil, false, sliceKeys)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
 	}
@@ -238,7 +238,7 @@ func TestCreateTableWithNumericRangeKeys(t *testing.T) {
 		t.Fatalf("create table error: %v", err)
 	}
 
-	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", 0, TABLE_PK_VARCHAR, nil, false, sliceKeys)
+	table, err := cluster.CreateTableSimply(DB_NAME, TABLE_NAME, TABLE_PK_VARCHAR, nil, false, sliceKeys)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
 	}
@@ -274,7 +274,7 @@ func TestCreateTableWithRangeNumber1(t *testing.T) {
 		t.Fatalf("create table error: %v", err)
 	}
 
-	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", 0, TABLE_PK_VARCHAR, nil, false, sliceKeys)
+	table, err := cluster.CreateTableSimply(DB_NAME, TABLE_NAME, TABLE_PK_VARCHAR, nil, false, sliceKeys)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
 	}
@@ -310,7 +310,7 @@ func TestCreateTableWithRangeNumber2(t *testing.T) {
 		t.Fatalf("create table error: %v", err)
 	}
 
-	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", 0, TABLE_PK_VARCHAR, nil, false, sliceKeys)
+	table, err := cluster.CreateTableSimply(DB_NAME, TABLE_NAME, TABLE_PK_VARCHAR, nil, false, sliceKeys)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
 	}
@@ -346,7 +346,7 @@ func TestCreateTableWithRangeNumber3(t *testing.T) {
 		t.Fatalf("create table error: %v", err)
 	}
 
-	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", 0, TABLE_PK_VARCHAR, nil, false, sliceKeys)
+	table, err := cluster.CreateTableSimply(DB_NAME, TABLE_NAME, TABLE_PK_VARCHAR, nil, false, sliceKeys)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
 	}
@@ -383,7 +383,7 @@ func TestTableColumnEdit(t *testing.T) {
 	if err != nil {
 		t.Fatal("parse properties error: ", err)
 	}
-	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", 0, columns, nil, false, nil)
+	table, err := cluster.CreateTableSimply(DB_NAME, TABLE_NAME, columns, nil, false, nil)
 	if err != nil {
 		t.Fatalf("create table failed, err[%v]", err)
 	}
@@ -452,7 +452,7 @@ func TestAllocPeerAndSelectNode(t *testing.T) {
 				t.Fatalf("create table error: %v", err)
 			}
 
-			table, err := cluster.CreateTable(DB_NAME, fmt.Sprintf("%s%d", TABLE_NAME, i), "", 0, TABLE_PK_VARCHAR, nil, false, sliceKeys)
+			table, err := cluster.CreateTableSimply(DB_NAME, fmt.Sprintf("%s%d", TABLE_NAME, i), TABLE_PK_VARCHAR, nil, false, sliceKeys)
 			if err != nil {
 				t.Fatalf("create table error: %v", err)
 			}

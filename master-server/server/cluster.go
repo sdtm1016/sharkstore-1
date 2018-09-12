@@ -366,22 +366,25 @@ func encodeSplitKeys(keys [][]byte, columns []*metapb.Column) ([][]byte, error) 
 	return ret, nil
 }
 
-func (c *Cluster) int2ReadFromNode(v int32) metapb.ReadFromNode {
-	if v == 0 {
-		return metapb.ReadFromNode_ReadFromLeader
-	}
+func (c *Cluster) int2ReadFromNode(v int) metapb.ReadFromNode {
+	//if v == 2 {
+	//	return metapb.ReadFromNode_ReadFromAnyNode
+	//}
 	if v == 1 {
 		return metapb.ReadFromNode_ReadFromFollower
 	}
-	return metapb.ReadFromNode_ReadFromAnyNode
+	return metapb.ReadFromNode_ReadFromLeader
+}
+
+// no isolation-label and read policy specified
+func (c *Cluster) CreateTableSimply (dbName, tableName string, columns, regxs []*metapb.Column, pkDupCheck bool, sliceKeys [][]byte) (*Table, error) {
+	return c.CreateTable(dbName, tableName, "", metapb.ReadFromNode_ReadFromLeader, columns, regxs, pkDupCheck, sliceKeys)
 }
 
 // step 1. create table
 // step 2. create range in remote
 // step 3. add range in cache and disk
-//todo too many args
-func (c *Cluster) CreateTable(dbName, tableName, isolationLabel string, readPoint int32, columns, regxs []*metapb.Column, pkDupCheck bool, sliceKeys [][]byte) (*Table, error) {
-	readFromNode := c.int2ReadFromNode(readPoint)
+func (c *Cluster) CreateTable(dbName, tableName, isolationLabel string, readFromNode metapb.ReadFromNode, columns, regxs []*metapb.Column, pkDupCheck bool, sliceKeys [][]byte) (*Table, error) {
 	for _, col := range columns {
 		if isSqlReservedWord(col.Name) {
 			log.Warn("col[%s] is sql reserved word", col.Name)

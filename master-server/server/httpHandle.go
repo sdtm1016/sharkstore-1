@@ -329,7 +329,8 @@ func (service *Server) handleTableCreate(w http.ResponseWriter, r *http.Request)
 			return
 		}
 	}
-	table, err := service.cluster.CreateTable(dbName, tName, isolationLabel, int32(policy), columns, regxs, pkDupCheck != "false", sliceKeys)
+	readFromNode := service.cluster.int2ReadFromNode(policy)
+	table, err := service.cluster.CreateTable(dbName, tName, isolationLabel, readFromNode, columns, regxs, pkDupCheck != "false", sliceKeys)
 	if err != nil {
 		if err == ErrDupTable {
 			log.Warn("http create table repeat %s", tName)
@@ -377,7 +378,7 @@ func (service *Server) handleSqlTableCreate(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	_, err := service.cluster.CreateTable(dbName, table.GetName(), "", 0, table.GetColumns(), nil, false, nil)
+	_, err := service.cluster.CreateTableSimply(dbName, table.GetName(), table.GetColumns(), nil, false, nil)
 	if err != nil {
 		log.Error("http create table: %v", err)
 		reply.Code = HTTP_ERROR
@@ -1998,7 +1999,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 	//}
 	// fbase_cluster
 	parseColumn(fbase_cluster)
-	_, err = cluster.CreateTable(fbase, "fbase_cluster", isolationLabel, 0, fbase_cluster, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_cluster", isolationLabel, metapb.ReadFromNode_ReadFromLeader, fbase_cluster, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_cluster", err)
 		reply.Code = HTTP_ERROR
@@ -2008,7 +2009,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 
 	// fbase_role
 	parseColumn(fbase_role)
-	_, err = cluster.CreateTable(fbase, "fbase_role", isolationLabel, 0, fbase_role, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_role", isolationLabel, metapb.ReadFromNode_ReadFromLeader, fbase_role, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_role", err)
 		reply.Code = HTTP_ERROR
@@ -2017,7 +2018,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 	}
 	// fbase_user
 	parseColumn(fbase_user)
-	_, err = cluster.CreateTable(fbase, "fbase_user", isolationLabel, 0, fbase_user, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_user", isolationLabel, metapb.ReadFromNode_ReadFromLeader, fbase_user, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_user", err)
 		reply.Code = HTTP_ERROR
@@ -2025,7 +2026,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 		return
 	}
 	parseColumn(fbase_privilege)
-	_, err = cluster.CreateTable(fbase, "fbase_privilege", isolationLabel, 0, fbase_privilege, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_privilege", isolationLabel, metapb.ReadFromNode_ReadFromLeader, fbase_privilege, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_privilege", err)
 		reply.Code = HTTP_ERROR
@@ -2033,7 +2034,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 		return
 	}
 	parseColumn(fbase_sql_apply)
-	_, err = cluster.CreateTable(fbase, "fbase_sql_apply", isolationLabel, 0, fbase_sql_apply,nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_sql_apply", isolationLabel, metapb.ReadFromNode_ReadFromLeader, fbase_sql_apply,nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_sql_apply", err)
 		reply.Code = HTTP_ERROR
@@ -2042,7 +2043,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 	}
 	//lock namespace
 	parseColumn(fbase_lock_nsp)
-	_, err = cluster.CreateTable(fbase, "fbase_lock_nsp", isolationLabel, 0, fbase_lock_nsp, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_lock_nsp", isolationLabel, metapb.ReadFromNode_ReadFromLeader, fbase_lock_nsp, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_lock_nsp", err)
 		reply.Code = HTTP_ERROR
@@ -2051,7 +2052,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 	}
 	//configure namespace
 	parseColumn(fbase_configure_nsp)
-	_, err = cluster.CreateTable(fbase, "fbase_configure_nsp", isolationLabel, 0, fbase_configure_nsp, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "fbase_configure_nsp", isolationLabel, metapb.ReadFromNode_ReadFromLeader, fbase_configure_nsp, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_configure_nsp", err)
 		reply.Code = HTTP_ERROR
@@ -2061,7 +2062,7 @@ func (service *Server) handleManageClusterInit(w http.ResponseWriter, r *http.Re
 
 	//metric_server
 	parseColumn(metric_server)
-	_, err = cluster.CreateTable(fbase, "metric_server", isolationLabel, 0, metric_server, nil, false, nil)
+	_, err = cluster.CreateTable(fbase, "metric_server", isolationLabel, metapb.ReadFromNode_ReadFromLeader, metric_server, nil, false, nil)
 	if err != nil {
 		log.Warn("create table %s %s failed, err %v", fbase, "fbase_lock_nsp", err)
 		reply.Code = HTTP_ERROR
@@ -2237,7 +2238,7 @@ func (service *Server) handleTableEditPolicy(w http.ResponseWriter, r *http.Requ
 
 	//table.Table.ReadFromNode = cluster.int2ReadFromNode(int32(policy))
 	newTable := deepcopy.Iface(table.Table).(*metapb.Table)
-	newTable.ReadFromNode = cluster.int2ReadFromNode(int32(policy))
+	newTable.ReadFromNode = cluster.int2ReadFromNode(policy)
 	err := cluster.storeTable(newTable)
 	if err != nil {
 		reply.Code = HTTP_ERROR

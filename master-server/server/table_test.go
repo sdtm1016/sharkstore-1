@@ -82,7 +82,7 @@ func TestCreatingTable(t *testing.T) {
 	if err != nil {
 		t.Fatalf("split scope error: %v", err)
 	}
-	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", 0, TABLE_PK_VARCHAR, nil, false, sliceKeys)
+	table, err := cluster.CreateTableSimply(DB_NAME, TABLE_NAME, TABLE_PK_VARCHAR, nil, false, sliceKeys)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
 	}
@@ -186,7 +186,7 @@ func TestDeletingTable(t *testing.T) {
 		t.Fatalf("create db error: %v", err)
 	}
 
-	table, err := cluster.CreateTable(DB_NAME, TABLE_NAME, "", 0, TABLE_PK_INT, nil, false, nil)
+	table, err := cluster.CreateTableSimply(DB_NAME, TABLE_NAME, TABLE_PK_INT, nil, false, nil)
 	if err != nil {
 		t.Fatalf("create table error: %v", err)
 	}
