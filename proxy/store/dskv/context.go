@@ -1,10 +1,10 @@
 package dskv
 
 import (
-	"time"
 	"fmt"
-	"model/pkg/kvrpcpb"
 	"golang.org/x/net/context"
+	"model/pkg/kvrpcpb"
+	"time"
 )
 
 type Context struct {
@@ -13,7 +13,7 @@ type Context struct {
 	NodeId        uint64
 	NodeAddr      string
 	Timeout       time.Duration
-	ReqContext
+	ReqContext    *ReqContext
 }
 
 func (context *Context) String() string  {
@@ -57,10 +57,10 @@ func (context *ReqContext) GetBackOff() *Backoffer {
 
 func (context *ReqContext) String() string {
 	if context == nil {
-		return ""
+		return "request context: [<nil>]"
 	}
 	//return fmt.Sprintf("request context: id[%s], %s", context.reqId, context.reqBo)
-	return fmt.Sprintf("request context: %s", context.reqBo)
+	return fmt.Sprintf("request context: [%s]", context.reqBo)
 }
 
 func (context *ReqContext) Clone() *ReqContext {
