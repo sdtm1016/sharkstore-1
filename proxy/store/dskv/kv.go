@@ -313,8 +313,14 @@ func (p *KvProxy) do(bo *Backoffer, req *Request, key []byte) (resp *Response, l
 
 				for _, peer_status := range foundRange.peerStatus {
 					if foundRange.reader.Id == peer_status.Peer.Id {
+						// invalid follower read_index, switch back to leader
+						readIndex := peer_status.Applied
+						if readIndex <= 0 {
+							readNodeId = l.NodeId
+							p.RangeCache.DropRegion(foundRange.VerID())
+						}
 						// todo the period of updating peer index
-						req.SelectReq.Header.ReadIndex = peer_status.Applied
+						req.SelectReq.Header.ReadIndex = readIndex
 						break
 					}
 				}
