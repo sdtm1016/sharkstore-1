@@ -41,5 +41,6 @@ const (
 	ALARMRULE_NODE_WRITE_OPS 			= "node_write_ops"
 	ALARMRULE_NODE_READ_BPS 			= "node_read_bps"
 	ALARMRULE_NODE_READ_OPS 			= "node_read_ops"
+	RANGE_PEER_INDEX					= "range_peer_index"
 
 )

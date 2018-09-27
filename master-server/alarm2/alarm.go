@@ -214,7 +214,7 @@ func (s *Server) aliveChecking() {
 						app.ClusterId,
 						app.IpAddr})
 					if err != nil {
-						log.Error("new alive key faileld: process name[%v] cluster id[%v] ip addr[%v]: %v",
+						log.Error("new alive key failed: process name[%v] cluster id[%v] ip addr[%v]: %v",
 							app.ProcessName, app.ClusterId, app.IpAddr, err)
 						continue
 					}

@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"master-server/alarm2"
+	"model/pkg/alarmpb2"
 	"net"
 	"time"
 
@@ -165,6 +167,9 @@ func (service *Server) handleRangeHeartbeat(ctx context.Context, req *mspb.Range
 		log.Error("range[%v] had been deleted, but still exist heartbeat from nodeId[%d]. Please check ds log for more detail!", r.GetId(), req.GetLeader().GetNodeId())
 		return
 	}
+
+	go service.rangePeerIndexAlarm(req)
+
 	var saveStore, saveCache bool
 	rng := cluster.FindRange(r.GetId())
 	if rng == nil {
@@ -306,6 +311,41 @@ func (service *Server) handleRangeHeartbeat(ctx context.Context, req *mspb.Range
 		resp.Task = task
 	}
 	return
+}
+
+func (service *Server) rangePeerIndexAlarm(req *mspb.RangeHeartbeatRequest) {
+	clusterId := service.cluster.clusterId
+	peerStatuses := req.GetPeersStatus()
+	if peerStatuses == nil {
+		log.Warn("peer_status of range[%d] is nil.", req.GetRange().GetId())
+		return
+	}
+	var leaderIndex uint64
+	for _, peerStatus := range peerStatuses {
+		if peerStatus.GetPeer().GetId() == req.GetLeader().GetId() {
+			leaderIndex = peerStatus.GetIndex()
+			break
+		}
+	}
+
+	leaderAddr := service.cluster.FindNodeById(req.GetLeader().GetNodeId()).GetServerAddr()
+	ruleName := alarm2.RANGE_PEER_INDEX
+	compareType := alarmpb2.AlarmValueCompareType_NOT_LESS_THAN
+
+	for _, peerStatus := range peerStatuses {
+		if peerStatus.GetPeer().GetId() != req.GetLeader().GetId() {
+			peerAddr := service.cluster.FindNodeById(peerStatus.GetPeer().GetNodeId()).GetServerAddr()
+			remark := []string{fmt.Sprintf("[clusterId=%d, rangeId=%d], leader[nodeAddr=%s, index=%d], peer[peerAddr=%s, index=%d]",
+				clusterId, req.GetRange().GetId(), leaderAddr, leaderIndex, peerAddr, peerStatus.GetIndex())}
+
+			diff := float64(leaderIndex - peerStatus.GetIndex())
+			err := service.alarmClient.RuleAlarm(int64(clusterId), leaderAddr, "master-server", ruleName, diff, compareType, remark)
+			if err != nil {
+				log.Warn("run rule alarm error in range peer index check, err:%v", err)
+			}
+		}
+	}
+
 }
 
 func (service *Server) handleAskSplit(ctx context.Context, req *mspb.AskSplitRequest) (resp *mspb.AskSplitResponse, err error) {
