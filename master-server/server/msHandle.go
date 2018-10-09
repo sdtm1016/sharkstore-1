@@ -335,10 +335,14 @@ func (service *Server) rangePeerIndexAlarm(req *mspb.RangeHeartbeatRequest) {
 	for _, peerStatus := range peerStatuses {
 		if peerStatus.GetPeer().GetId() != req.GetLeader().GetId() {
 			peerAddr := service.cluster.FindNodeById(peerStatus.GetPeer().GetNodeId()).GetServerAddr()
-			remark := []string{fmt.Sprintf("[clusterId=%d, rangeId=%d], leader[nodeAddr=%s, index=%d], peer[peerAddr=%s, index=%d]",
+			remark := []string{fmt.Sprintf("clusterId[%d] rangeId[%d] leaderIndex[%s,%d] peerIndex[%s,%d]",
 				clusterId, req.GetRange().GetId(), leaderAddr, leaderIndex, peerAddr, peerStatus.GetIndex())}
 
 			diff := float64(leaderIndex - peerStatus.GetIndex())
+			// follower(s) caught up
+			if diff <= 0 {
+				continue
+			}
 			err := service.alarmClient.RuleAlarm(int64(clusterId), leaderAddr, "master-server", ruleName, diff, compareType, remark)
 			if err != nil {
 				log.Warn("run rule alarm error in range peer index check, err:%v", err)
